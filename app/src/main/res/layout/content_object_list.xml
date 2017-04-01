@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.credolabs.justcredo.ObjectListActivity"
+    tools:showIn="@layout/activity_object_list"
+    android:background="@color/colorDivider"
+    >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?android:attr/progressBarStyleLarge"
+            android:max="100"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+
+
+        <!-- Recycler View -->
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/linear_recyclerview"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_above="@+id/loadItemsLayout_recyclerView"
+            />
+
+
+        <!-- include progress layout that will be displayed while loading more data -->
+        <!-- initially it is hidden -->
+
+        <include
+            android:id="@+id/loadItemsLayout_recyclerView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            layout="@layout/progress_layout"
+            android:visibility="gone" />
+
+    </RelativeLayout>
+
+</android.support.constraint.ConstraintLayout>
