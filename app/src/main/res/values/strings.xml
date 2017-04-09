@@ -170,5 +170,7 @@
     <string name="website">www.dpspublic.com</string>
     <string name="rating_credability">weighted average based on user creadability on Credo</string>
     <string name="title_activity_image">ImageActivity</string>
+    <string name="title_activity_view_pager_example">ViewPagerExampleActivity</string>
+    <string name="swipe_viewpager">Swipe left or right to test ViewPager.</string>
 
 </resources>

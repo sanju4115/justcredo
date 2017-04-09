@@ -80,7 +80,7 @@ public class ImageFragment extends Fragment {
 
         ArrayList<String> imageURL = (ArrayList<String>) model.getImages();
         viewPager = (ViewPager) view.findViewById(R.id.viewpager);
-        adapter = new ImagePagerAdapter(getActivity(),imageURL);
+        adapter = new ImagePagerAdapter(getActivity(),imageURL,model);
         viewPager.setAdapter(adapter);
 
         leftNav = (ImageButton) view.findViewById(R.id.left_nav);

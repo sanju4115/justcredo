@@ -46,6 +46,10 @@
             android:name=".DetailedObjectActivity"
             android:label="@string/title_activity_detailed_object"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".FullZoomImageViewActivity"
+            android:label="@string/title_activity_view_pager_example"
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>

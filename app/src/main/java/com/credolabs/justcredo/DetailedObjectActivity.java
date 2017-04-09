@@ -10,8 +10,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ExpandableListAdapter;
@@ -22,15 +22,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.NetworkImageView;
 import com.credolabs.justcredo.adapters.CustomExpandableListAdapter;
 import com.credolabs.justcredo.adapters.FacilitiesAdapter;
 import com.credolabs.justcredo.adapters.FacultiesAdapter;
 import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.utility.CircularNetworkImageView;
 import com.credolabs.justcredo.utility.ExpandableListDataPump;
-import com.diegodobelo.expandingview.ExpandingItem;
-import com.diegodobelo.expandingview.ExpandingList;
-import com.google.gson.internal.LinkedTreeMap;
 
 
 import java.util.ArrayList;
@@ -64,6 +62,7 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.images, fragment).commit();
         final ObjectModel model = (ObjectModel) getIntent().getSerializableExtra("SchoolDetail");
+        ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
 
         //for hiding the title when viewpager is expanded and showing title when collapsed
         final CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.htab_collapse_toolbar);
@@ -127,7 +126,6 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
         CircularNetworkImageView profile1 = (CircularNetworkImageView) findViewById(R.id.profile1);
         CircularNetworkImageView profile2 = (CircularNetworkImageView) findViewById(R.id.profile2);
         CircularNetworkImageView profile3 = (CircularNetworkImageView) findViewById(R.id.profile3);
-        ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
         String nameFirstUser = " ";
         LinearLayout layoutReviews = (LinearLayout) findViewById(R.id.layout_reviews);
         LinearLayout layoutReviewsNo = (LinearLayout) findViewById(R.id.layout_reviews_no);
@@ -238,9 +236,57 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
         }
 
 
+        // Fee Section
+        ArrayList<String> feeImages = (ArrayList<String>) model.getImages();
+        NetworkImageView fee1 = (NetworkImageView) findViewById(R.id.fee1);
+        NetworkImageView fee2 = (NetworkImageView) findViewById(R.id.fee2);
+        NetworkImageView fee3 = (NetworkImageView) findViewById(R.id.fee3);
+        NetworkImageView fee4 = (NetworkImageView) findViewById(R.id.fee4);
+
+        if (feeImages.size()==0){
+            RelativeLayout feeSection = (RelativeLayout) findViewById(R.id.fee_section);
+            feeSection.setVisibility(View.GONE);
+        }else if(feeImages.size()==1){
+            fee1.setVisibility(View.VISIBLE);
+            fee1.setImageUrl(feeImages.get(0),imgLoader);
+        }else if(feeImages.size()==2){
+            fee1.setVisibility(View.VISIBLE);
+            fee1.setImageUrl(feeImages.get(0),imgLoader);
+            fee2.setVisibility(View.VISIBLE);
+            fee2.setImageUrl(feeImages.get(1),imgLoader);
+
+        }else if(feeImages.size()==3){
+            fee1.setVisibility(View.VISIBLE);
+            fee1.setImageUrl(feeImages.get(0),imgLoader);
+            fee2.setVisibility(View.VISIBLE);
+            fee2.setImageUrl(feeImages.get(1),imgLoader);
+            fee3.setVisibility(View.VISIBLE);
+            fee3.setImageUrl(feeImages.get(2),imgLoader);
+        }else if (feeImages.size()==4){
+            fee1.setVisibility(View.VISIBLE);
+            fee1.setImageUrl(feeImages.get(0),imgLoader);
+            fee2.setVisibility(View.VISIBLE);
+            fee2.setImageUrl(feeImages.get(1),imgLoader);
+            fee3.setVisibility(View.VISIBLE);
+            fee3.setImageUrl(feeImages.get(2),imgLoader);
+            fee4.setVisibility(View.VISIBLE);
+            fee4.setImageUrl(feeImages.get(3),imgLoader);
+        }else {
+            fee1.setVisibility(View.VISIBLE);
+            fee1.setImageUrl(feeImages.get(0),imgLoader);
+            fee2.setVisibility(View.VISIBLE);
+            fee2.setImageUrl(feeImages.get(1),imgLoader);
+            fee3.setVisibility(View.VISIBLE);
+            fee3.setImageUrl(feeImages.get(2),imgLoader);
+            fee4.setVisibility(View.VISIBLE);
+            fee4.setImageUrl(feeImages.get(3),imgLoader);
+            TextView noOfImages = (TextView) findViewById(R.id.no_of_fee);
+            noOfImages.setVisibility(View.VISIBLE);
+            noOfImages.setText("+"+(feeImages.size()-4)+" Photos");
+        }
 
 
-        expandableListView = (ExpandableListView) findViewById(R.id.expandableListView);
+        /*expandableListView = (ExpandableListView) findViewById(R.id.expandableListView);
         expandableListDetail = ExpandableListDataPump.getData(model.getClasses());
         expandableListTitle = new ArrayList<String>(expandableListDetail.keySet());
         expandableListAdapter = new CustomExpandableListAdapter(this, expandableListTitle, expandableListDetail);
@@ -286,15 +332,15 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
                 ).show();
                 return false;
             }
-        });
+        });*/
 
 
         Button call = (Button) findViewById(R.id.call);
         call.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Intent i = new Intent(DetailedObjectActivity.this,ImageActivity.class);
-                //startActivity(i);
+                Intent i = new Intent(DetailedObjectActivity.this,FullZoomImageViewActivity.class);
+                startActivity(i);
             }
         });
     }
@@ -311,7 +357,16 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
     public void onFragmentInteraction(Uri uri) {
 
     }
-
+    @Override
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
+        if (menuItem.getItemId() == android.R.id.home) {
+            //Intent intent = new Intent(this, CategoryActivity.class);
+            //startActivity(intent);
+            //overridePendingTransition(R.anim.enter_from_left, R.anim.exit_on_right);
+            this.finish();
+        }
+        return super.onOptionsItemSelected(menuItem);
+    }
 
 
 

@@ -23,17 +23,7 @@
         <include layout="@layout/school_address" />
         <include layout="@layout/school_hours" />
         <include layout="@layout/school_contact" />
-
-
-
-
-        <TextView
-            android:background="@color/colorIcons"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:text="@string/large_text" />
-
+        
 
     </LinearLayout>
 
