@@ -41,6 +41,9 @@ public class ObjectListActivity extends AppCompatActivity {
     private  RelativeLayout bottomLayout;
     private  LinearLayoutManager mLayoutManager;
     private ProgressBar progressBar;
+    private int page = 1;
+    private int count = 20;
+    private boolean dataFinished = false;
 
 
     // Variables for scroll listener
@@ -81,7 +84,7 @@ public class ObjectListActivity extends AppCompatActivity {
         listRecyclerView.setHasFixedSize(true);
         listRecyclerView.setLayoutManager(mLayoutManager);// for linea data display we use linear layoutmanager
         populatRecyclerView();
-       // implementScrollListener();
+       implementScrollListener();
     }
 
 
@@ -108,7 +111,7 @@ public class ObjectListActivity extends AppCompatActivity {
                 MyApplication.volleyQueueInstance.cancelRequestInQueue(GETOBJECTLISTHIT);
 
                 //build Get url of Place Autocomplete and hit the url to fetch result.
-                request = new VolleyJSONRequest(Request.Method.GET, Constants.OBJECTLIST_URL , null, null,
+                request = new VolleyJSONRequest(Request.Method.GET, Constants.OBJECTLIST_URL+"?pageNo="+page+"&count="+count , null, null,
                         new Response.Listener<String>(){
 
                             /**
@@ -206,20 +209,22 @@ public class ObjectListActivity extends AppCompatActivity {
                         // the item is end then update recycler view and set
                         // userScrolled to false
                         if (userScrolled
-                                && (visibleItemCount + pastVisiblesItems) == totalItemCount) {
+                                && (visibleItemCount + pastVisiblesItems) == totalItemCount && !dataFinished) {
                             userScrolled = false;
 
-                            //updateRecyclerView();
+
+                            updateRecyclerView();
                         }
 
                     }
 
                 });
 
+
     }
 
 
-   /* // Method for repopulating recycler view
+    // Method for repopulating recycler view
     private void updateRecyclerView() {
 
         // Show Progress Layout
@@ -233,7 +238,53 @@ public class ObjectListActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                // Loop for 3 items
+                page++;
+                MyApplication.volleyQueueInstance.cancelRequestInQueue(GETOBJECTLISTHIT);
+
+                //build Get url of Place Autocomplete and hit the url to fetch result.
+                request = new VolleyJSONRequest(Request.Method.GET, Constants.OBJECTLIST_URL+"?pageNo="+page+"&count="+count , null, null,
+                        new Response.Listener<String>(){
+
+                            /**
+                             * Called when a response is received.
+                             *
+                             * @param response
+                             */
+                            @Override
+                            public void onResponse(String response) {
+                                Log.d("PLACES RESULT:::", response);
+                                Gson gson = new Gson();
+                                ObjectModel[] data = gson.fromJson(response, ObjectModel[].class);
+                                if(data.length != count){
+                                    dataFinished = true;
+                                }
+                                //listArrayList = new ArrayList<ObjectModel>(Arrays.asList(data));
+                                listArrayList.addAll(Arrays.asList(data));
+                                adapter.notifyDataSetChanged();
+                            }
+                        },new Response.ErrorListener(){
+
+                    /**
+                     * Callback method that an error has been occurred with the
+                     * provided error code and optional user-readable message.
+                     *
+                     * @param error
+                     */
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("PLACES RESULT:::", "Volley Error");
+                        error.printStackTrace();
+                    }
+                });
+
+                //Give a tag to your request so that you can use this tag to cancle request later.
+                request.setTag(GETOBJECTLISTHIT);
+
+                MyApplication.volleyQueueInstance.addToRequestQueue(request);
+
+
+
+                /*// Loop for 3 items
                 for (int i = 0; i < 3; i++) {
                     int value = new RandomNumberGenerator().RandomGenerator();// Random
                     // value
@@ -242,7 +293,7 @@ public class ObjectListActivity extends AppCompatActivity {
                     listArrayList.add(new ObjectModel(getTitle[value],
                             getLocation[value], getYear[value], images[value]));
                 }
-                adapter.notifyDataSetChanged();// notify adapter
+                adapter.notifyDataSetChanged();// notify adapter*/
 
                 // Toast for task completion
                 Toast.makeText(ObjectListActivity.this, "Items Updated.",
@@ -252,8 +303,8 @@ public class ObjectListActivity extends AppCompatActivity {
                 bottomLayout.setVisibility(View.GONE);
 
             }
-        }, 5000);
-    }*/
+        }, 1000);
+    }
 
 
     @Override

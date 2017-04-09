@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginBottom="5dp"
+    android:background="@color/colorIcons">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="Locality\nCity\nState Postal Code"
+                android:id="@+id/school_address_locality"
+                android:layout_marginRight="20dp"
+                android:padding="10dp"
+                />
+
+            <fragment android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:id="@+id/map"
+                tools:context=".DetailedObjectActivity"
+                android:name="com.google.android.gms.maps.MapFragment"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/colorDivider"
+            android:layout_centerHorizontal="true"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:textColor="@color/red"
+            android:text="Maps &amp; Direction"
+            android:gravity="right"
+            android:textStyle="bold"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="10dp"/>
+
+    </LinearLayout>
+
+
+
+</RelativeLayout>

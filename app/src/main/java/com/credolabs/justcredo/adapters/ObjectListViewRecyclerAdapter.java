@@ -1,8 +1,10 @@
 package com.credolabs.justcredo.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,9 +12,12 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.android.volley.toolbox.ImageLoader;
+import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.MyApplication;
+import com.credolabs.justcredo.ObjectListActivity;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.model.ObjectModel;
+import com.google.gson.internal.LinkedTreeMap;
 
 import java.util.ArrayList;
 
@@ -43,16 +48,29 @@ public class ObjectListViewRecyclerAdapter extends
         final ObjectModel model = arrayList.get(position);
 
         ObjectListViewHolder mainHolder =  holder;// holder
-
+        String locality = " ";
+        String city = " ";
+        String state = " ";
         // setting data over views
         mainHolder.school_name.setText(model.getName());
-        mainHolder.school_address.setText(model.getAddress());
-        mainHolder.school_review.setText("10");
+        LinkedTreeMap<String,String> address = new LinkedTreeMap<>();
+        address = (LinkedTreeMap<String, String>) model.getAddress();
+        if (address.get("locality")!= null){
+            locality = address.get("locality");
+        }
+        if (address.get("city")!= null){
+            city = address.get("city");
+        }
+        if (address.get("state")!= null){
+            state = address.get("state");
+        }
+        mainHolder.school_address.setText(locality + ", "+ city + ", "+ state);
+        mainHolder.school_review.setText(model.getNoOfReviews());
         mainHolder.distance.setText("1 km");
         //mainHolder.rating.setText(model.getRating());
         mainHolder.rating.setScore(Float.parseFloat(model.getRating()));
         mainHolder.phone.setText(model.getPhone());
-        mainHolder.category.setText(model.getPhone());
+        mainHolder.category.setText(model.getCategory());
         mainHolder.medium.setText(model.getMedium());
         mainHolder.school_name.setText(model.getName());
 
@@ -68,7 +86,16 @@ public class ObjectListViewRecyclerAdapter extends
         // loader - loader image, will be displayed before getting image
         // image - ImageView
 
-        mainHolder.image.setImageUrl(model.getImages(), imgLoader);
+
+        /*//Loading Image from URL
+        Picasso.with(this)
+                .load("https://www.simplifiedcoding.net/wp-content/uploads/2015/10/advertise.png")
+                .placeholder(R.drawable.placeholder)   // optional
+                .error(R.drawable.error)      // optional
+                .resize(400,400)                        // optional
+                .into(imageView);*/
+
+        mainHolder.image.setImageUrl(model.getCoverImage(), imgLoader);
 
 
         // Implement click listener over layout
@@ -83,6 +110,13 @@ public class ObjectListViewRecyclerAdapter extends
                         Toast.makeText(context,
                                 "You have clicked " + model.getName(),
                                 Toast.LENGTH_LONG).show();
+
+
+                        Intent intent = new Intent(context,DetailedObjectActivity.class);
+                        intent.putExtra("SchoolDetail",arrayList.get(position));
+                        context.startActivity(intent);
+                        //overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+                        //finish();
                         break;
 
                 }

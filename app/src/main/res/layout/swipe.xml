@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.android.volley.toolbox.NetworkImageView
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:id="@+id/school_image"
+        android:src="@drawable/ic_nocover"
+        android:scaleType="centerCrop"
+        />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12dp"
+        android:text="Hello world!"
+        android:id="@+id/textView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp"
+        android:layout_marginRight="20dp"
+        android:padding="8dp"
+        android:background="@drawable/rating"
+        android:textColor="@color/colorIcons"/>
+
+
+
+</RelativeLayout>
+<!--
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageView"
+        android:src="@drawable/img_fjords"
+        android:scaleType="centerCrop"
+        />
+
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="25dp"
+        android:text="Hello world!"
+        android:id="@+id/textView"
+        android:textStyle="bold"
+        android:layout_marginTop="-80dp"
+        android:background="@color/list_selector_color"
+        android:textColor="@color/colorIcons"/>
+
+    &lt;!&ndash;<TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25dp"
+        android:text="Hello world!"
+        android:id="@+id/textView"
+        android:textStyle="bold"
+        android:layout_marginTop="-80dp"
+        android:gravity="right"
+        android:textColor="@color/colorIcons"/>&ndash;&gt;
+
+
+
+
+</LinearLayout>-->

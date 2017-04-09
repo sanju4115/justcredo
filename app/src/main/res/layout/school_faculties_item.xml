@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp">
+
+
+    <com.credolabs.justcredo.utility.CircularNetworkImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:id="@+id/faculty_image"
+        android:src="@drawable/funambulist"
+        />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sanjay Kumar"
+                android:id="@+id/faculty_name"
+                android:textColor="@color/colorPrimaryText"
+                android:layout_marginLeft="10dp"
+                android:textSize="12dp"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Qualification :"
+                android:layout_marginLeft="10dp"
+                android:textSize="10dp"
+                android:textColor="@color/colorSecondaryText"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/faculty_qualification"
+                android:textSize="10dp"
+                android:textColor="@color/colorSecondaryText"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Subjects :"
+                android:layout_marginLeft="10dp"
+                android:textSize="10dp"
+                android:textColor="@color/colorSecondaryText"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/faculty_subjects"
+                android:textSize="10dp"
+                android:textColor="@color/colorSecondaryText"/>
+
+
+        </LinearLayout>
+
+        </LinearLayout>
+</LinearLayout>

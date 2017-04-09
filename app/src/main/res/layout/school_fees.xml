@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorIcons"
+    android:padding="10dp"
+    android:layout_marginBottom="5dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fee Structure"
+        android:textStyle="bold"
+        android:id="@+id/text_fee"
+        android:textColor="@color/colorPrimaryText"/>
+
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/fee_img"/>
+
+
+    <!--<com.diegodobelo.expandingview.ExpandingList
+        android:id="@+id/expanding_list_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>-->
+
+
+    <com.credolabs.justcredo.utility.NonScrollExpandableListView
+        android:id="@+id/expandableListView"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:indicatorLeft="?android:attr/expandableListPreferredItemIndicatorLeft"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="0.5dp"
+        android:layout_marginTop="20dp"/>
+
+
+</RelativeLayout>

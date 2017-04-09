@@ -264,12 +264,14 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
 
         //ArrayList lastLocationsSearched = getListData();
         HistorySearchedModel[] locations = getObject();
-        ArrayList<HistorySearchedModel> list = new ArrayList<HistorySearchedModel>(Arrays.asList(locations));
+        if (locations != null) {
+            ArrayList<HistorySearchedModel> list = new ArrayList<HistorySearchedModel>(Arrays.asList(locations));
+            listViewHistorySearched.setAdapter(new HistorySearchedAdapter(this, list));
+        }
         LayoutInflater inflater = getLayoutInflater();
         ViewGroup header = (ViewGroup) inflater.inflate(R.layout.current_location, listViewHistorySearched,
                 false);
         listViewHistorySearched.addHeaderView(header, null, false);
-        listViewHistorySearched.setAdapter(new HistorySearchedAdapter(this, list));
         listViewHistorySearched.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
