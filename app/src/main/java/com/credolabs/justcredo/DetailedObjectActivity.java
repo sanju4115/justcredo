@@ -26,9 +26,19 @@ import com.android.volley.toolbox.NetworkImageView;
 import com.credolabs.justcredo.adapters.CustomExpandableListAdapter;
 import com.credolabs.justcredo.adapters.FacilitiesAdapter;
 import com.credolabs.justcredo.adapters.FacultiesAdapter;
+import com.credolabs.justcredo.adapters.TimingsAdapter;
 import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.utility.CircularNetworkImageView;
 import com.credolabs.justcredo.utility.ExpandableListDataPump;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 
 import java.util.ArrayList;
@@ -36,7 +46,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class DetailedObjectActivity extends AppCompatActivity implements ImageFragment.OnFragmentInteractionListener {
+public class DetailedObjectActivity extends AppCompatActivity implements ImageFragment.OnFragmentInteractionListener, OnMapReadyCallback {
 
     private Window w;
     private Fragment fragment;
@@ -46,6 +56,7 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
     List<String> expandableListTitle;
     HashMap<String, LinkedHashMap<String, String>> expandableListDetail;
     private int lastExpandedPosition = -1;
+    private ObjectModel model;
 
 
     @Override
@@ -61,7 +72,7 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
         fragment = new ImageFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.images, fragment).commit();
-        final ObjectModel model = (ObjectModel) getIntent().getSerializableExtra("SchoolDetail");
+        model = (ObjectModel) getIntent().getSerializableExtra("SchoolDetail");
         ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
 
         //for hiding the title when viewpager is expanded and showing title when collapsed
@@ -236,6 +247,7 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
         }
 
 
+
         // Fee Section
         ArrayList<String> feeImages = (ArrayList<String>) model.getImages();
         NetworkImageView fee1 = (NetworkImageView) findViewById(R.id.fee1);
@@ -285,6 +297,23 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
             noOfImages.setText("+"+(feeImages.size()-4)+" Photos");
         }
 
+
+        // Opening Hours Section
+        HashMap<String,HashMap<String,String>> schoolHours = (HashMap<String, HashMap<String, String>>) model.getSchoolTimings();
+        LinearLayout timingsLinearLayout = (LinearLayout) findViewById(R.id.linear_layout_timings);
+        TimingsAdapter timingsAdapter = new TimingsAdapter(this,schoolHours,this);
+        adapterCount = timingsAdapter.getCount();
+        for(int i = 0; i < adapterCount; i++){
+            View item = timingsAdapter.getView(i, null, null);
+            timingsLinearLayout.addView(item);
+        }
+
+        //Address section
+        TextView schoolAddressSecton = (TextView) findViewById(R.id.school_address_locality);
+        schoolAddressSecton.setText(locality + ", "+city+", "+state+", "+postalCode);
+        MapFragment mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
         /*expandableListView = (ExpandableListView) findViewById(R.id.expandableListView);
         expandableListDetail = ExpandableListDataPump.getData(model.getClasses());
@@ -366,6 +395,19 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
             this.finish();
         }
         return super.onOptionsItemSelected(menuItem);
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        // Add a marker in Sydney, Australia,
+        // and move the map's camera to the same location.
+        LatLng schoolLocation = new LatLng(Double.parseDouble(model.getLatitude()), Double.parseDouble(model.getLongitude()));
+        googleMap.addMarker(new MarkerOptions().position(schoolLocation)
+                .title(model.getName()));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(schoolLocation));
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(schoolLocation).zoom(14.0f).build();
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
+        googleMap.moveCamera(cameraUpdate);
     }
 
 

@@ -22,13 +22,14 @@
         android:layout_alignParentRight="true"
         android:src="@drawable/calendar"/>
 
-    <TextView
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
+        android:orientation="vertical"
+        android:layout_marginRight="20dp"
         android:layout_below="@+id/text_description"
-        android:text="@string/school_description"
-        android:id="@+id/description"
-        android:textColor="@color/colorSecondaryText"/>
+        android:id="@+id/linear_layout_timings">
+
+    </LinearLayout>
 
 </RelativeLayout>

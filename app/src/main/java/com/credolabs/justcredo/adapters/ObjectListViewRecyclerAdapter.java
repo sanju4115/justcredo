@@ -78,15 +78,6 @@ public class ObjectListViewRecyclerAdapter extends
 
         // ImageLoader class instance
         ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
-
-
-        // whenever you want to load an image from url
-        // call DisplayImage function
-        // url - image url to load
-        // loader - loader image, will be displayed before getting image
-        // image - ImageView
-
-
         /*//Loading Image from URL
         Picasso.with(this)
                 .load("https://www.simplifiedcoding.net/wp-content/uploads/2015/10/advertise.png")
@@ -97,7 +88,6 @@ public class ObjectListViewRecyclerAdapter extends
 
         mainHolder.image.setImageUrl(model.getCoverImage(), imgLoader);
 
-
         // Implement click listener over layout
         mainHolder.setClickListener(new RecyclerViewOnClickListener.OnClickListener() {
 
@@ -105,13 +95,6 @@ public class ObjectListViewRecyclerAdapter extends
             public void OnItemClick(View view, int position) {
                 switch (view.getId()) {
                     case R.id.list_layout:
-
-                        // Show a toast on clicking layout
-                        Toast.makeText(context,
-                                "You have clicked " + model.getName(),
-                                Toast.LENGTH_LONG).show();
-
-
                         Intent intent = new Intent(context,DetailedObjectActivity.class);
                         intent.putExtra("SchoolDetail",arrayList.get(position));
                         context.startActivity(intent);
@@ -138,7 +121,6 @@ public class ObjectListViewRecyclerAdapter extends
         return listHolder;
 
     }
-
 
     public void clear() {
         int size = this.arrayList.size();

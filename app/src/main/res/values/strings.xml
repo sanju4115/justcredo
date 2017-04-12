@@ -172,5 +172,6 @@
     <string name="title_activity_image">ImageActivity</string>
     <string name="title_activity_view_pager_example">ViewPagerExampleActivity</string>
     <string name="swipe_viewpager">Swipe left or right to test ViewPager.</string>
+    <string name="title_activity_splash">SplashActivity</string>
 
 </resources>

@@ -20,7 +20,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.android.volley.Cache;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.credolabs.justcredo.adapters.CategoryAdapter;
@@ -28,6 +30,7 @@ import com.credolabs.justcredo.model.CategoryModel;
 import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.UserLocation;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
+import com.credolabs.justcredo.utility.VolleySingleton;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -35,6 +38,7 @@ import com.google.gson.Gson;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 
@@ -99,84 +103,6 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-        //for loading categories from api
-        //progressBar.setVisibility(View.VISIBLE);
-
-        Runnable run = new Runnable() {
-
-
-            @Override
-            public void run() {
-                progressBar.setVisibility(View.VISIBLE);
-                // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
-                MyApplication.volleyQueueInstance.cancelRequestInQueue(GETCATEGORYHIT);
-
-                //build Get url of Place Autocomplete and hit the url to fetch result.
-                request = new VolleyJSONRequest(Request.Method.GET, Constants.CATEGORY_URL , null, null,
-                        new Response.Listener<String>(){
-
-                            /**
-                             * Called when a response is received.
-                             *
-                             * @param response
-                             */
-                            @Override
-                            public void onResponse(String response) {
-                                //searchBtn.setVisibility(View.VISIBLE);
-                                progressBar.setVisibility(View.GONE);
-                                Log.d("PLACES RESULT:::", response);
-                                Gson gson = new Gson();
-                                // categories = gson.fromJson(response, ArrayList<Categories.class>);
-                                data = gson.fromJson(response, CategoryModel[].class);
-
-                                if ( mCategoryAdapter== null) {
-                                    //mCategoryAdapter = new CategoryAdapter(this, categories.getCategories(), CategoryActivity.this);
-                                    mCategoryAdapter = new CategoryAdapter(getActivity(), data, getActivity());
-
-                                    categoryListView.setAdapter(mCategoryAdapter);
-                                } else {
-                                    mCategoryAdapter.clear();
-                                    //mCategoryAdapter.addAll(categories.getCategories());
-
-                                    mCategoryAdapter.addAll(data);
-                                    mCategoryAdapter.notifyDataSetChanged();
-                                    categoryListView.invalidate();
-                                }
-                            }
-                        },new Response.ErrorListener(){
-
-                    /**
-                     * Callback method that an error has been occurred with the
-                     * provided error code and optional user-readable message.
-                     *
-                     * @param error
-                     */
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("PLACES RESULT:::", "Volley Error");
-                        error.printStackTrace();
-                        progressBar.setVisibility(View.GONE);
-
-                    }
-                });
-
-                //Give a tag to your request so that you can use this tag to cancle request later.
-                request.setTag(GETCATEGORYHIT);
-
-                MyApplication.volleyQueueInstance.addToRequestQueue(request);
-
-            }
-
-        };
-
-        // only canceling the network calls will not help, you need to remove all callbacks as well
-        // otherwise the pending callbacks and messages will again invoke the handler and will send the request
-        if (handler != null) {
-            handler.removeCallbacksAndMessages(null);
-        } else {
-            handler = new Handler();
-        }
-        handler.postDelayed(run, 1000);
 
     }
 
@@ -217,6 +143,120 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
                 //finish();
             }
         });
+
+
+        //for loading categories from api
+        //progressBar.setVisibility(View.VISIBLE);
+        RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
+        Cache.Entry entry = queue.getCache().get(Constants.CATEGORY_URL);
+        Cache cache = MyApplication.getInstance().getRequestQueue().getCache();
+        Cache.Entry entry1 = cache.get("0:"+Constants.CATEGORY_URL);
+
+        if(entry1 ==null) {
+
+            Runnable run = new Runnable() {
+
+
+                @Override
+                public void run() {
+                    progressBar.setVisibility(View.VISIBLE);
+                    // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
+                    MyApplication.volleyQueueInstance.cancelRequestInQueue(GETCATEGORYHIT);
+
+                    //build Get url of Place Autocomplete and hit the url to fetch result.
+                    request = new VolleyJSONRequest(Request.Method.GET, Constants.CATEGORY_URL, null, null,
+                            new Response.Listener<String>() {
+
+                                /**
+                                 * Called when a response is received.
+                                 *
+                                 * @param response
+                                 */
+                                @Override
+                                public void onResponse(String response) {
+                                    //searchBtn.setVisibility(View.VISIBLE);
+                                    progressBar.setVisibility(View.GONE);
+                                    Log.d("PLACES RESULT:::", response);
+                                    Gson gson = new Gson();
+                                    // categories = gson.fromJson(response, ArrayList<Categories.class>);
+                                    data = gson.fromJson(response, CategoryModel[].class);
+
+                                    if (mCategoryAdapter == null) {
+                                        //mCategoryAdapter = new CategoryAdapter(this, categories.getCategories(), CategoryActivity.this);
+                                        mCategoryAdapter = new CategoryAdapter(getActivity(), data, getActivity());
+
+                                        categoryListView.setAdapter(mCategoryAdapter);
+                                    } else {
+                                        mCategoryAdapter.clear();
+                                        //mCategoryAdapter.addAll(categories.getCategories());
+
+                                        mCategoryAdapter.addAll(data);
+                                        mCategoryAdapter.notifyDataSetChanged();
+                                        categoryListView.invalidate();
+                                    }
+                                }
+                            }, new Response.ErrorListener() {
+
+                        /**
+                         * Callback method that an error has been occurred with the
+                         * provided error code and optional user-readable message.
+                         *
+                         * @param error
+                         */
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.d("PLACES RESULT:::", "Volley Error");
+                            error.printStackTrace();
+                            progressBar.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    //Give a tag to your request so that you can use this tag to cancle request later.
+                    request.setTag(GETCATEGORYHIT);
+
+                    MyApplication.volleyQueueInstance.addToRequestQueue(request);
+
+                }
+
+            };
+
+            // only canceling the network calls will not help, you need to remove all callbacks as well
+            // otherwise the pending callbacks and messages will again invoke the handler and will send the request
+            if (handler != null) {
+                handler.removeCallbacksAndMessages(null);
+            } else {
+                handler = new Handler();
+            }
+            handler.postDelayed(run, 1000);
+        }else {
+            if(entry1!=null){
+                try {
+                    String str = new String(entry1.data, "UTF-8");
+                    Gson gson = new Gson();
+                    // categories = gson.fromJson(response, ArrayList<Categories.class>);
+                    data = gson.fromJson(str, CategoryModel[].class);
+
+                    if (mCategoryAdapter == null) {
+                        //mCategoryAdapter = new CategoryAdapter(this, categories.getCategories(), CategoryActivity.this);
+                        mCategoryAdapter = new CategoryAdapter(getActivity(), data, getActivity());
+
+                        categoryListView.setAdapter(mCategoryAdapter);
+                    } else {
+                        mCategoryAdapter.clear();
+                        //mCategoryAdapter.addAll(categories.getCategories());
+
+                        mCategoryAdapter.addAll(data);
+                        mCategoryAdapter.notifyDataSetChanged();
+                        categoryListView.invalidate();
+                    }
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                // process data
+            }
+        }
+
 
         return view;
     }

@@ -1,10 +1,12 @@
 package com.credolabs.justcredo.model;
 
+import java.io.Serializable;
+
 /**
  * Created by ravindrapatidar on 26/03/17.
  */
 
-public class CategoryModel {
+public class CategoryModel implements Serializable{
 
     private String name;
     private String description;
