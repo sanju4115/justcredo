@@ -9,7 +9,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:id="@+id/faculty_image"
-        android:src="@drawable/funambulist"
+        android:src="@drawable/ic_nocover"
         />
 
     <LinearLayout

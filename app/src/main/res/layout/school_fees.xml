@@ -19,7 +19,7 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_alignParentRight="true"
-        android:src="@drawable/fee_img"/>
+        android:src="@mipmap/ic_money"/>
 
 
     <!--<com.diegodobelo.expandingview.ExpandingList

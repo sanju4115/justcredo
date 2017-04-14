@@ -108,7 +108,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:id="@+id/profile1"
-        android:src="@drawable/funambulist"
+        android:src="@drawable/ic_nocover"
         android:visibility="gone"
         />
 
@@ -116,7 +116,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:id="@+id/profile2"
-        android:src="@drawable/funambulist"
+        android:src="@drawable/ic_nocover"
         android:visibility="gone"
         android:layout_marginLeft="-25dp"/>
 
@@ -124,7 +124,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:id="@+id/profile3"
-        android:src="@drawable/funambulist"
+        android:src="@drawable/ic_nocover"
         android:layout_marginLeft="-25dp"
         android:visibility="gone"/>
 

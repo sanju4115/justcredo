@@ -35,6 +35,7 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.credolabs.justcredo.BuildConfig;
 import com.credolabs.justcredo.HomeActivity;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
@@ -90,6 +91,7 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
     ListView listViewHistorySearched;
     Boolean isViewUP = false;
     Boolean isViewDown = true;
+    private final String GOOGLE_LOCATION_API_KEY = BuildConfig.GoogleLocationAPIKey;
 
 
 
@@ -351,7 +353,7 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
         urlString.append("&location=");
         urlString.append(latitude + "," + longitude); // append lat long of current location to show nearby results.
         urlString.append("&radius=500&language=en");
-        urlString.append("&key=" + "AIzaSyCKfnN8vlJzaGUmoDMGyjBp59CL3XJm958");
+        urlString.append("&key=" + GOOGLE_LOCATION_API_KEY);
 
         Log.d("FINAL URL:::   ", urlString.toString());
         return urlString.toString();

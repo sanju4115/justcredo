@@ -29,6 +29,7 @@ import com.credolabs.justcredo.adapters.CategoryAdapter;
 import com.credolabs.justcredo.model.CategoryModel;
 import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.UserLocation;
+import com.credolabs.justcredo.utility.Util;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
 import com.credolabs.justcredo.utility.VolleySingleton;
 import com.google.android.gms.common.ConnectionResult;
@@ -40,6 +41,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 
 /**
@@ -73,7 +75,8 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
     private TextView locationView;
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    CategoryModel[] data;
+    private CategoryModel[] data;
+    private static final String URL_FEED = "0:"+Constants.CATEGORY_URL;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -144,15 +147,31 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
             }
         });
 
+        Gson gson = new Gson();
+        String strObj = getActivity().getIntent().getStringExtra("category_list");;
 
-        //for loading categories from api
+        // To retrieve object in second Activity
+        data = gson.fromJson(strObj,CategoryModel[].class);
+
+        if (mCategoryAdapter == null) {
+            //mCategoryAdapter = new CategoryAdapter(this, categories.getCategories(), CategoryActivity.this);
+            mCategoryAdapter = new CategoryAdapter(getActivity(), data, getActivity());
+
+            categoryListView.setAdapter(mCategoryAdapter);
+        } else {
+            mCategoryAdapter.clear();
+            //mCategoryAdapter.addAll(categories.getCategories());
+
+            mCategoryAdapter.addAll(data);
+            mCategoryAdapter.notifyDataSetChanged();
+            categoryListView.invalidate();
+        }
+        /*//for loading categories from api
         //progressBar.setVisibility(View.VISIBLE);
-        RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
-        Cache.Entry entry = queue.getCache().get(Constants.CATEGORY_URL);
         Cache cache = MyApplication.getInstance().getRequestQueue().getCache();
-        Cache.Entry entry1 = cache.get("0:"+Constants.CATEGORY_URL);
+        Cache.Entry entry = cache.get(URL_FEED);
 
-        if(entry1 ==null) {
+        if(entry ==null) {
 
             Runnable run = new Runnable() {
 
@@ -167,11 +186,11 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
                     request = new VolleyJSONRequest(Request.Method.GET, Constants.CATEGORY_URL, null, null,
                             new Response.Listener<String>() {
 
-                                /**
+                                *//**
                                  * Called when a response is received.
                                  *
                                  * @param response
-                                 */
+                                 *//*
                                 @Override
                                 public void onResponse(String response) {
                                     //searchBtn.setVisibility(View.VISIBLE);
@@ -197,12 +216,12 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
                                 }
                             }, new Response.ErrorListener() {
 
-                        /**
+                        *//**
                          * Callback method that an error has been occurred with the
                          * provided error code and optional user-readable message.
                          *
                          * @param error
-                         */
+                         *//*
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Log.d("PLACES RESULT:::", "Volley Error");
@@ -230,9 +249,8 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
             }
             handler.postDelayed(run, 1000);
         }else {
-            if(entry1!=null){
                 try {
-                    String str = new String(entry1.data, "UTF-8");
+                    String str = new String(entry.data, "UTF-8");
                     Gson gson = new Gson();
                     // categories = gson.fromJson(response, ArrayList<Categories.class>);
                     data = gson.fromJson(str, CategoryModel[].class);
@@ -254,8 +272,8 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
                     e.printStackTrace();
                 }
                 // process data
-            }
-        }
+
+        }*/
 
 
         return view;
@@ -337,6 +355,8 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
 
     }
 
-
-
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 }

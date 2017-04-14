@@ -23,8 +23,9 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:logo="@drawable/logo"
+        app:logo="@mipmap/ic_launcher"
         app:title="@string/app_name"
+        android:titleMargin="@dimen/year"
         app:titleTextColor="@android:color/white">
 
         <android.support.v7.widget.LinearLayoutCompat
@@ -79,6 +80,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="?android:attr/windowBackground"
-        app:menu="@menu/navigation" />
+        app:menu="@menu/navigation"
+        app:itemBackground="@color/colorPrimary"
+        app:itemIconTint="@drawable/bnv_tab_item_foreground"
+        app:itemTextColor="@drawable/bnv_tab_item_foreground"/>
 
 </android.support.v7.widget.LinearLayoutCompat>

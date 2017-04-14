@@ -35,7 +35,7 @@
                     android:layout_height="50dp"
                     android:id="@+id/adressText"
                     android:background="@drawable/bg_edittext_icon"
-                    android:drawableLeft="@drawable/magnify"
+                    android:drawableLeft="@drawable/ic_search_black_24dp"
                     android:drawablePadding="15dp"
                     android:paddingLeft="5dp"
                     android:paddingTop="12dp"

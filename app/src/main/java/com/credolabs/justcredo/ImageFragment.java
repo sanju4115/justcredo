@@ -5,10 +5,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.AppCompatImageView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import com.credolabs.justcredo.adapters.ImagePagerAdapter;
 import com.credolabs.justcredo.model.ObjectModel;
@@ -37,8 +39,8 @@ public class ImageFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
 
     private ViewPager viewPager;
-    private ImageButton leftNav;
-    private ImageButton rightNav;
+    private AppCompatImageView leftNav;
+    private AppCompatImageView rightNav;
     private ImagePagerAdapter adapter;
     public ImageFragment() {
         // Required empty public constructor
@@ -83,8 +85,8 @@ public class ImageFragment extends Fragment {
         adapter = new ImagePagerAdapter(getActivity(),imageURL,model);
         viewPager.setAdapter(adapter);
 
-        leftNav = (ImageButton) view.findViewById(R.id.left_nav);
-        rightNav = (ImageButton) view.findViewById(R.id.right_nav);
+        leftNav = (AppCompatImageView) view.findViewById(R.id.left_nav);
+        rightNav = (AppCompatImageView) view.findViewById(R.id.right_nav);
 
         // Images left navigation
         leftNav.setOnClickListener(new View.OnClickListener() {

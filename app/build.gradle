@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
 
+
+def GOOGLE_MAP_API_KEY = '"' + GoogleMapAPIKey + '"' ?: '"No google map api key"'
+def GOOGLE_LOCATION_API_KEY = '"' + GoogleLocationAPIKey + '"' ?: '"No google location api key"'
+def STRING = 'String'
+
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
@@ -11,6 +16,15 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+
+        // We can define the variable here
+        each { type ->
+            type.buildConfigField STRING, 'GoogleLocationAPIKey', GOOGLE_LOCATION_API_KEY
+        }
+        manifestPlaceholders = [ // this is used for defining the variable for manifest file
+                                 GOOGLE_MAP_API_KEY : GOOGLE_MAP_API_KEY
+
+        ]
     }
     buildTypes {
         release {

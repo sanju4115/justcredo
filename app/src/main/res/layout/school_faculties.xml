@@ -19,7 +19,7 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_alignParentRight="true"
-        android:src="@drawable/presentation"/>
+        android:src="@mipmap/ic_faculty"/>
 
     <LinearLayout
         android:layout_width="wrap_content"

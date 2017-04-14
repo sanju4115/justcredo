@@ -2,6 +2,8 @@ package com.credolabs.justcredo;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,8 +18,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.android.volley.Cache;
 import com.credolabs.justcredo.autocomplete.PickLocationActivity;
 import com.credolabs.justcredo.utility.Constants;
+
+import java.util.Calendar;
 
 public class HomeActivity extends AppCompatActivity implements CategoryFragment.OnFragmentInteractionListener {
 
@@ -26,6 +31,8 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
     private FragmentManager fragmentManager;
     private TextView locationOutput;
     private SharedPreferences sharedPreferences;
+    private static final String URL_FEED = "0:"+Constants.CATEGORY_URL;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +83,13 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
         fragment = new CategoryFragment();
         final FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.content, fragment).commit();
+
+
+        ApplicationInfo appliInfo = null;
+        try {
+            appliInfo = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
+            Log.d("MetaData", appliInfo.metaData.getString("com.google.android.geo.API_KEY"));
+        } catch (PackageManager.NameNotFoundException e) {}
     }
 
     @Override
@@ -91,4 +105,15 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
         locationOutput.setText(sharedPreferences.getString(Constants.MAIN_TEXT,"Choose Location"));
 
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Cache cache = MyApplication.getInstance().getRequestQueue().getCache();
+        Calendar calendar = Calendar.getInstance();
+        if(cache.get(URL_FEED) != null) {
+            cache.invalidate(URL_FEED,true);
+        }
+    }
+
 }
