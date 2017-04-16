@@ -24,7 +24,7 @@ import com.credolabs.justcredo.utility.Constants;
 
 import java.util.Calendar;
 
-public class HomeActivity extends AppCompatActivity implements CategoryFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener {
+public class HomeActivity extends AppCompatActivity implements CategoryFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener, CategoryGridFragment.OnFragmentInteractionListener {
 
     private TextView mTextMessage;
     private Fragment fragment;

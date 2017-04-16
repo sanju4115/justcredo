@@ -1,13 +1,70 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context="com.credolabs.justcredo.CategoryGridFragment">
 
-    <!-- TODO: Update blank fragment layout -->
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:padding="10dp"
+        android:background="@color/colorIcons">
+
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Category Nmae"
+        android:textStyle="bold"
+        android:id="@+id/category_name"
+        android:textColor="@color/colorPrimaryText"/>
+
+    <com.android.volley.toolbox.NetworkImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentRight="true"
+        android:id="@+id/category_image"
+        android:src="@mipmap/ic_contact"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/category_name"
+            android:id="@+id/category_description"
+            android:text="Category Description"/>
+
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:numColumns="3"
+            android:padding="5dp"
+            android:gravity="center"
+            android:columnWidth="100dp"
+            android:stretchMode="columnWidth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/category_grid"
+            android:layout_below="@+id/category_description"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:text="See More"
+            android:layout_below="@+id/category_grid"
+            android:gravity="end"
+            android:id="@+id/see_more"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_below="@+id/category_grid"
+            android:id="@+id/sorry_message"
+            android:gravity="center"
+            android:visibility="gone"
+            />
+
+    </RelativeLayout>
+
 
 </FrameLayout>

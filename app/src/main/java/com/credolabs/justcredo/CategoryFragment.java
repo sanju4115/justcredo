@@ -11,14 +11,17 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Cache;
 import com.android.volley.Request;
@@ -26,12 +29,18 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.credolabs.justcredo.adapters.CategoryAdapter;
+import com.credolabs.justcredo.adapters.TransformerAdapter;
 import com.credolabs.justcredo.model.CategoryModel;
 import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.UserLocation;
 import com.credolabs.justcredo.utility.Util;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
 import com.credolabs.justcredo.utility.VolleySingleton;
+import com.daimajia.slider.library.Animations.DescriptionAnimation;
+import com.daimajia.slider.library.SliderLayout;
+import com.daimajia.slider.library.SliderTypes.BaseSliderView;
+import com.daimajia.slider.library.SliderTypes.TextSliderView;
+import com.daimajia.slider.library.Tricks.ViewPagerEx;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -42,6 +51,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -52,20 +63,11 @@ import java.util.Calendar;
  * Use the {@link CategoryFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class CategoryFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class CategoryFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener,BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
     private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
-    private static final int PERMISSION_REQUEST_FINE_LOCATION = 101;
-    private boolean permissionGranted = false;
-    private int CUSTOM_AUTOCOMPLETE_REQUEST_CODE = 13;
-    private Location mLastLocation;
-    private UserLocation mUserLocation;
-
-    private ListView categoryListView;
-    private CategoryAdapter mCategoryAdapter;
     private String GETCATEGORYHIT = "categories_hit";
     private VolleyJSONRequest request;
     private Handler handler;
@@ -77,6 +79,7 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
     private static final String ARG_PARAM2 = "param2";
     private CategoryModel[] data;
     private static final String URL_FEED = "0:"+Constants.CATEGORY_URL;
+    private SliderLayout mDemoSlider;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -125,25 +128,46 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
                 .build();
 
 
-        categoryListView = (ListView) view.findViewById(R.id.category_list);
-        categoryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        //for banner slider
+        mDemoSlider = (SliderLayout)view.findViewById(R.id.slider);
+
+        final HashMap<String,String> url_maps = new HashMap<String, String>();
+        url_maps.put("Hannibal", "http://static2.hypable.com/wp-content/uploads/2013/12/hannibal-season-2-release-date.jpg");
+        url_maps.put("Big Bang Theory", "http://tvfiles.alphacoders.com/100/hdclearart-10.png");
+        url_maps.put("House of Cards", "http://cdn3.nflximg.net/images/3093/2043093.jpg");
+        url_maps.put("Game of Thrones", "http://images.boomsbeat.com/data/images/full/19640/game-of-thrones-season-4-jpg.jpg");
+
+        for(String name : url_maps.keySet()){
+            TextSliderView textSliderView = new TextSliderView(getActivity());
+            // initialize a SliderLayout
+            textSliderView
+                    .description(name)
+                    .image(url_maps.get(name))
+                    .setScaleType(BaseSliderView.ScaleType.Fit)
+                    .setOnSliderClickListener(this);
+
+            //add your extra information
+            textSliderView.bundle(new Bundle());
+            textSliderView.getBundle()
+                    .putString("extra",name);
+
+            mDemoSlider.addSlider(textSliderView);
+        }
+        mDemoSlider.setPresetTransformer(SliderLayout.Transformer.Accordion);
+        mDemoSlider.setPresetIndicator(SliderLayout.PresetIndicators.Center_Bottom);
+        mDemoSlider.setCustomAnimation(new DescriptionAnimation());
+        mDemoSlider.setDuration(4000);
+        mDemoSlider.addOnPageChangeListener(this);
+        TextView visit = (TextView) view.findViewById(R.id.visit);
+
+        // to visit sponsored contents
+        visit.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getActivity(),ObjectListActivity.class);
-                //Create the bundle
-                Bundle bundle = new Bundle();
+            public void onClick(View v) {
+                int i = mDemoSlider.getCurrentPosition();
+                List<String> list = new ArrayList<>(url_maps.keySet());
+                Toast.makeText(getActivity(), url_maps.get(list.get(i)), Toast.LENGTH_SHORT).show();
 
-                //Add your data to bundle
-                bundle.putString("Title", data[position].getName()+" List");
-
-                //Add the bundle to the intent
-                intent.putExtras(bundle);
-
-                //Fire that second activity
-                startActivity(intent);
-                //startActivityForResult(i, CUSTOM_AUTOCOMPLETE_REQUEST_CODE);
-                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
-                //finish();
             }
         });
 
@@ -152,22 +176,9 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
         if (strObj !=null) {
             // To retrieve object in second Activity
             data = gson.fromJson(strObj, CategoryModel[].class);
-            if (mCategoryAdapter == null) {
-                //mCategoryAdapter = new CategoryAdapter(this, categories.getCategories(), CategoryActivity.this);
-                mCategoryAdapter = new CategoryAdapter(getActivity(), data, getActivity());
+            buildSection();
 
-                categoryListView.setAdapter(mCategoryAdapter);
-            } else {
-                mCategoryAdapter.clear();
-                //mCategoryAdapter.addAll(categories.getCategories());
-
-                mCategoryAdapter.addAll(data);
-                mCategoryAdapter.notifyDataSetChanged();
-                categoryListView.invalidate();
-            }
         }else {
-            //for loading categories from api
-            //progressBar.setVisibility(View.VISIBLE);
             Cache cache = MyApplication.getInstance().getRequestQueue().getCache();
             Cache.Entry entry = cache.get(URL_FEED);
 
@@ -191,22 +202,9 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
                                         progressBar.setVisibility(View.GONE);
                                         Log.d("PLACES RESULT:::", response);
                                         Gson gson = new Gson();
-                                        // categories = gson.fromJson(response, ArrayList<Categories.class>);
                                         data = gson.fromJson(response, CategoryModel[].class);
+                                        buildSection();
 
-                                        if (mCategoryAdapter == null) {
-                                            //mCategoryAdapter = new CategoryAdapter(this, categories.getCategories(), CategoryActivity.this);
-                                            mCategoryAdapter = new CategoryAdapter(getActivity(), data, getActivity());
-
-                                            categoryListView.setAdapter(mCategoryAdapter);
-                                        } else {
-                                            mCategoryAdapter.clear();
-                                            //mCategoryAdapter.addAll(categories.getCategories());
-
-                                            mCategoryAdapter.addAll(data);
-                                            mCategoryAdapter.notifyDataSetChanged();
-                                            categoryListView.invalidate();
-                                        }
                                     }
                                 }, new Response.ErrorListener() {
                             @Override
@@ -239,32 +237,28 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
                 try {
                     String str = new String(entry.data, "UTF-8");
                     gson = new Gson();
-                    // categories = gson.fromJson(response, ArrayList<Categories.class>);
                     data = gson.fromJson(str, CategoryModel[].class);
-
-                    if (mCategoryAdapter == null) {
-                        //mCategoryAdapter = new CategoryAdapter(this, categories.getCategories(), CategoryActivity.this);
-                        mCategoryAdapter = new CategoryAdapter(getActivity(), data, getActivity());
-
-                        categoryListView.setAdapter(mCategoryAdapter);
-                    } else {
-                        mCategoryAdapter.clear();
-                        //mCategoryAdapter.addAll(categories.getCategories());
-
-                        mCategoryAdapter.addAll(data);
-                        mCategoryAdapter.notifyDataSetChanged();
-                        categoryListView.invalidate();
-                    }
+                    buildSection();
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
-                // process data
-
             }
         }
 
 
         return view;
+    }
+
+
+    //for building gridview for the categories list
+    private void buildSection() {
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+
+        for (int i = 0; i<data.length;i++){
+            Fragment school = CategoryGridFragment.newInstance(data[i].getName(),data[i].getDescription(),data[i].getImage());
+            transaction.add(R.id.fragment_container, school );
+        }
+        transaction.commit();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -331,6 +325,50 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
 
     }
 
+    @Override
+    public void onSliderClick(BaseSliderView slider) {
+
+    }
+
+    /**
+     * This method will be invoked when the current page is scrolled, either as part
+     * of a programmatically initiated smooth scroll or a user initiated touch scroll.
+     *
+     * @param position             Position index of the first page currently being displayed.
+     *                             Page position+1 will be visible if positionOffset is nonzero.
+     * @param positionOffset       Value from [0, 1) indicating the offset from the page at position.
+     * @param positionOffsetPixels Value in pixels indicating the offset from position.
+     */
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    /**
+     * This method will be invoked when a new page becomes selected. Animation is not
+     * necessarily complete.
+     *
+     * @param position Position index of the new selected page.
+     */
+    @Override
+    public void onPageSelected(int position) {
+    }
+
+    /**
+     * Called when the scroll state changes. Useful for discovering when the user
+     * begins dragging, when the pager is automatically settling to the current page,
+     * or when it is fully stopped/idle.
+     *
+     * @param state The new scroll state.
+     * @see ViewPagerEx#SCROLL_STATE_IDLE
+     * @see ViewPagerEx#SCROLL_STATE_DRAGGING
+     * @see ViewPagerEx#SCROLL_STATE_SETTLING
+     */
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
+    }
+
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
@@ -346,5 +384,11 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
     @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    public void onStop() {
+        mDemoSlider.stopAutoCycle();
+        super.onStop();
     }
 }

@@ -1,12 +1,36 @@
 package com.credolabs.justcredo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.GridView;
+import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.NetworkImageView;
+import com.credolabs.justcredo.adapters.CategoryGridAdapter;
+import com.credolabs.justcredo.adapters.ObjectListViewRecyclerAdapter;
+import com.credolabs.justcredo.model.CategoryModel;
+import com.credolabs.justcredo.model.ObjectModel;
+import com.credolabs.justcredo.utility.Constants;
+import com.credolabs.justcredo.utility.ExpandableHeightGridView;
+import com.credolabs.justcredo.utility.VolleyJSONRequest;
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 /**
@@ -20,12 +44,19 @@ import android.view.ViewGroup;
 public class CategoryGridFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_CATEGORY_NAME = "category_name";
+    private static final String ARG_CATEGORY_DESCRIPTION = "category_description";
+    private static final String ARG_CATEGORY_IMAGE = "category_image";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private String categoryName;
+    private String categoryDescription;
+    private String categoryImage;
+
+    private VolleyJSONRequest request;
+    private  ArrayList<ObjectModel> listArrayList;
+    private CategoryGridAdapter adapter;
+    private ExpandableHeightGridView grid;
+    private Handler handler;
 
     private OnFragmentInteractionListener mListener;
 
@@ -33,20 +64,12 @@ public class CategoryGridFragment extends Fragment {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment CategoryGridFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static CategoryGridFragment newInstance(String param1, String param2) {
+    public static CategoryGridFragment newInstance(String categoryName, String categoryDescription, String getCategoryImage) {
         CategoryGridFragment fragment = new CategoryGridFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_CATEGORY_NAME, categoryName);
+        args.putString(ARG_CATEGORY_DESCRIPTION, categoryDescription);
+        args.putString(ARG_CATEGORY_IMAGE, getCategoryImage);
         fragment.setArguments(args);
         return fragment;
     }
@@ -55,16 +78,115 @@ public class CategoryGridFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            categoryName = getArguments().getString(ARG_CATEGORY_NAME);
+            categoryDescription = getArguments().getString(ARG_CATEGORY_DESCRIPTION);
+            categoryImage = getArguments().getString(ARG_CATEGORY_IMAGE);
+
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_category_grid, container, false);
+        View view = inflater.inflate(R.layout.fragment_category_grid, container, false);
+        TextView textName = (TextView) view.findViewById(R.id.category_name);
+        textName.setText(categoryName);
+        TextView textDescription = (TextView) view.findViewById(R.id.category_description);
+        textDescription.setText(categoryDescription);
+        NetworkImageView img = (NetworkImageView) view.findViewById(R.id.category_image);
+        ImageLoader imageLoader = MyApplication.getInstance().getImageLoader();
+        img.setImageUrl(categoryImage,imageLoader);
+        grid= (ExpandableHeightGridView) view.findViewById(R.id.category_grid);
+        final TextView seeMore = (TextView) view.findViewById(R.id.see_more);
+        final TextView message = (TextView) view.findViewById(R.id.sorry_message);
+
+        seeMore.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(),ObjectListActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("Title", categoryName+" List");
+                intent.putExtras(bundle);
+                startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+            }
+        });
+
+        Runnable run = new Runnable() {
+
+
+            @Override
+            public void run() {
+                //progressBar.setVisibility(View.VISIBLE);
+                // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
+                MyApplication.volleyQueueInstance.cancelRequestInQueue(categoryName);
+
+                String url = Constants.OBJECTLIST_URL+"?pageNo=1&count=6&category="+categoryName;
+                //build Get url of Place Autocomplete and hit the url to fetch result.
+                request = new VolleyJSONRequest(Request.Method.GET, url, null, null,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                //searchBtn.setVisibility(View.VISIBLE);
+                                //progressBar.setVisibility(View.GONE);
+                                Log.d("PLACES RESULT:::", response);
+                                Gson gson = new Gson();
+                                ObjectModel[] data = gson.fromJson(response, ObjectModel[].class);
+                                listArrayList = new ArrayList<>(Arrays.asList(data));
+                                if (listArrayList.size() == 0){
+                                    message.setText("Nothing nearby you in this category.");
+                                    message.setVisibility(View.VISIBLE);
+                                    seeMore.setVisibility(View.GONE);
+                                }
+                                if ( adapter== null) {
+                                    adapter = new CategoryGridAdapter(getActivity(), listArrayList);
+
+                                    grid.setAdapter(adapter);
+                                } else {
+                                    adapter.notifyDataSetChanged();
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("PLACES RESULT:::", "Volley Error");
+                        error.printStackTrace();
+                        //progressBar.setVisibility(View.GONE);
+
+                    }
+                });
+
+                //Give a tag to your request so that you can use this tag to cancle request later.
+                request.setTag(categoryName);
+
+                MyApplication.volleyQueueInstance.addToRequestQueue(request);
+
+            }
+
+        };
+
+        // only canceling the network calls will not help, you need to remove all callbacks as well
+        // otherwise the pending callbacks and messages will again invoke the handler and will send the request
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        } else {
+            handler = new Handler();
+        }
+        handler.postDelayed(run, 1000);
+
+
+        grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                Intent intent = new Intent(getActivity(),DetailedObjectActivity.class);
+                intent.putExtra("SchoolDetail",listArrayList.get(position));
+                startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+            }
+        });
+
+        return view;
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event

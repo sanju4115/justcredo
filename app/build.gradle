@@ -58,5 +58,6 @@ dependencies {
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.diegodobelo.expandingview:expanding-view:0.9.4'
     compile 'com.facebook.android:facebook-android-sdk:4.1.0'
+    compile 'com.daimajia.slider:library:1.1.5@aar'
     testCompile 'junit:junit:4.12'
 }
