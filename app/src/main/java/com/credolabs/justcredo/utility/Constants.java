@@ -19,6 +19,8 @@ public final class Constants {
     public static final String OBJECTLIST_URL = "http://justcredo.com/api/schooldetails";
 
     public static final String MYPREFERENCES = "MyPrefs" ;
+    public static final String FacebookPreferences = "FacebookPrefs" ;
+
     public static final String MAIN_TEXT = "main_text";
     public static final String SECONDARY_TEXT = "secondary_text";
     public static final String LATITUDE = "latitude";

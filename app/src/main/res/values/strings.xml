@@ -41,5 +41,10 @@
     <string name="swipe_viewpager">Swipe left or right to test ViewPager.</string>
     <string name="title_activity_splash">SplashActivity</string>
     <string name="title_profile">Profile</string>
+    <string name="tag_line">Learning Begins Here</string>
+
+    <string name="facebook_app_id">259294184531130</string>
+    <string name="header_name">Name</string>
+    <string name="header_email">Email</string>
 
 </resources>

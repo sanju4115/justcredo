@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1076419598686",
+    "firebase_url": "https://credo-e836d.firebaseio.com",
+    "project_id": "credo-e836d",
+    "storage_bucket": "credo-e836d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1076419598686:android:47cbc4bbbcf3d653",
+        "android_client_info": {
+          "package_name": "com.credolabs.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1076419598686-qmv3qsl9jeu2mnv3c5rlic8m3q1etj35.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZ4ztKuVnQto-s9EI8PSPwiLyem4pZuLM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

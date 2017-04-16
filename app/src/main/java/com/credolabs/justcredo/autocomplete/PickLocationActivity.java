@@ -102,7 +102,7 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
         //this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
 
-        sharedPreference = getSharedPreferences(Constants.MYPREFERENCES, Context.MODE_PRIVATE);;
+        sharedPreference = getSharedPreferences(Constants.MYPREFERENCES, Context.MODE_PRIVATE);
         setContentView(R.layout.activity_pick_location);
         slideUpAnimation = AnimationUtils.loadAnimation(getApplicationContext(),
                 R.anim.slide_up_animation);
@@ -510,10 +510,10 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
             editor.putString(Constants.STATE,mUserLocation.getState());
             editor.putString(Constants.KNOWN_NAME,mUserLocation.getKnownName());
             editor.putString(Constants.MAIN_TEXT,mUserLocation.getAddress());
-            editor.putString(Constants.SECONDARY_TEXT,mUserLocation.getKnownName()+
-                                                      mUserLocation.getCity()+
-                                                      mUserLocation.getState()+
-                                                      mUserLocation.getCountry());
+            editor.putString(Constants.SECONDARY_TEXT,mUserLocation.getCity()+
+                    mUserLocation.getKnownName()+
+                    mUserLocation.getState()+
+                    mUserLocation.getCountry());
             editor.apply();
             finish();
 

@@ -24,7 +24,7 @@ import com.credolabs.justcredo.utility.Constants;
 
 import java.util.Calendar;
 
-public class HomeActivity extends AppCompatActivity implements CategoryFragment.OnFragmentInteractionListener {
+public class HomeActivity extends AppCompatActivity implements CategoryFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener {
 
     private TextView mTextMessage;
     private Fragment fragment;
@@ -54,6 +54,10 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
                         return true;
                     case R.id.navigation_notifications:
                         return true;
+                    case R.id.navigation_profile:
+                        fragment = new ProfileFragment();
+                        break;
+
                 }
                 final FragmentTransaction transaction = fragmentManager.beginTransaction();
                 transaction.replace(R.id.content, fragment).commit();
@@ -77,7 +81,8 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
 
         sharedPreferences = getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
         if (sharedPreferences.contains(Constants.MAIN_TEXT)) {
-            locationOutput.setText(sharedPreferences.getString(Constants.MAIN_TEXT, "Choose Location"));
+            String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+            locationOutput.setText(location);
         }
 
         fragment = new CategoryFragment();
@@ -102,7 +107,8 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
         super.onResume();
         Log.i("Log", "On Resume Method");
         sharedPreferences = getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
-        locationOutput.setText(sharedPreferences.getString(Constants.MAIN_TEXT,"Choose Location"));
+        String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+        locationOutput.setText(location);
 
     }
 
