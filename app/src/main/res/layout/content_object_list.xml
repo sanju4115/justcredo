@@ -46,6 +46,8 @@
             layout="@layout/progress_layout"
             android:visibility="gone" />
 
+
+
     </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

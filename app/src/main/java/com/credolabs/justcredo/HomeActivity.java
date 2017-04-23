@@ -16,6 +16,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.android.volley.Cache;
@@ -26,7 +27,6 @@ import java.util.Calendar;
 
 public class HomeActivity extends AppCompatActivity implements CategoryFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener, CategoryGridFragment.OnFragmentInteractionListener {
 
-    private TextView mTextMessage;
     private Fragment fragment;
     private FragmentManager fragmentManager;
     private TextView locationOutput;
@@ -42,6 +42,7 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         BottomNavigationView bottomNavigation = (BottomNavigationView) findViewById(R.id.navigation);
+
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -122,4 +123,8 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
 }

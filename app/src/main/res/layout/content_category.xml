@@ -15,6 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:background="@color/colorPrimary"
+        android:transitionName="search_bar"
         android:paddingTop="5dp"
         android:paddingRight="5dp"
         android:paddingLeft="5dp"
@@ -70,52 +72,98 @@
         />-->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:id="@+id/category_scroll">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:id="@+id/fragment_container">
+            android:focusableInTouchMode="true">
 
-            <RelativeLayout
-                xmlns:custom="http://schemas.android.com/apk/res-auto"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:id="@+id/fragment_container">
 
-                <com.daimajia.slider.library.SliderLayout
-                    android:id="@+id/slider"
+                <RelativeLayout
+                    xmlns:custom="http://schemas.android.com/apk/res-auto"
                     android:layout_width="match_parent"
-                    custom:pager_animation="Accordion"
-                    custom:auto_cycle="true"
-                    custom:indicator_visibility="visible"
-                    custom:pager_animation_span="1100"
-                    android:layout_height="200dp"/>
+                    android:layout_height="match_parent">
+
+                    <com.daimajia.slider.library.SliderLayout
+                        android:id="@+id/slider"
+                        android:layout_width="match_parent"
+                        custom:pager_animation="Accordion"
+                        custom:auto_cycle="true"
+                        custom:indicator_visibility="visible"
+                        custom:pager_animation_span="1100"
+                        android:layout_height="200dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Visit"
+                        android:layout_alignParentRight="true"
+                        android:padding="5dp"
+                        android:id="@+id/visit"
+                        android:layout_margin="5dp"
+                        android:textColor="@color/colorIcons"
+                        android:background="@color/tagColor"
+                        />
+
+                    <com.daimajia.slider.library.Indicators.PagerIndicator
+                        android:id="@+id/custom_indicator2"
+                        style="@style/AndroidImageSlider_Corner_Oval_Orange"
+                        android:layout_centerHorizontal="true"
+                        android:layout_alignParentBottom="true"
+                        android:layout_marginBottom="20dp"
+                        />
+
+
+                </RelativeLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Visit"
-                    android:layout_alignParentRight="true"
-                    android:padding="5dp"
-                    android:id="@+id/visit"
-                    android:layout_margin="5dp"
-                    android:textColor="@color/colorIcons"
-                    android:background="@color/tagColor"
-                    />
+                    android:text="@string/welcome_message"
+                    android:paddingBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:padding="10dp"
+                    android:textColor="@color/tagColor"
+                    android:textSize="15sp"/>
 
-                <com.daimajia.slider.library.Indicators.PagerIndicator
-                    android:id="@+id/custom_indicator2"
-                    style="@style/AndroidImageSlider_Corner_Oval_Orange"
-                    android:layout_centerHorizontal="true"
-                    android:layout_alignParentBottom="true"
-                    android:layout_marginBottom="20dp"
-                    />
+            </LinearLayout>
 
 
-            </RelativeLayout>
+            <TextView
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:textColor="@color/tagColor"
+                android:paddingTop="10dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingLeft="10dp"
+                android:paddingBottom="2dp"
+                android:textSize="12sp"
+                android:text="@string/tag_line_home"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:paddingBottom="10dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingLeft="10dp"
+                android:textColor="@color/tagColor"
+                android:textSize="20sp"/>
+
 
         </LinearLayout>
+
+
 
 
     </ScrollView>

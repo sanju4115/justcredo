@@ -172,7 +172,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Login to enjoy full feature"
+                    android:text="Login for your best experience"
                     android:layout_marginRight="15dp"
                     android:layout_marginLeft="10dp"
                     android:textColor="@color/tagColor"/>

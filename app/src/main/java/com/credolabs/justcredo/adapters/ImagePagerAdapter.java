@@ -1,7 +1,10 @@
 package com.credolabs.justcredo.adapters;
 
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +14,7 @@ import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.FullZoomImageViewActivity;
@@ -51,7 +55,7 @@ public class ImagePagerAdapter extends PagerAdapter {
         ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
 
         View v = inflater.inflate(R.layout.swipe,container,false);
-        NetworkImageView img = (NetworkImageView) v.findViewById(R.id.school_image);
+        final NetworkImageView img = (NetworkImageView) v.findViewById(R.id.school_image);
         TextView tv  = (TextView)v.findViewById(R.id.textView);
         img.setImageUrl(images.get(position),imgLoader);
         tv.setText(position+1+"/"+images.size());
@@ -62,7 +66,18 @@ public class ImagePagerAdapter extends PagerAdapter {
                 Intent myIntent = new Intent(ctx, FullZoomImageViewActivity.class);
                 myIntent.putExtra("ImagePosition", position);
                 myIntent.putExtra("SchoolDetail",model);
-                ctx.startActivity(myIntent);
+                //ctx.startActivity(myIntent);
+
+
+                String transitionName = ctx.getString(R.string.image_trans);
+
+                ActivityOptions transitionActivityOptions = null;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    transitionActivityOptions = ActivityOptions.makeSceneTransitionAnimation((Activity) ctx, (View)img, transitionName);
+                    ctx.startActivity(myIntent, transitionActivityOptions.toBundle());
+                }
+
+
             }
         });
         return v;

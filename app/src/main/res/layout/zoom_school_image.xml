@@ -9,6 +9,7 @@
         android:layout_height="match_parent"
         android:id="@+id/school_image"
         android:src="@drawable/ic_nocover"
+        android:transitionName="@string/image_trans"
         />
 
 

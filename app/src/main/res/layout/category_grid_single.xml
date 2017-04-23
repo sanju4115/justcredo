@@ -12,8 +12,7 @@
         <com.android.volley.toolbox.NetworkImageView
             android:id="@+id/grid_image"
             android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@drawable/ic_nocover">
+            android:layout_height="50dp">
         </com.android.volley.toolbox.NetworkImageView>
 
         <TextView
@@ -23,6 +22,7 @@
             android:layout_marginTop="5dp"
             android:text="School Name"
             android:textSize="9sp"
+            android:textColor="@color/colorPrimaryText"
             android:ellipsize="end"
             android:maxLines="1"/>
 

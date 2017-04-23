@@ -1,5 +1,6 @@
 package com.credolabs.justcredo;
 
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -15,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import com.android.volley.Cache;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -29,6 +31,7 @@ import com.credolabs.justcredo.utility.ExpandableHeightGridView;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
 import com.google.gson.Gson;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -57,6 +60,11 @@ public class CategoryGridFragment extends Fragment {
     private CategoryGridAdapter adapter;
     private ExpandableHeightGridView grid;
     private Handler handler;
+    private ObjectModel[] data;
+    private TextView seeMore;
+    private TextView message;
+    private Gson gson;
+    private View divider;
 
     private OnFragmentInteractionListener mListener;
 
@@ -97,82 +105,91 @@ public class CategoryGridFragment extends Fragment {
         ImageLoader imageLoader = MyApplication.getInstance().getImageLoader();
         img.setImageUrl(categoryImage,imageLoader);
         grid= (ExpandableHeightGridView) view.findViewById(R.id.category_grid);
-        final TextView seeMore = (TextView) view.findViewById(R.id.see_more);
-        final TextView message = (TextView) view.findViewById(R.id.sorry_message);
+        seeMore = (TextView) view.findViewById(R.id.see_more);
+        message = (TextView) view.findViewById(R.id.sorry_message);
+        divider = view.findViewById(R.id.divider);
+
 
         seeMore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(),ObjectListActivity.class);
                 Bundle bundle = new Bundle();
-                bundle.putString("Title", categoryName+" List");
+                bundle.putString("Title", categoryName);
                 intent.putExtras(bundle);
                 startActivity(intent);
                 getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+
             }
         });
 
-        Runnable run = new Runnable() {
+        gson = new Gson();
+        final String url = Constants.OBJECTLIST_URL +"?pageNo=1&count=6&category="+categoryName;
+        final String URL_FEED = "0:"+url;
+        Cache cache = MyApplication.getInstance().getRequestQueue().getCache();
+        Cache.Entry entry = cache.get(URL_FEED);
+
+        if (entry == null) {
+            Runnable run = new Runnable() {
 
 
-            @Override
-            public void run() {
-                //progressBar.setVisibility(View.VISIBLE);
-                // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
-                MyApplication.volleyQueueInstance.cancelRequestInQueue(categoryName);
+                @Override
+                public void run() {
+                    //progressBar.setVisibility(View.VISIBLE);
+                    // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
+                    MyApplication.volleyQueueInstance.cancelRequestInQueue(categoryName);
 
-                String url = Constants.OBJECTLIST_URL+"?pageNo=1&count=6&category="+categoryName;
-                //build Get url of Place Autocomplete and hit the url to fetch result.
-                request = new VolleyJSONRequest(Request.Method.GET, url, null, null,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                //searchBtn.setVisibility(View.VISIBLE);
-                                //progressBar.setVisibility(View.GONE);
-                                Log.d("PLACES RESULT:::", response);
-                                Gson gson = new Gson();
-                                ObjectModel[] data = gson.fromJson(response, ObjectModel[].class);
-                                listArrayList = new ArrayList<>(Arrays.asList(data));
-                                if (listArrayList.size() == 0){
-                                    message.setText("Nothing nearby you in this category.");
-                                    message.setVisibility(View.VISIBLE);
-                                    seeMore.setVisibility(View.GONE);
+
+                    //build Get url of Place Autocomplete and hit the url to fetch result.
+                    request = new VolleyJSONRequest(Request.Method.GET, url, null, null,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    //searchBtn.setVisibility(View.VISIBLE);
+                                    //progressBar.setVisibility(View.GONE);
+                                    Log.d("PLACES RESULT:::", response);
+
+                                    data = gson.fromJson(response, ObjectModel[].class);
+                                    buildSection();
+
                                 }
-                                if ( adapter== null) {
-                                    adapter = new CategoryGridAdapter(getActivity(), listArrayList);
+                            }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.d("PLACES RESULT:::", "Volley Error");
+                            error.printStackTrace();
+                            //progressBar.setVisibility(View.GONE);
 
-                                    grid.setAdapter(adapter);
-                                } else {
-                                    adapter.notifyDataSetChanged();
-                                }
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("PLACES RESULT:::", "Volley Error");
-                        error.printStackTrace();
-                        //progressBar.setVisibility(View.GONE);
+                        }
+                    });
 
-                    }
-                });
+                    //Give a tag to your request so that you can use this tag to cancle request later.
+                    request.setTag(categoryName);
 
-                //Give a tag to your request so that you can use this tag to cancle request later.
-                request.setTag(categoryName);
+                    MyApplication.volleyQueueInstance.addToRequestQueue(request);
 
-                MyApplication.volleyQueueInstance.addToRequestQueue(request);
+                }
 
+            };
+
+            // only canceling the network calls will not help, you need to remove all callbacks as well
+            // otherwise the pending callbacks and messages will again invoke the handler and will send the request
+            if (handler != null) {
+                handler.removeCallbacksAndMessages(null);
+            } else {
+                handler = new Handler();
             }
+            handler.postDelayed(run, 1000);
 
-        };
-
-        // only canceling the network calls will not help, you need to remove all callbacks as well
-        // otherwise the pending callbacks and messages will again invoke the handler and will send the request
-        if (handler != null) {
-            handler.removeCallbacksAndMessages(null);
-        } else {
-            handler = new Handler();
+        }else {
+            try {
+                String str = new String(entry.data, "UTF-8");
+                data = gson.fromJson(str, ObjectModel[].class);
+                buildSection();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
-        handler.postDelayed(run, 1000);
 
 
         grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -182,10 +199,34 @@ public class CategoryGridFragment extends Fragment {
                 intent.putExtra("SchoolDetail",listArrayList.get(position));
                 startActivity(intent);
                 getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+
             }
         });
 
         return view;
+
+    }
+
+    private void buildSection() {
+
+        listArrayList = new ArrayList<>(Arrays.asList(data));
+        if (listArrayList.size() < 6){
+            seeMore.setVisibility(View.GONE);
+            divider.setVisibility(View.GONE);
+        }
+        if (listArrayList.size() == 0) {
+            message.setText("Nothing nearby you in this category.");
+            message.setVisibility(View.VISIBLE);
+            seeMore.setVisibility(View.GONE);
+            divider.setVisibility(View.GONE);
+        }
+        if (adapter == null) {
+            adapter = new CategoryGridAdapter(getActivity(), listArrayList);
+
+            grid.setAdapter(adapter);
+        } else {
+            adapter.notifyDataSetChanged();
+        }
 
     }
 

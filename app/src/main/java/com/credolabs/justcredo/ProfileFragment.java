@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.android.volley.Cache;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.credolabs.justcredo.utility.CircularNetworkImageView;
@@ -84,13 +85,13 @@ public class ProfileFragment extends Fragment {
         String textEmail = prefs.getString("fb_email" ,"No Email");
 
         TextView name = (TextView) view.findViewById(R.id.profile_name);
-        TextView email = (TextView) view.findViewById(R.id.profile_email);
+        //TextView email = (TextView) view.findViewById(R.id.profile_email);
         CircularNetworkImageView profilePic = (CircularNetworkImageView) view.findViewById(R.id.profile_pic);
         NetworkImageView coverPic = (NetworkImageView) view.findViewById(R.id.cover_profile);
         profilePic.setImageUrl(prefs.getString("fb_profilePicURL"," "),imageLoader);
         coverPic.setImageUrl(prefs.getString("fb_coverPhotoURL", " "),imageLoader);
         name.setText(textFirstName + " "+textLastName);
-        email.setText(textEmail);
+        //email.setText(textEmail);
 
         LinearLayout logoutLayout = (LinearLayout) view.findViewById(R.id.layout_logout);
         logoutLayout.setOnClickListener(new View.OnClickListener() {
@@ -99,6 +100,7 @@ public class ProfileFragment extends Fragment {
                 PrefUtil prefUtil1 = new PrefUtil(getActivity());
                 prefUtil.clearToken();
                 Intent intent = new Intent(getActivity(),LoginActivity.class);
+                MyApplication.getInstance().getRequestQueue().getCache().clear();
                 startActivity(intent);
                 getActivity().finish();
             }

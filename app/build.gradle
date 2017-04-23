@@ -9,11 +9,13 @@ android {
 
     repositories {
         mavenCentral()
+        maven { url "https://jitpack.io" }
+        maven { url 'http://dl.bintray.com/raphaelbussa/maven' }
     }
 
     defaultConfig {
         applicationId "com.credolabs.justcredo"
-        minSdkVersion 15
+        minSdkVersion 19
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -35,6 +37,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+
 }
 
 dependencies {
@@ -59,5 +63,12 @@ dependencies {
     compile 'com.diegodobelo.expandingview:expanding-view:0.9.4'
     compile 'com.facebook.android:facebook-android-sdk:4.1.0'
     compile 'com.daimajia.slider:library:1.1.5@aar'
+    compile 'com.github.florent37:diagonallayout:1.0.4'
+    compile 'com.github.architjn:SharePanel:1.0'
+    compile 'com.github.varunest:sparkbutton:1.0.5'
+    compile 'com.github.Yalantis:SearchFilter:v1.0.3'
+    compile 'com.facebook.fresco:fresco:0.13.0'
+    compile 'com.github.Yalantis:OfficialFoldingTabBar.Android:v0.9'
+    compile 'rebus:bottom-dialog:0.0.5'
     testCompile 'junit:junit:4.12'
 }

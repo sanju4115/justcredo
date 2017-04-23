@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/label"
+    android:background="@drawable/bg_key"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:textColor="@drawable/list_item_text"
+    android:padding="10dip"
+    android:textSize="13sp"
+    android:textStyle="bold"
+    android:text="my name is sanjay"
+    android:textAllCaps="true">
+</TextView>

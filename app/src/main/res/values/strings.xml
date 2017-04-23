@@ -46,5 +46,169 @@
     <string name="facebook_app_id">259294184531130</string>
     <string name="header_name">Name</string>
     <string name="header_email">Email</string>
+    <string name="tag_line_home">Showing a selection of sponsored content and recomendations for you</string>
+    <string name="welcome_message">Welcome ! Here are some recomendations for you</string>
+    <string name="image_trans">image_transition</string>
+
+
+    <string name="image">image</string>
+    <string name="desc">Being the savage\'s bowsman, that is, the person who pulled the
+    bow-oar in his boat. Dolor sit amet.</string>
+
+    <string name="italic">Friday 12 FEB.</string>
+    <string name="duplicate">DUPLICATE</string>
+    <string name="schedule">SCHEDULE</string>
+    <string name="delete">DELETE</string>
+
+
+    //for quick search
+
+    <string name="str_all_selected">All categories</string>
+
+    <string-array name="categories_titles">
+        <item>All categories</item>
+        <item>Pre School</item>
+        <item>Primary School</item>
+        <item>Secondary School</item>
+        <item>Music Schools</item>
+        <item>Boarding Schools</item>
+        <item>Sports Schools</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="filters">
+        <item>category</item>
+        <item>board</item>
+        <item>gender</item>
+        <item>facilities</item>
+        <item>sports</item>
+        <item>extraCurricular</item>
+    </string-array>
+
+    <string-array name="category">
+        <item>Pre School</item>
+        <item>Primary School</item>
+        <item>Secondary School</item>
+        <item>Music Schools</item>
+        <item>Boarding Schools</item>
+        <item>Sports Schools</item>
+    </string-array>
+
+    <string-array name="gender">
+        <item>Co-Educational</item>
+        <item>Girls Only</item>
+        <item>Boys Only</item>
+    </string-array>
+
+    <string-array name="sports">
+        <item>Badminton (Outdoor)</item>
+        <item>Badminton (Indoor)</item>
+        <item>Tennis (Grass Court)</item>
+        <item>Tennis (Clay Court)</item>
+        <item>Tennis (Hardcourt)</item>
+        <item>Table Tennis</item>
+        <item>Squash</item>
+        <item>Baseball</item>
+        <item>Cricket</item>
+        <item>Football</item>
+        <item>Basketball (Indoor)</item>
+        <item>Basketball (Outdoor)</item>
+        <item>Volleyball</item>
+        <item>Rugby</item>
+        <item>Field Hockey</item>
+        <item>Ice Hockey</item>
+        <item>Fencing</item>
+        <item>Archery</item>
+        <item>Swimming</item>
+        <item>Water Polo</item>
+        <item>Golf</item>
+        <item>Horse Ridding</item>
+        <item>Polo</item>
+        <item>Angling</item>
+        <item>Rock Climbing</item>
+        <item>Track and Field</item>
+        <item>Skating</item>
+        <item>Cycling</item>
+        <item>Rowing / Sailing</item>
+        <item>Skiing</item>
+        <item>Gymnastics</item>
+        <item>Aerobics / Yoga / Cheerleading</item>
+        <item>Martial Arts</item>
+        <item>Boxing</item>
+        <item>Wrestling</item>
+        <item>Weightlifting</item>
+        <item>Billiards / Snooker / Pool</item>
+        <item>Rifle shooting</item>
+        <item>Chess</item>
+        <item>Carom</item>
+        <item>Paintball</item>
+        <item>Splash Pool</item>
+        <item>Play Field</item>
+    </string-array>
+
+    <string-array name="extracurricular">
+        <item>Theatre</item>
+        <item>Dance</item>
+        <item>Band</item>
+        <item>Choir / Chorus / Solo</item>
+        <item>Drawing / Painting</item>
+        <item>Photography</item>
+        <item>Clay Modelling</item>
+        <item>Pottery</item>
+        <item>Sculpture</item>
+        <item>Debate / Quizzes</item>
+        <item>Robotics</item>
+        <item>Guitar / Sitar / Violin</item>
+        <item>Paino / Keyboard</item>
+        <item>Harmoniam</item>
+        <item>Drums</item>
+        <item>Tabla</item>
+        <item>Gardening</item>
+        <item>Creative Writing</item>
+        <item>Foreign Language</item>
+        <item>Media Publication</item>
+        <item>Tie-and-Dye</item>
+        <item>Print Making</item>
+        <item>Origami</item>
+        <item>Paper Craft</item>
+        <item>Calligraphy</item>
+        <item>Volunteer Work</item>
+    </string-array>
+
+    <string-array name="board">
+        <item>ICSE</item>
+        <item>CBSE</item>
+        <item>State</item>
+        <item>IB</item>
+    </string-array>
+
+
+    <string-array name="facilities">
+        <item>Computer Lab</item>
+        <item>Science Laboratory</item>
+        <item>Library</item>
+        <item>Auditorium</item>
+        <item>Math Lab</item>
+        <item>Art/Craft Programme</item>
+        <item>Health Centre</item>
+        <item>Self-study</item>
+        <item>Audio-Visual Room</item>
+        <item>Kindergarten Play Area</item>
+        <item>Montessori Laboratory</item>
+        <item>Cafeteria</item>
+        <item>Multi-Purpose Hall</item>
+        <item>Technology-aided learning</item>
+        <item>Kiddies’ Pool</item>
+        <item>Science Park</item>
+        <item>Music/Dance Room</item>
+        <item>Robotics Lab</item>
+        <item>Language Labs</item>
+        <item>Subject Labs</item>
+        <item>Transportation</item>
+        <item>Medical Facilities</item>
+    </string-array>
+    <string name="title_activity_review">ReviewActivity</string>
+    <string name="title_activity_rating">RatingActivity</string>
+
 
 </resources>

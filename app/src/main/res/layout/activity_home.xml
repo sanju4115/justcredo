@@ -51,12 +51,12 @@
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/locationView"
                 android:layout_width="120dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:layout_height="wrap_content"
                 android:drawableRight="@android:drawable/arrow_down_float"
                 android:text="Choose Location"
                 android:textColor="@color/colorIcons"
-                android:ellipsize="end"
-                android:maxLines="1"
                 />
 
         </android.support.v7.widget.LinearLayoutCompat>

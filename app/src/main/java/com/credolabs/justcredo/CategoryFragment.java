@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
@@ -17,9 +18,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -126,6 +129,21 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+
+
+        final LinearLayout searchLayout = (LinearLayout) view.findViewById(R.id.search_bar_view);
+        EditText editText = (EditText) view.findViewById(R.id.adressText);
+        editText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), SearchActivity.class);
+                // Pass data object in the bundle and populate details activity.
+                //intent.putExtra(getActivity().EXTRA_CONTACT, contact);
+                ActivityOptionsCompat options = ActivityOptionsCompat.
+                        makeSceneTransitionAnimation(getActivity(), (View)searchLayout, "search_bar");
+                startActivity(intent, options.toBundle());
+            }
+        });
 
 
         //for banner slider
@@ -391,4 +409,5 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
         mDemoSlider.stopAutoCycle();
         super.onStop();
     }
+
 }

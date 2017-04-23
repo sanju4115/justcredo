@@ -9,6 +9,7 @@
         android:id="@+id/school_image"
         android:src="@drawable/ic_nocover"
         android:scaleType="centerCrop"
+        android:transitionName="@string/image_trans"
         />
 
 

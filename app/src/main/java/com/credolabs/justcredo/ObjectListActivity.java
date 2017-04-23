@@ -1,14 +1,15 @@
 package com.credolabs.justcredo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
@@ -19,17 +20,21 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.credolabs.justcredo.adapters.CategoryAdapter;
 import com.credolabs.justcredo.adapters.ObjectListViewRecyclerAdapter;
-import com.credolabs.justcredo.model.CategoryModel;
+import com.credolabs.justcredo.model.FilterModel;
 import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.utility.Constants;
-import com.credolabs.justcredo.utility.RandomNumberGenerator;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Set;
 
 public class ObjectListActivity extends AppCompatActivity {
     private  RecyclerView listRecyclerView;
@@ -44,11 +49,20 @@ public class ObjectListActivity extends AppCompatActivity {
     private int page = 1;
     private int count = 20;
     private boolean dataFinished = false;
+    private String url;
+
+    private String categoryName;
+    private HashMap<String,ArrayList<FilterModel>> filterMap = new HashMap<>();
+    HashMap<String, JSONArray> params;
+    private JSONObject jsonObject;
+    private String jsonString = "";
+
 
 
     // Variables for scroll listener
     private boolean userScrolled = true;
     int pastVisiblesItems, visibleItemCount, totalItemCount;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,45 +75,57 @@ public class ObjectListActivity extends AppCompatActivity {
 
         //Get the bundle
         Bundle bundle = getIntent().getExtras();
-        toolbar.setTitle(bundle.getString("Title", "List"));
+        categoryName = bundle.getString("Title", " ");
+        toolbar.setTitle(categoryName+" List");
         progressBar = (ProgressBar)findViewById(R.id.progress);
+        url = Constants.OBJECTLIST_URL+"/filter";
+        jsonObject = new JSONObject();
+        try {
+            jsonObject.put("category", categoryName);
+            jsonString = jsonObject.toString();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+
+        filterMap = (HashMap<String, ArrayList<FilterModel>>) getIntent().getSerializableExtra("filter");
+        if (filterMap != null) {
+            Set<String> filtersList = filterMap.keySet();
+            params = new HashMap<>();
+            for (String str : filtersList) {
+                ArrayList<FilterModel> list = filterMap.get(str);
+                ArrayList<String> mValues = new ArrayList<>();
+                for (FilterModel s : list) {
+                    if (s.isSelected()) {
+                        mValues.add(s.getName());
+                    }
+                }
+                JSONArray jsArray = new JSONArray(mValues);
+                params.put(str,jsArray);
+
             }
-        });
+        }
 
+        if (params!=null) {
+            jsonObject = new JSONObject(params);
+             jsonString = jsonObject.toString();
+        }
 
 
         bottomLayout = (RelativeLayout)findViewById(R.id.loadItemsLayout_recyclerView);
-        // Getting the string array from strings.xml
-
         mLayoutManager = new LinearLayoutManager(this);
         listRecyclerView = (RecyclerView)findViewById(R.id.linear_recyclerview);
         listRecyclerView.setHasFixedSize(true);
         listRecyclerView.setLayoutManager(mLayoutManager);// for linea data display we use linear layoutmanager
         populatRecyclerView();
-       implementScrollListener();
+        implementScrollListener();
     }
 
 
     // populate the list view by adding data to arraylist
     private void populatRecyclerView() {
         listArrayList = new ArrayList<ObjectModel>();
-        /*for (int i = 0; i < getTitle.length; i++) {
-            listArrayList.add(new ObjectModel(getTitle[i], getLocation[i],
-                    getYear[i], images[i]));
-        }
-        adapter = new ObjectListViewRecyclerAdapter(this, listArrayList);
-        listRecyclerView.setAdapter(adapter);// set adapter on recyclerview
-        adapter.notifyDataSetChanged();// Notify the adapter*/
-
-
 
         Runnable run = new Runnable() {
 
@@ -111,7 +137,7 @@ public class ObjectListActivity extends AppCompatActivity {
                 MyApplication.volleyQueueInstance.cancelRequestInQueue(GETOBJECTLISTHIT);
 
                 //build Get url of Place Autocomplete and hit the url to fetch result.
-                request = new VolleyJSONRequest(Request.Method.GET, Constants.OBJECTLIST_URL+"?pageNo="+page+"&count="+count , null, null,
+                request = new VolleyJSONRequest(Request.Method.POST, url+"?pageNo="+page+"&count="+count , jsonString, null,
                         new Response.Listener<String>(){
 
                             /**
@@ -126,6 +152,9 @@ public class ObjectListActivity extends AppCompatActivity {
                                 Log.d("PLACES RESULT:::", response);
                                 Gson gson = new Gson();
                                 ObjectModel[] data = gson.fromJson(response, ObjectModel[].class);
+                                if(data.length != count){
+                                    dataFinished = true;
+                                }
                                 listArrayList = new ArrayList<ObjectModel>(Arrays.asList(data));
                                 if ( adapter== null) {
                                     adapter = new ObjectListViewRecyclerAdapter(ObjectListActivity.this, listArrayList);
@@ -242,7 +271,7 @@ public class ObjectListActivity extends AppCompatActivity {
                 MyApplication.volleyQueueInstance.cancelRequestInQueue(GETOBJECTLISTHIT);
 
                 //build Get url of Place Autocomplete and hit the url to fetch result.
-                request = new VolleyJSONRequest(Request.Method.GET, Constants.OBJECTLIST_URL+"?pageNo="+page+"&count="+count , null, null,
+                request = new VolleyJSONRequest(Request.Method.POST, url+"?pageNo="+page+"&count="+count , jsonString, null,
                         new Response.Listener<String>(){
 
                             /**
@@ -282,19 +311,6 @@ public class ObjectListActivity extends AppCompatActivity {
 
                 MyApplication.volleyQueueInstance.addToRequestQueue(request);
 
-
-
-                /*// Loop for 3 items
-                for (int i = 0; i < 3; i++) {
-                    int value = new RandomNumberGenerator().RandomGenerator();// Random
-                    // value
-
-                    // add random data to arraylist
-                    listArrayList.add(new ObjectModel(getTitle[value],
-                            getLocation[value], getYear[value], images[value]));
-                }
-                adapter.notifyDataSetChanged();// notify adapter*/
-
                 // Toast for task completion
                 Toast.makeText(ObjectListActivity.this, "Items Updated.",
                         Toast.LENGTH_SHORT).show();
@@ -316,13 +332,38 @@ public class ObjectListActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_detailed_object, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == android.R.id.home) {
-            //Intent intent = new Intent(this, CategoryActivity.class);
-            //startActivity(intent);
-            //overridePendingTransition(R.anim.enter_from_left, R.anim.exit_on_right);
-            this.finish();
+
         }
+
+        switch (menuItem.getItemId()) {
+            // action with ID action_refresh was selected
+            case R.id.action_filter:
+                Intent intent = new Intent(this, FilterActivity.class);
+                intent.putExtra("filter",filterMap);
+                startActivity(intent);
+                overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+                finish();
+                break;
+            case android.R.id.home:
+                //Intent intent = new Intent(this, CategoryActivity.class);
+                //startActivity(intent);
+                //overridePendingTransition(R.anim.enter_from_left, R.anim.exit_on_right);
+                this.finish();
+                break;
+            default:
+                break;
+        }
+
         return super.onOptionsItemSelected(menuItem);
     }
+
 }

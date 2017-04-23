@@ -131,7 +131,8 @@ public class FullZoomImageViewActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == android.R.id.home) {
-            this.finish();
+            supportFinishAfterTransition();
+            return true;
         }
         return super.onOptionsItemSelected(menuItem);
     }

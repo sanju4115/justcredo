@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/ftb_menu_nearby"
+        android:icon="@drawable/ic_feedback_white"
+        android:title="Review"/>
+
+    <item
+        android:id="@+id/ftb_menu_new_chat"
+        android:icon="@drawable/ic_photo_library_white"
+        android:title="Add Photo"/>
+
+    <item
+        android:id="@+id/ftb_menu_profile"
+        android:icon="@drawable/ic_bookmark_white"
+        android:title="Bookmark"/>
+
+    <item
+        android:id="@+id/ftb_menu_settings"
+        android:icon="@drawable/ic_share_white"
+        android:title="Share"/>
+</menu>

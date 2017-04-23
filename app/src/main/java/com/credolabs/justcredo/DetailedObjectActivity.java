@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -41,12 +42,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class DetailedObjectActivity extends AppCompatActivity implements ImageFragment.OnFragmentInteractionListener, OnMapReadyCallback {
+import client.yalantis.com.foldingtabbar.FoldingTabBar;
+
+public class DetailedObjectActivity extends AppCompatActivity implements ImageFragment.OnFragmentInteractionListener, OnMapReadyCallback, View.OnClickListener {
 
     private Window w;
     private Fragment fragment;
@@ -57,6 +62,7 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
     HashMap<String, LinkedHashMap<String, String>> expandableListDetail;
     private int lastExpandedPosition = -1;
     private ObjectModel model;
+    private TextView reviewBtn;
 
 
     @Override
@@ -74,6 +80,37 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
         transaction.replace(R.id.images, fragment).commit();
         model = (ObjectModel) getIntent().getSerializableExtra("SchoolDetail");
         ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
+
+
+        reviewBtn = (TextView) findViewById(R.id.btn_review);
+        reviewBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DetailedObjectActivity.this,ReviewActivity.class);
+                startActivity(intent);
+
+            }
+        });
+
+
+        FoldingTabBar tabBar = (FoldingTabBar) findViewById(R.id.folding_tab_bar);
+        tabBar.setActivated(false);
+        tabBar.setOnFoldingItemClickListener(new FoldingTabBar.OnFoldingItemSelectedListener() {
+            @Override
+            public boolean onFoldingItemSelected(@NotNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.ftb_menu_nearby:
+                        break;
+                    case R.id.ftb_menu_new_chat:
+                        break;
+                    case R.id.ftb_menu_profile:
+                        break;
+                    case R.id.ftb_menu_settings:
+                        break;
+                }
+                return false;
+            }
+        });
 
         //for hiding the title when viewpager is expanded and showing title when collapsed
         final CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.htab_collapse_toolbar);
@@ -411,5 +448,15 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
     }
 
 
+    /**
+     * Called when a view has been clicked.
+     *
+     * @param view The view that was clicked.
+     */
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
 
+        }
+    }
 }

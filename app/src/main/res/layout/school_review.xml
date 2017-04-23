@@ -249,6 +249,7 @@
             android:layout_gravity="center"
             android:layout_marginLeft="30dp"
             android:text="Add Your Review"
+            android:id="@+id/btn_review"
             android:textColor="@color/colorIcons"
             android:padding="10dp"/>
     </LinearLayout>

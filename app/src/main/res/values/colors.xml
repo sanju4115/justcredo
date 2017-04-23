@@ -27,4 +27,31 @@
     <color name="cyan">#00BCD4</color>
     <color name="green">#4CAF50</color>
     <color name="yellow">#FFEB3B</color>
+
+
+    <color name="twitter_primary_color">#667580</color>
+    <color name="twitter_secondary_color">#CCD6DD</color>
+    <color name="fb_primary_color">#667580</color>
+    <color name="fb_secondary_color">#CCD6DD</color>
+
+    <color name="twitter">#23C4FF</color>
+    <color name="twitter_transparency">#23C4FF</color>
+
+
+    <array name="colors">
+        <item name="All categories" type="color">#827f93</item>
+        <item name="Pre School" type="color">#ff00</item>
+        <item name="Primary School" type="color">#c467f4</item>
+        <item name="Secondary School" type="color">#3b9aee</item>
+        <item name="Music Schools" type="color">#9bc53d</item>
+        <item name="Boarding Schools" type="color">#f4a261</item>
+        <item name="Sports Schools" type="color">#1ed2bb</item>
+        <item name="other" type="color">#bcbcbc</item>
+    </array>
+
+
+    <color name="pressed_color">@color/colorAccent</color>
+    <color name="default_color">@color/colorIcons</color>
+
 </resources>
+

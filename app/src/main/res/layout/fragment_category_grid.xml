@@ -23,15 +23,15 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_alignParentRight="true"
-        android:id="@+id/category_image"
-        android:src="@mipmap/ic_contact"/>
+        android:id="@+id/category_image" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/category_name"
             android:id="@+id/category_description"
-            android:text="Category Description"/>
+            android:text="Category Description"
+            android:textSize="9sp"/>
 
 
         <com.credolabs.justcredo.utility.ExpandableHeightGridView
@@ -46,13 +46,22 @@
             android:layout_below="@+id/category_description"
             />
 
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="0.05dp"
+            android:id="@+id/divider"
+            android:background="@color/tagColor"
+            android:layout_below="@+id/category_grid"/>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:text="See More"
-            android:layout_below="@+id/category_grid"
+            android:layout_below="@+id/divider"
             android:gravity="end"
             android:id="@+id/see_more"
+            android:padding="5dp"
+            android:textColor="@color/red"
             />
 
         <TextView

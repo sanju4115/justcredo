@@ -350,6 +350,8 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+        urlString.append("&types=geocode");
+        urlString.append("&components=country:in");
         urlString.append("&location=");
         urlString.append(latitude + "," + longitude); // append lat long of current location to show nearby results.
         urlString.append("&radius=500&language=en");
@@ -510,9 +512,9 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
             editor.putString(Constants.STATE,mUserLocation.getState());
             editor.putString(Constants.KNOWN_NAME,mUserLocation.getKnownName());
             editor.putString(Constants.MAIN_TEXT,mUserLocation.getAddress());
-            editor.putString(Constants.SECONDARY_TEXT,mUserLocation.getCity()+
-                    mUserLocation.getKnownName()+
-                    mUserLocation.getState()+
+            editor.putString(Constants.SECONDARY_TEXT,mUserLocation.getCity()+ ", "+
+                    mUserLocation.getKnownName()+", " +
+                    mUserLocation.getState()+ ", "+
                     mUserLocation.getCountry());
             editor.apply();
             finish();
