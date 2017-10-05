@@ -36,7 +36,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:id="@+id/adressText"
-                    android:background="@drawable/bg_edittext_icon"
+                    android:background="@drawable/card"
                     android:drawableLeft="@drawable/ic_search_black_24dp"
                     android:drawablePadding="15dp"
                     android:paddingLeft="5dp"
@@ -53,16 +53,6 @@
 
     </LinearLayout>
 
-
-
-    <ProgressBar
-        android:id="@+id/progress"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="?android:attr/progressBarStyleLarge"
-        android:max="100"
-        android:indeterminate="true"
-        android:visibility="gone" />
 
 
     <!--<ListView
@@ -101,6 +91,17 @@
                         custom:pager_animation_span="1100"
                         android:layout_height="200dp"/>
 
+
+                    <ProgressBar
+                        android:id="@+id/progress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:max="100"
+                        android:indeterminate="true"
+                        android:visibility="gone"
+                        android:layout_below="@+id/slider"/>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -133,6 +134,17 @@
                     android:padding="10dp"
                     android:textColor="@color/tagColor"
                     android:textSize="15sp"/>
+
+                <Button
+                    android:id="@+id/getSchoolsCategories"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#f4a261"
+                    android:drawableEnd="@drawable/chevron_right"
+                    android:paddingEnd="10dp"
+                    android:text="Find school categories wise here"
+                    android:textColor="@color/colorIcons" />
+
 
             </LinearLayout>
 

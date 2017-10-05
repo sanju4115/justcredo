@@ -6,19 +6,32 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.Cache;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.bumptech.glide.Glide;
+import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.utility.CircularNetworkImageView;
 import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.PrefUtil;
+import com.credolabs.justcredo.utility.Util;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 
 /**
@@ -42,19 +55,14 @@ public class ProfileFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
     private ImageLoader imageLoader;
 
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private DatabaseReference mReferenceUser;
+
+
     public ProfileFragment() {
         // Required empty public constructor
     }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ProfileFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static ProfileFragment newInstance(String param1, String param2) {
         ProfileFragment fragment = new ProfileFragment();
         Bundle args = new Bundle();
@@ -71,6 +79,14 @@ public class ProfileFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        mAuth = FirebaseAuth.getInstance();
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
+            }
+        };
     }
 
     @Override
@@ -78,31 +94,87 @@ public class ProfileFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
         imageLoader = MyApplication.getInstance().getImageLoader();
-        final PrefUtil prefUtil = new PrefUtil(getActivity());
-        SharedPreferences prefs = getActivity().getSharedPreferences(Constants.FacebookPreferences, Context.MODE_PRIVATE);;
-        String textFirstName = prefs.getString("fb_first_name" ,"No name");
-        String textLastName = prefs.getString("fb_last_name" ,"No name");
-        String textEmail = prefs.getString("fb_email" ,"No Email");
 
-        TextView name = (TextView) view.findViewById(R.id.profile_name);
+        final PrefUtil prefUtil = new PrefUtil(getActivity());
+        //SharedPreferences prefs = getActivity().getSharedPreferences(Constants.FacebookPreferences, Context.MODE_PRIVATE);;
+        //String textFirstName = prefs.getString("fb_first_name" ,"No name");
+        //String textLastName = prefs.getString("fb_last_name" ,"No name");
+        //String textEmail = prefs.getString("fb_email" ,"No Email");
+
+        final TextView name = (TextView) view.findViewById(R.id.profile_name);
         //TextView email = (TextView) view.findViewById(R.id.profile_email);
-        CircularNetworkImageView profilePic = (CircularNetworkImageView) view.findViewById(R.id.profile_pic);
-        NetworkImageView coverPic = (NetworkImageView) view.findViewById(R.id.cover_profile);
-        profilePic.setImageUrl(prefs.getString("fb_profilePicURL"," "),imageLoader);
-        coverPic.setImageUrl(prefs.getString("fb_coverPhotoURL", " "),imageLoader);
-        name.setText(textFirstName + " "+textLastName);
+        final ImageView profilePic = (ImageView) view.findViewById(R.id.profile_pic);
+        final ImageView coverPic = (ImageView) view.findViewById(R.id.cover_profile);
+        //profilePic.setImageUrl(prefs.getString("fb_profilePicURL"," "),imageLoader);
+        //coverPic.setImageUrl(prefs.getString("fb_coverPhotoURL", " "),imageLoader);
+        //name.setText(textFirstName + " "+textLastName);
         //email.setText(textEmail);
+        final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.image_progress);
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        mReferenceUser = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
+        mReferenceUser.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                ImageLoader imageLoader = MyApplication.getInstance().getImageLoader();
+                if (user.getName()!=null) name.setText(user.getName());
+                if (user.getCoverPic()!=null){
+                    Util.loadImageWithGlideProgress(Glide.with(getActivity().getApplicationContext()),user.getCoverPic(),coverPic,progressBar);
+                    //Util.loadImageVolley(user.getCoverPic(),coverPic);
+                }else{
+                    Util.loadImageWithGlideProgress(Glide.with(getActivity().getApplicationContext()),Constants.NO_COVER_PIC_URL,coverPic,progressBar);
+                    //Util.loadImageVolley(Constants.NO_COVER_PIC_URL,coverPic);
+                }
+                if (user.getProfilePic()!=null){
+                    Util.loadCircularImageWithGlide(getActivity().getApplicationContext(),user.getProfilePic(),profilePic);
+                }else{
+                    Util.loadCircularImageWithGlide(getActivity().getApplicationContext(),Constants.NO_COVER_PIC_URL,profilePic);
+                    //Util.loadImageVolley(Constants.NO_COVER_PIC_URL,profilePic);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
 
         LinearLayout logoutLayout = (LinearLayout) view.findViewById(R.id.layout_logout);
         logoutLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PrefUtil prefUtil1 = new PrefUtil(getActivity());
+                /*PrefUtil prefUtil1 = new PrefUtil(getActivity());
                 prefUtil.clearToken();
                 Intent intent = new Intent(getActivity(),LoginActivity.class);
                 MyApplication.getInstance().getRequestQueue().getCache().clear();
                 startActivity(intent);
+                getActivity().finish();*/
+                mAuth.signOut();
+                Intent intent = new Intent(getActivity(),AccountSetupActivity.class);
+                startActivity(intent);
                 getActivity().finish();
+            }
+        });
+
+        ImageView editProfile = (ImageView) view.findViewById(R.id.edit_profile);
+        editProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(),EditProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        LinearLayout layout_add_place = (LinearLayout) view.findViewById(R.id.layout_add_place);
+        layout_add_place.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(),AddPlaceActivity.class);
+                startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
+               // getActivity().finish();
             }
         });
 
@@ -150,5 +222,11 @@ public class ProfileFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthStateListener);
     }
 }

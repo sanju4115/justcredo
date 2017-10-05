@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.credolabs.justcredo.ReviewActivity">
 
     <android.support.design.widget.AppBarLayout
@@ -15,11 +16,31 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            android:background="@color/colorPrimary"
+            android:title="Review"
+            app:theme="@style/ToolbarColoredBackArrow"
+            android:theme="@style/Theme.AppCompat"
+            app:popupTheme="@style/AppTheme.PopupOverlay" >
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textColor="@color/colorIcons"
+                android:text="Review"
+                android:gravity="center"
+                android:id="@+id/name_review"
+                />
+
+            </RelativeLayout>
+
+            </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>
 
     <include layout="@layout/content_review" />
 
-</android.support.design.widget.CoordinatorLayout>
+</LinearLayout>

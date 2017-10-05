@@ -9,16 +9,23 @@ import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.DetailedObjectActivity;
+import com.credolabs.justcredo.ImageFragment;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.FullZoomImageViewActivity;
 import com.credolabs.justcredo.model.ObjectModel;
+import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.model.ZoomObject;
+import com.credolabs.justcredo.utility.Util;
 
 import java.util.ArrayList;
 
@@ -27,16 +34,17 @@ import java.util.ArrayList;
  */
 
 public class ImagePagerAdapter extends PagerAdapter {
-    //private int[] images = {R.drawable.img_fjords, R.drawable.img_fjords,R.drawable.img_fjords,R.drawable.img_fjords,R.drawable.img_fjords};
     private Context ctx;
     private LayoutInflater inflater;
     private ArrayList<String> images;
-    private ObjectModel model;
+    private School model;
+    private ImageFragment fragment;
 
-    public ImagePagerAdapter(Context ctx, ArrayList<String> images, ObjectModel model){
+    public ImagePagerAdapter(ImageFragment fragment, Context ctx, ArrayList<String> images, School model){
         this.ctx = ctx;
         this.images = images;
         this.model = model;
+        this.fragment = fragment;
     }
 
     @Override
@@ -52,12 +60,19 @@ public class ImagePagerAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(ViewGroup container, final int position) {
         inflater = (LayoutInflater)ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
-
+        ArrayList<String> imagesList = new ArrayList<String>(model.getImages().values());
+        String address = Util.getAddress(model.getAddress());
+        final ZoomObject zoomObject = new ZoomObject();
+        zoomObject.setImages(imagesList);
+        zoomObject.setName(model.getName());
+        zoomObject.setAddress(address);
+        zoomObject.setLogo(imagesList.get(0));
         View v = inflater.inflate(R.layout.swipe,container,false);
-        final NetworkImageView img = (NetworkImageView) v.findViewById(R.id.school_image);
+        final ImageView img = (ImageView) v.findViewById(R.id.school_image);
         TextView tv  = (TextView)v.findViewById(R.id.textView);
-        img.setImageUrl(images.get(position),imgLoader);
+        ProgressBar progressBar = (ProgressBar) v.findViewById(R.id.image_progress);
+        //img.setImageUrl(images.get(position),imgLoader);
+        Util.loadImageWithGlideProgress(Glide.with(fragment),images.get(position),img,progressBar);
         tv.setText(position+1+"/"+images.size());
         container.addView(v);
         v.setOnClickListener(new View.OnClickListener() {
@@ -65,7 +80,8 @@ public class ImagePagerAdapter extends PagerAdapter {
             public void onClick(View v) {
                 Intent myIntent = new Intent(ctx, FullZoomImageViewActivity.class);
                 myIntent.putExtra("ImagePosition", position);
-                myIntent.putExtra("SchoolDetail",model);
+                myIntent.putExtra("zoom_object",zoomObject);
+                //myIntent.putExtra("SchoolDetail",model);
                 //ctx.startActivity(myIntent);
 
 

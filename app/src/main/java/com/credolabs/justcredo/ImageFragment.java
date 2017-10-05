@@ -14,6 +14,8 @@ import android.widget.ImageView;
 
 import com.credolabs.justcredo.adapters.ImagePagerAdapter;
 import com.credolabs.justcredo.model.ObjectModel;
+import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.utility.ExtendedViewPager;
 
 import java.util.ArrayList;
 
@@ -78,39 +80,41 @@ public class ImageFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_image, container, false);
-        ObjectModel model = (ObjectModel) getArguments().getSerializable("images");
+        School model = (School) getArguments().getSerializable("images");
 
-        ArrayList<String> imageURL = (ArrayList<String>) model.getImages();
-        viewPager = (ViewPager) view.findViewById(R.id.viewpager);
-        adapter = new ImagePagerAdapter(getActivity(),imageURL,model);
-        viewPager.setAdapter(adapter);
+        if (model.getImages()!=null){
+            ArrayList<String> imageURL = new ArrayList<String>(model.getImages().values());
+            viewPager = (ViewPager) view.findViewById(R.id.viewpager);
+            adapter = new ImagePagerAdapter(ImageFragment.this,getActivity(),imageURL,model);
+            viewPager.setAdapter(adapter);
+            leftNav = (AppCompatImageView) view.findViewById(R.id.left_nav);
+            rightNav = (AppCompatImageView) view.findViewById(R.id.right_nav);
 
-        leftNav = (AppCompatImageView) view.findViewById(R.id.left_nav);
-        rightNav = (AppCompatImageView) view.findViewById(R.id.right_nav);
+            // Images left navigation
+            leftNav.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int tab = viewPager.getCurrentItem();
+                    if (tab > 0) {
+                        tab--;
+                        viewPager.setCurrentItem(tab);
+                    } else if (tab == 0) {
+                        viewPager.setCurrentItem(tab);
+                    }
+                }
+            });
 
-        // Images left navigation
-        leftNav.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int tab = viewPager.getCurrentItem();
-                if (tab > 0) {
-                    tab--;
-                    viewPager.setCurrentItem(tab);
-                } else if (tab == 0) {
+            // Images right navigatin
+            rightNav.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int tab = viewPager.getCurrentItem();
+                    tab++;
                     viewPager.setCurrentItem(tab);
                 }
-            }
-        });
+            });
+        }
 
-        // Images right navigatin
-        rightNav.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int tab = viewPager.getCurrentItem();
-                tab++;
-                viewPager.setCurrentItem(tab);
-            }
-        });
         return view;
     }
 

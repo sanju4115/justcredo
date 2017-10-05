@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/com_facebook_profile_picture_blank_portrait"
+        android:id="@+id/comment_user_image"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:layout_marginLeft="10dp"
+            android:id="@+id/comment_user_name"
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/comment_user_text"
+            android:layout_margin="5dp"
+            android:paddingLeft="5dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:textColor="@color/colorIcons"
+            android:textSize="13sp"
+            android:textColorHint="@color/tagColor"
+            android:background="@drawable/rating"/>
+
+        <Button
+            android:id="@+id/delete_comment"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:background="@color/colorIcons"
+            android:layout_width="50dp"
+            android:layout_height="20dp"
+            android:enabled="true"
+            android:textColor="@color/colorPrimaryText"
+            android:layout_gravity="end"
+            android:textSize="12sp"
+            android:visibility="gone"
+            android:text="Delete"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -2,9 +2,8 @@ package com.credolabs.justcredo;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
+import android.provider.ContactsContract;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -13,16 +12,17 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.NetworkImageView;
-import com.credolabs.justcredo.model.ObjectModel;
-import com.credolabs.justcredo.utility.ZoomNetworkImageView;
+import com.bumptech.glide.Glide;
+import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.model.ZoomObject;
+import com.credolabs.justcredo.utility.TouchImageView;
+import com.credolabs.justcredo.utility.Util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,23 +36,29 @@ public class FullZoomImageViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fullzoom_imageview);
         toolbar = (Toolbar) findViewById(R.id.toolbar_image);
         setSupportActionBar(toolbar);
-        final ObjectModel model = (ObjectModel) getIntent().getSerializableExtra("SchoolDetail");
-        getSupportActionBar().setTitle(model.getName());
+        final ZoomObject model = (ZoomObject) getIntent().getSerializableExtra("zoom_object");
+        TextView title = (TextView) findViewById(R.id.title);
+        TextView subTitle = (TextView) findViewById(R.id.subTitle);
+        if (model.getName()!=null){
+            getSupportActionBar().setTitle("");
+            title.setText(model.getName());
+        }else{
+            title.setText("Photos");
+        }
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        HashMap<String,String> address = (HashMap<String, String>) model.getAddress();
-        String locality = address.get("locality");
-        String postalCode = address.get("postalCode");
-        String state = address.get("state");
-        String city = address.get("city");
-        toolbar.setSubtitle(locality+", "+city);
+        if (model.getAddress()!=null){
+            subTitle.setText(model.getAddress());
+        }
 
-
+        ImageView logo = (ImageView) findViewById(R.id.logo);
+        Util.loadCircularImageWithGlide(this,model.getLogo(),logo);
         ViewPager mViewPager = (ViewPager) findViewById(R.id.view_pager);
         final TextView imagePposition = (TextView) findViewById(R.id.image_position);
-        final ArrayList<String> imagesURL = (ArrayList<String>) model.getImages();
-        mViewPager.setAdapter(new ImagePagerAdapter(this, imagesURL ,model));
+        final ArrayList<String> imagesURL = model.getImages();
+        mViewPager.setAdapter(new ImagePagerAdapter(this, imagesURL));
         Intent mIntent = getIntent();
         int imagePosition = mIntent.getIntExtra("ImagePosition", 0);
         mViewPager.setCurrentItem(imagePosition);
@@ -79,12 +85,10 @@ public class FullZoomImageViewActivity extends AppCompatActivity {
         private Context ctx;
         private LayoutInflater inflater;
         private ArrayList<String> images;
-        private ObjectModel model;
 
-        public ImagePagerAdapter(Context ctx, ArrayList<String> images, ObjectModel model){
+        public ImagePagerAdapter(Context ctx, ArrayList<String> images){
             this.ctx = ctx;
             this.images = images;
-            this.model = model;
         }
 
         @Override
@@ -103,8 +107,10 @@ public class FullZoomImageViewActivity extends AppCompatActivity {
             ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
 
             View v = inflater.inflate(R.layout.zoom_school_image,container,false);
-            ZoomNetworkImageView img = (ZoomNetworkImageView) v.findViewById(R.id.school_image);
-            img.setImageUrl(images.get(position),imgLoader);
+            TouchImageView img = (TouchImageView) v.findViewById(R.id.school_image);
+            ProgressBar progressBar = (ProgressBar) v.findViewById(R.id.image_progress);
+            //img.setImageUrl(images.get(position),imgLoader);
+            Util.loadImageWithGlideProgress(Glide.with(ctx),images.get(position),img,progressBar);
             container.addView(v);
             return v;
         }
@@ -121,11 +127,11 @@ public class FullZoomImageViewActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //toolbar.getBackground().setAlpha(1);
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        this.finish();
     }
 
     @Override

@@ -28,11 +28,38 @@
             android:layout_alignParentStart="true"
             >
 
-            <com.android.volley.toolbox.NetworkImageView
-                android:id="@+id/cover_profile"
+
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
+                android:layout_gravity="center"
+                android:id="@+id/imageFrame">
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/image_progress"
+                    style="@android:style/Widget.ProgressBar.Small"
+                    />
+
+                <ImageView
+                    android:id="@+id/cover_profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    />
+
+            </FrameLayout>
+
+
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/ic_edit"
+                android:layout_gravity="end"
+                android:id="@+id/edit_profile"
                 />
 
             <TextView
@@ -82,7 +109,7 @@
 
         </com.github.florent37.diagonallayout.DiagonalLayout>
 
-        <com.credolabs.justcredo.utility.CircularNetworkImageView
+        <ImageView
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_marginLeft="40dp"
@@ -112,7 +139,6 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/diagonalLayout"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -140,7 +166,6 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/diagonalLayout"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -165,7 +190,6 @@
 
 
             </LinearLayout>
-
         </LinearLayout>
 
 

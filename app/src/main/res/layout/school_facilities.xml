@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginRight="20dp"
+            android:layout_marginRight="5dp"
             android:id="@+id/facilities_section">
 
             <TextView
@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginRight="20dp"
+                android:layout_marginRight="5dp"
                 android:id="@+id/linear_layout_facilities">
 
             </LinearLayout>
@@ -48,7 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginRight="20dp"
+            android:layout_marginRight="5dp"
             android:id="@+id/curricular_section"
             >
 
@@ -63,7 +63,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginRight="20dp"
+                android:layout_marginRight="5dp"
                 android:id="@+id/linear_layout_curriculumn">
 
             </LinearLayout>
@@ -89,7 +89,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginRight="20dp"
+                android:layout_marginRight="5dp"
                 android:id="@+id/linear_layout_sports">
 
             </LinearLayout>

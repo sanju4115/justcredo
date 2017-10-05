@@ -27,7 +27,8 @@ public class ExtendedViewPager extends ViewPager {
             // ViewPager is extended and canScrollHorizontallyFroyo, a wrapper around
             // canScrollHorizontally supporting Api >= 8, is called.
             //
-            return ((TouchImageView) v).canScrollHorizontallyFroyo(-dx);
+            //return ((TouchImageView) v).canScrollHorizontallyFroyo(-dx);
+            return true;
 
         } else {
             return super.canScroll(v, checkV, dx, x, y);

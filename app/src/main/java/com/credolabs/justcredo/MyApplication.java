@@ -19,6 +19,9 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.credolabs.justcredo.utility.VolleySingleton;
 import com.facebook.FacebookSdk;
+import com.firebase.client.Firebase;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -47,6 +50,11 @@ public class MyApplication extends MultiDexApplication{
         mImageLoader= VolleySingleton.getInstance(mInstance).getImageLoader();
         printHashKey();
         FacebookSdk.sdkInitialize(getApplicationContext());
+
+        if (!FirebaseApp.getApps(this).isEmpty()){
+            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        }
+
     }
 
     public void instantiateVolleyQueue() {

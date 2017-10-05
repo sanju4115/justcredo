@@ -12,14 +12,19 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.android.volley.toolbox.ImageLoader;
+import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.ObjectListActivity;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.model.ObjectModel;
+import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.utility.Util;
 import com.google.gson.internal.LinkedTreeMap;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Sanjay kumar on 4/1/2017.
@@ -28,10 +33,10 @@ import java.util.ArrayList;
 public class ObjectListViewRecyclerAdapter extends
         RecyclerView.Adapter<ObjectListViewHolder> {// Recyclerview will extend to
     // recyclerview adapter
-    private ArrayList<ObjectModel> arrayList;
+    private ArrayList<School> arrayList;
     private Context context;
 
-    public ObjectListViewRecyclerAdapter(Context context,ArrayList<ObjectModel> arrayList) {
+    public ObjectListViewRecyclerAdapter(Context context,ArrayList<School> arrayList) {
         this.context = context;
         this.arrayList = arrayList;
 
@@ -45,7 +50,7 @@ public class ObjectListViewRecyclerAdapter extends
 
     @Override
     public void onBindViewHolder(ObjectListViewHolder holder, int position) {
-        final ObjectModel model = arrayList.get(position);
+        final School model = arrayList.get(position);
 
         ObjectListViewHolder mainHolder =  holder;// holder
         String locality = " ";
@@ -53,40 +58,53 @@ public class ObjectListViewRecyclerAdapter extends
         String state = " ";
         // setting data over views
         mainHolder.school_name.setText(model.getName());
-        LinkedTreeMap<String,String> address = new LinkedTreeMap<>();
-        address = (LinkedTreeMap<String, String>) model.getAddress();
-        if (address.get("locality")!= null){
-            locality = address.get("locality");
+        HashMap<String,String> address = new HashMap<>();
+        address = (HashMap<String, String>) model.getAddress();
+        if (address.get("addressLine2")!= null){
+            locality = address.get("addressLine2");
         }
-        if (address.get("city")!= null){
-            city = address.get("city");
+        if (address.get("addressCity")!= null){
+            city = address.get("addressCity");
         }
-        if (address.get("state")!= null){
-            state = address.get("state");
+        if (address.get("addressState")!= null){
+            state = address.get("addressState");
         }
+
+        mainHolder.school_address.setVisibility(View.VISIBLE);
         mainHolder.school_address.setText(locality + ", "+ city + ", "+ state);
-        mainHolder.school_review.setText(model.getNoOfReviews());
+        if (model.getNoOfReview() != null){
+            mainHolder.school_review.setText(String.valueOf(model.getNoOfReview().toString()));
+        }
         mainHolder.distance.setText("1 km");
-        //mainHolder.rating.setText(model.getRating());
-        mainHolder.rating.setScore(Float.parseFloat(model.getRating()));
-        mainHolder.phone.setText(model.getPhone());
-        mainHolder.category.setText(model.getCategory());
-        mainHolder.medium.setText(model.getMedium());
-        mainHolder.school_name.setText(model.getName());
+        if (model.getRating()!=null){
+            mainHolder.rating.setScore(model.getRating());
+        }
+
+        if (model.getMobileNumber()!=null){
+            mainHolder.phone.setText(model.getMobileNumber());
+        }else {
+            mainHolder.mobileNumberLayout.setVisibility(View.GONE);
+        }
+        if (model.getWebsite()!=null){
+            mainHolder.website.setText(model.getWebsite());
+        }else {
+            mainHolder.websiteLayout.setVisibility(View.GONE);
+        }
 
         int loader = R.drawable.cast_album_art_placeholder_large;
 
         // ImageLoader class instance
         ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
-        /*//Loading Image from URL
-        Picasso.with(this)
-                .load("https://www.simplifiedcoding.net/wp-content/uploads/2015/10/advertise.png")
-                .placeholder(R.drawable.placeholder)   // optional
-                .error(R.drawable.error)      // optional
-                .resize(400,400)                        // optional
-                .into(imageView);*/
+        HashMap<String, String> images = arrayList.get(position).getImages();
 
-        mainHolder.image.setImageUrl(model.getCoverImage(), imgLoader);
+        if (images !=null){
+            Map.Entry<String,String> entry=images.entrySet().iterator().next();
+            String key= entry.getKey();
+            String value=entry.getValue();
+
+            //mainHolder.image.setImageUrl(value, imgLoader);
+            Util.loadImageWithGlideProgress(Glide.with(context),value,mainHolder.image,mainHolder.progressBar);
+        }
 
         // Implement click listener over layout
         mainHolder.setClickListener(new RecyclerViewOnClickListener.OnClickListener() {

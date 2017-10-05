@@ -9,6 +9,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 
+
 public class ImageUtils {
 
     private static final String TAG = ImageUtils.class.getSimpleName();
@@ -67,4 +68,6 @@ public class ImageUtils {
             return null;
         }
     }
+
+
 }

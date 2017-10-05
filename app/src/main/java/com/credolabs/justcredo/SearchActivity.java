@@ -47,6 +47,7 @@ public class SearchActivity extends AppCompatActivity implements FilterListener<
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_action_close);
         getSupportActionBar().setTitle("");
         currentLocation = (TextView) findViewById(R.id.current_location);
         sharedPreferences = getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);

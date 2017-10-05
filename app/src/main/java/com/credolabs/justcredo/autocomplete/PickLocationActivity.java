@@ -37,6 +37,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.credolabs.justcredo.BuildConfig;
 import com.credolabs.justcredo.HomeActivity;
+import com.credolabs.justcredo.LoginActivity;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.adapters.AutoCompleteAdapter;
@@ -45,7 +46,10 @@ import com.credolabs.justcredo.location.LocationResolver;
 import com.credolabs.justcredo.model.HistorySearchedModel;
 import com.credolabs.justcredo.model.PlacePredictions;
 import com.credolabs.justcredo.utility.Constants;
+import com.credolabs.justcredo.utility.CustomToast;
+import com.credolabs.justcredo.utility.NearByPlaces;
 import com.credolabs.justcredo.utility.UserLocation;
+import com.credolabs.justcredo.utility.Util;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -257,8 +261,12 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
             editor.putString(Constants.STATE,"");
             editor.putString(Constants.KNOWN_NAME,"");
             editor.apply();
+            //new CustomToast().Show_Toast(PickLocationActivity.this, Util.getCurrentUSerAddress(sharedPreference).get("addressCity"));
+            NearByPlaces.getNearByCities(getApplicationContext(), Util.getCurrentUSerAddress(sharedPreference).get("addressCity"));
             HistorySearchedModel model = new HistorySearchedModel(structured_formatting.get("main_text"),structured_formatting.get("secondary_text"));
             saveObject(model);
+            Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+            startActivity(intent1);
             finish();
         }
     });
@@ -292,6 +300,9 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
                 editor.putString(Constants.STATE,"");
                 editor.putString(Constants.KNOWN_NAME,"");
                 editor.apply();
+                NearByPlaces.getNearByCities(getApplicationContext(), Util.getCurrentUSerAddress(sharedPreference).get("addressCity"));
+                Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+                startActivity(intent1);
                 finish();
             }
         });
@@ -350,7 +361,7 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        urlString.append("&types=geocode");
+        urlString.append("&types=(cities)");
         urlString.append("&components=country:in");
         urlString.append("&location=");
         urlString.append(latitude + "," + longitude); // append lat long of current location to show nearby results.
@@ -513,10 +524,15 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
             editor.putString(Constants.KNOWN_NAME,mUserLocation.getKnownName());
             editor.putString(Constants.MAIN_TEXT,mUserLocation.getAddress());
             editor.putString(Constants.SECONDARY_TEXT,mUserLocation.getCity()+ ", "+
-                    mUserLocation.getKnownName()+", " +
                     mUserLocation.getState()+ ", "+
                     mUserLocation.getCountry());
+
+            new CustomToast().Show_Toast(this, mUserLocation.getCity());
+            NearByPlaces.getNearByCities(getApplicationContext(),mUserLocation.getCity());
+
             editor.apply();
+            Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+            startActivity(intent1);
             finish();
 
         }

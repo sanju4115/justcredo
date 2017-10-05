@@ -33,7 +33,6 @@
     <string name="title_activity_detailed_object">DetailedObjectActivity</string>
     <string name="action_settings">Settings</string>
     <string name="school_description">Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci. Mauris lacinia sapien quis libero.</string>
-    <string name="email">jpalmer0@china.com.cn</string>
     <string name="website">www.dpspublic.com</string>
     <string name="rating_credability">weighted average based on user creadability on Credo</string>
     <string name="title_activity_image">ImageActivity</string>
@@ -60,10 +59,32 @@
     <string name="schedule">SCHEDULE</string>
     <string name="delete">DELETE</string>
 
+    //Account Setup
+    <string name="email">Email Id</string>
+    <string name="passowrd">Password</string>
+    <string name="login">LOGIN</string>
+    <string name="show_pwd">Show Password</string>
+    <string name="hide_pwd">Hide Password</string>
+    <string name="forgot">Forgot password?</string>
+    <string name="closebutton">Close Button for Activity</string>
+    <string name="newUser">Not a Member yet? Sign Up here.</string>
+    <string name="fullName">Full Name</string>
+    <string name="mobileNumber">Mobile Number</string>
+    <string name="location">Location</string>
+    <string name="confirmPassword">Confirm Password</string>
+    <string name="terms_conditions">By clicking SignUp you agree all the Terms and Conditions.</string>
+    <string name="signUp">SIGN UP</string>
+    <string name="already_user">Already have Account? Login here.</string>
+    <string name="registered_emailid">Please enter your Registered Email Id below:</string>
+    <string name="submit">SUBMIT</string>
+    <string name="back">BACK</string>
+
 
     //for quick search
 
     <string name="str_all_selected">All categories</string>
+    <string name="rating_review_text"><font size="10">Tips on writing a great review \n• Not too short, not too long: Written reviews must be limited to 100 to 500 words.\n• Be sincere: We welcome your honest opinion about the product--positive or negative. We do not remove reviews because they are critical. We believe all helpful information can inform our customers’ buying decisions. \n• Full disclosure: If you received a free product in exchange for your review, please clearly and conspicuously disclose that that you received the product free of charge.</font></string>
+    <string name="review_text_sample">With exams approaching, it\'s a good idea to review your class notes. He reviews films for the local newspaper. Your starting salary is £13 000 per annum and will be reviewed annually. The laws governing the possession of firearms are being reviewed. The company is reviewing its security after the robbery.</string>
 
     <string-array name="categories_titles">
         <item>All categories</item>
@@ -207,8 +228,28 @@
         <item>Transportation</item>
         <item>Medical Facilities</item>
     </string-array>
-    <string name="title_activity_review">ReviewActivity</string>
-    <string name="title_activity_rating">RatingActivity</string>
+    <string name="title_activity_edit_profile">EditProfileActivity</string>
+    <string name="description">Description*</string>
+    <string name="user_description">It\'s nice to share brief about yourself.</string>
+    <string name="title_activity_review_details">ReviewDetailsActivity</string>
+    <string name="comment_description">Tap here to comment !</string>
+    <string name="title_activity_add_place">AddPlaceActivity</string>
 
+    <string-array name="stepLabels">
+        <item>Approval</item>
+        <item>Processed</item>
+        <item>Shipped</item>
+        <item>Delivery</item>
+    </string-array>
+    <string name="add_place_description">Fill all the details regarding the place.</string>
+    <string name="place_name">Name*</string>
+    <string name="place_type">Choose Place Type</string>
+    <string name="category">Choose Categories</string>
+    <string name="facilities_offered">Choose Facilities Offered</string>
+    <string name="title_activity_category_wise">CategoryWiseActivity</string>
+    <string name="choose_categories">Choose Categories Below</string>
+    <string name="top_results">Showing top Schools In Your Area (Sponsored)</string>
+    <string name="not_found_main_text">Sorry we couldn\'t find any matches</string>
+    <string name="not_found_secondary_text">Maybe your search was too specific, please try searching with another term.</string>
 
 </resources>

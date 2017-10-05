@@ -1,64 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.credolabs.justcredo.SearchActivity"
-    tools:showIn="@layout/activity_search">
+    tools:showIn="@layout/activity_search"
+    android:id="@+id/search_bar_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:transitionName="search_bar"
+    android:paddingTop="5dp"
+    android:paddingRight="5dp"
+    android:paddingLeft="5dp">
 
-    <LinearLayout
-        android:id="@+id/search_bar_view"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:transitionName="search_bar"
-        android:paddingTop="5dp"
-        android:paddingRight="5dp"
-        android:paddingLeft="5dp"
-        >
+        android:layout_marginBottom="5dp">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp">
-
-            <RelativeLayout
+            <EditText
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="50dp"
+                android:id="@+id/adressText"
+                android:background="@drawable/card"
+                android:drawableStart="@drawable/ic_search_black_24dp"
+                android:drawablePadding="15dp"
+                android:paddingStart="5dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:hint="Search"
+                android:inputType="textEmailAddress"
+                android:focusable="true"/>
 
 
-                <EditText
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:id="@+id/adressText"
-                    android:background="@drawable/bg_edittext_icon"
-                    android:drawableLeft="@drawable/ic_search_black_24dp"
-                    android:drawablePadding="15dp"
-                    android:paddingLeft="5dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
-                    android:hint="Search"
-                    android:inputType="textEmailAddress"
-                    android:focusable="true"/>
-
-            </RelativeLayout>
+    </RelativeLayout>
 
 
-        </RelativeLayout>
+    <com.yalantis.filter.widget.Filter
+        android:id="@+id/filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
+</LinearLayout>
 
-        <com.yalantis.filter.widget.Filter
-            android:id="@+id/filter"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-    </LinearLayout>
-
-
-
-
-
-
-</android.support.constraint.ConstraintLayout>

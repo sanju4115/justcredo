@@ -18,20 +18,20 @@
             <ImageView
                 android:id="@+id/banner"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
+                android:layout_height="150dp"
                 android:scaleType="centerCrop"
                 android:adjustViewBounds="true"
                 android:src="@drawable/books"
                 />
 
             <ImageView
-                android:layout_width="100dp"
-                android:layout_height="100dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
                 android:src="@drawable/logo"
                 android:background="@drawable/logo_background"
                 android:padding="10dp"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="200dp"
+                android:layout_marginTop="120dp"
                 android:id="@+id/logo"/>
 
             <LinearLayout

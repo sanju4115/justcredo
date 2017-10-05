@@ -22,10 +22,16 @@ import android.widget.TextView;
 import com.android.volley.Cache;
 import com.credolabs.justcredo.autocomplete.PickLocationActivity;
 import com.credolabs.justcredo.utility.Constants;
+import com.credolabs.justcredo.utility.CustomToast;
+import com.firebase.client.Firebase;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Calendar;
 
-public class HomeActivity extends AppCompatActivity implements CategoryFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener, CategoryGridFragment.OnFragmentInteractionListener {
+public class HomeActivity extends AppCompatActivity implements DashboarfFragment.OnFragmentInteractionListener,CategoryFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener, CategoryGridFragment.OnFragmentInteractionListener {
 
     private Fragment fragment;
     private FragmentManager fragmentManager;
@@ -52,13 +58,13 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
                         fragment = new CategoryFragment();
                         break;
                     case R.id.navigation_dashboard:
-                        return true;
+                        fragment = new DashboarfFragment();
+                        break;
                     case R.id.navigation_notifications:
                         return true;
                     case R.id.navigation_profile:
                         fragment = new ProfileFragment();
                         break;
-
                 }
                 final FragmentTransaction transaction = fragmentManager.beginTransaction();
                 transaction.replace(R.id.content, fragment).commit();
@@ -86,10 +92,10 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
             locationOutput.setText(location);
         }
 
+
         fragment = new CategoryFragment();
         final FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.content, fragment).commit();
-
 
         ApplicationInfo appliInfo = null;
         try {
@@ -126,5 +132,10 @@ public class HomeActivity extends AppCompatActivity implements CategoryFragment.
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 }

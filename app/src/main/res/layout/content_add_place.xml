@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.credolabs.justcredo.AddPlaceActivity"
+    tools:showIn="@layout/activity_add_place">
+
+    <ScrollView
+        android:id="@+id/ScrollView01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/TextViewTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorPrimary"
+                android:padding="10dp"
+                android:text="@string/add_place_description"
+                android:textColor="@color/colorIcons"
+                android:textSize="18dp" />
+
+            <EditText
+                android:id="@+id/EditTextName"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/place_name"
+                android:inputType="textPersonName"
+                android:nextFocusLeft="@id/EditTextName"
+                android:nextFocusUp="@id/EditTextName"></EditText>
+
+            <EditText
+                android:id="@+id/EditTextEmail"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/email"
+                android:inputType="textEmailAddress" />
+
+            <EditText
+                android:id="@+id/EditTextWebsite"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/website"
+                android:inputType="textEmailAddress" />
+
+            <TextView
+                android:id="@+id/text_review"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorPrimary"
+                android:padding="10dp"
+                android:text="@string/description"
+                android:textColor="@color/colorIcons" />
+
+            <EditText
+                android:id="@+id/description_text"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:background="@android:color/transparent"
+                android:gravity="top|left"
+                android:hint="@string/rating_review_text"
+                android:inputType="none"
+                android:paddingBottom="12dp"
+                android:paddingLeft="5dp"
+                android:paddingTop="12dp"
+                android:textColorHint="@color/tagColor"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimary"
+                    android:padding="10dp"
+                    android:text="@string/place_type"
+                    android:textColor="@color/colorIcons" />
+
+                <android.support.v7.widget.AppCompatTextView
+                    android:id="@+id/locationView"
+                    android:layout_width="25dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimaryLight"
+                    android:drawableRight="@android:drawable/arrow_down_float"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingEnd="5dp" />
+
+                <Spinner
+                    android:id="@+id/place_type_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:background="@drawable/card"
+                    android:backgroundTint="@color/colorPrimaryLight" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorPrimary"
+                    android:padding="10dp"
+                    android:text="@string/category"
+                    android:textColor="@color/colorIcons" />
+
+                <LinearLayout
+                    android:id="@+id/place_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="gone" />
+
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/address"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorPrimary"
+                android:drawableRight="@android:drawable/arrow_down_float"
+                android:onClick="expandableButtonAddress"
+                android:paddingRight="10dp"
+                android:text="Select Address For This Place"
+                android:textColor="#fff" />
+
+            <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                android:id="@+id/expandableLayoutAddress"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:ael_duration="400"
+                app:ael_expanded="false"
+                app:ael_interpolator="bounce"
+                app:ael_orientation="vertical">
+
+                <EditText
+                    android:id="@+id/adressText"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/card"
+                    android:drawablePadding="15dp"
+                    android:drawableStart="@drawable/ic_search_black_24dp"
+                    android:focusable="false"
+                    android:hint="Please Search Address"
+                    android:inputType="none"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="5dp"
+                    android:paddingTop="12dp" />
+
+                <LinearLayout
+                    android:id="@+id/addressLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/adressText"
+                    android:layout_gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/signup_input_layout_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="10dp">
+
+                        <EditText
+                            android:id="@+id/addressLine1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ems="10"
+                            android:hint="Address Line 1" />
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/signup_input_layout_name1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="10dp">
+
+                        <EditText
+                            android:id="@+id/addressLine2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ems="10"
+                            android:hint="Address Line 2" />
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/signup_input_layout_name2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="10dp">
+
+                        <EditText
+                            android:id="@+id/addressCity"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ems="10"
+                            android:hint="City*" />
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/signup_input_layout_name3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="10dp">
+
+                        <EditText
+                            android:id="@+id/addressState"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ems="10"
+                            android:hint="State*" />
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/signup_input_layout_name4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="10dp">
+
+                        <EditText
+                            android:id="@+id/addressCountry"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ems="10"
+                            android:hint="Country*" />
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/signup_input_layout_name5"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="10dp">
+
+                        <EditText
+                            android:id="@+id/mobileNumber"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ems="10"
+                            android:hint="Mobile"
+                            android:inputType="numberSigned" />
+                    </android.support.design.widget.TextInputLayout>
+
+                </LinearLayout>
+
+            </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+
+
+            <RelativeLayout
+                android:id="@+id/buttons_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/expandableButtonFacilities"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:background="@color/colorPrimary"
+                    android:drawableRight="@android:drawable/arrow_down_float"
+                    android:onClick="expandableButtonFacilities"
+                    android:paddingRight="10dp"
+                    android:text="@string/facilities_offered"
+                    android:textColor="#fff" />
+
+                <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                    android:id="@+id/expandableLayoutFacilities"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/expandableButtonFacilities"
+                    android:padding="16dp"
+                    app:ael_duration="400"
+                    app:ael_expanded="false"
+                    app:ael_interpolator="bounce"
+                    app:ael_orientation="vertical">
+
+                    <GridView
+                        android:id="@+id/facilities"
+                        android:layout_width="match_parent"
+                        android:layout_height="400dp"
+                        android:numColumns="2" />
+                </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+
+                <Button
+                    android:id="@+id/expandableButtonExtra"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/expandableLayoutFacilities"
+                    android:background="@color/colorPrimary"
+                    android:drawableRight="@android:drawable/arrow_down_float"
+                    android:onClick="expandableButtonExtra"
+                    android:paddingRight="10dp"
+                    android:text="Choose Extracurricular Activities"
+                    android:textColor="#fff" />
+
+                <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                    android:id="@+id/expandableLayoutExtra"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/expandableButtonExtra"
+                    android:padding="16dp"
+                    app:ael_duration="400"
+                    app:ael_expanded="false"
+                    app:ael_interpolator="bounce"
+                    app:ael_orientation="vertical">
+
+                    <GridView
+                        android:id="@+id/extra"
+                        android:layout_width="match_parent"
+                        android:layout_height="400dp"
+                        android:numColumns="2" />
+
+                </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+
+
+                <Button
+                    android:id="@+id/expandableButtonSports"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/expandableLayoutExtra"
+                    android:background="@color/colorPrimary"
+                    android:drawableRight="@android:drawable/arrow_down_float"
+                    android:onClick="expandableButtonSports"
+                    android:paddingRight="10dp"
+                    android:text="Choose Sports Available"
+                    android:textColor="#fff" />
+
+                <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                    android:id="@+id/expandableLayoutSports"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/expandableButtonSports"
+                    android:padding="16dp"
+                    app:ael_duration="400"
+                    app:ael_expanded="false"
+                    app:ael_interpolator="bounce"
+                    app:ael_orientation="vertical">
+
+                    <GridView
+                        android:id="@+id/sports"
+                        android:layout_width="match_parent"
+                        android:layout_height="600dp"
+                        android:numColumns="2" />
+
+                </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+
+                <Button
+                    android:id="@+id/expandableButtonMusic"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/expandableLayoutSports"
+                    android:background="@color/colorPrimary"
+                    android:drawableRight="@android:drawable/arrow_down_float"
+                    android:onClick="expandableButtonMusic"
+                    android:paddingRight="10dp"
+                    android:text="Choose Music Classes Available"
+                    android:textColor="#fff" />
+
+                <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                    android:id="@+id/expandableLayoutMusic"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/expandableButtonMusic"
+                    android:padding="16dp"
+                    app:ael_duration="400"
+                    app:ael_expanded="false"
+                    app:ael_interpolator="bounce"
+                    app:ael_orientation="vertical">
+
+                    <GridView
+                        android:id="@+id/music"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:numColumns="2" />
+
+                </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+
+                <Button
+                    android:id="@+id/expandableButtonPhotos"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/expandableLayoutMusic"
+                    android:background="@color/colorPrimary"
+                    android:drawableRight="@android:drawable/arrow_down_float"
+                    android:onClick="expandableButtonPhotos"
+                    android:paddingRight="10dp"
+                    android:text="Add Photos"
+                    android:textColor="#fff" />
+
+                <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                    android:id="@+id/expandableLayoutPhotos"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/expandableButtonPhotos"
+                    app:ael_duration="400"
+                    app:ael_expanded="true"
+                    app:ael_interpolator="bounce"
+                    app:ael_orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/add_images_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:background="@drawable/card"
+                            android:orientation="vertical">
+
+                            <HorizontalScrollView
+                                android:id="@+id/horizontalScroll"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="#ecf0f1"
+                                android:scrollbars="none">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="100dp"
+                                    android:orientation="horizontal">
+
+                                    <com.credolabs.justcredo.utility.CircularNetworkImageView
+                                        android:id="@+id/AddNew"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_marginLeft="5dp"
+                                        android:src="@drawable/camera" />
+
+                                    <TextView
+                                        android:id="@+id/add_image_hint_text"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:padding="10dp"
+                                        android:text="Tap on the icon to add images!"
+
+                                        />
+
+                                    <ImageView
+                                        android:id="@+id/im11"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+                                    <ImageView
+                                        android:id="@+id/im10"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+                                    <ImageView
+                                        android:id="@+id/im9"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+                                    <ImageView
+                                        android:id="@+id/im8"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+                                    <ImageView
+                                        android:id="@+id/im7"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+                                    <ImageView
+                                        android:id="@+id/im6"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+                                    <ImageView
+                                        android:id="@+id/im5"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+                                    <ImageView
+                                        android:id="@+id/im4"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+                                    <ImageView
+                                        android:id="@+id/im3"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+                                    <ImageView
+                                        android:id="@+id/im2"
+                                        android:layout_width="90dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_margin="2dp"
+                                        android:visibility="gone" />
+
+
+                                </LinearLayout>
+
+                            </HorizontalScrollView>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="right"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/CountImg"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:padding="3dp"
+                                    android:text="Images: 0"
+                                    android:textStyle="bold" />
+
+                                <Button
+                                    android:id="@+id/BorrarTodas"
+                                    style="@style/Widget.AppCompat.Button.Colored"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="40dp"
+                                    android:enabled="true"
+                                    android:text="Delete All"
+                                    android:textSize="10sp"
+                                    android:visibility="visible" />
+
+                            </LinearLayout>
+
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+                </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+
+            </RelativeLayout>
+
+
+            <LinearLayout
+                android:id="@+id/submit_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorIcons"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/submit_place_btn"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:text="Submit"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+
+    </ScrollView>
+
+
+</LinearLayout>

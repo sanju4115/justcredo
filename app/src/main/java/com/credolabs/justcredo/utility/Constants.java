@@ -32,6 +32,7 @@ public final class Constants {
     public static final String COUNTRY = "country";
     public static final String POSTAL_CODE = "postalCode";
     public static final String KNOWN_NAME ="knownName";
+    public static final String NO_COVER_PIC_URL = "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/utility%2Fic_nocover.png?alt=media&token=33f61553-7784-46e5-8c2e-e20a17597aaf";
 
-
+    public static final String NEAR_BY_CITIES = "nearByCities";
 }

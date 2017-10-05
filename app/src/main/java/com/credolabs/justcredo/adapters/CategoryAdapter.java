@@ -6,37 +6,102 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.model.CategoryModel;
+import com.credolabs.justcredo.model.ObjectModel;
+import com.credolabs.justcredo.utility.Util;
+
+import java.util.ArrayList;
 
 
-/**
- * Created by ravindrapatidar on 26/03/17.
- */
+public class CategoryAdapter extends BaseAdapter {
+
+    private Context mContext;
+    private ArrayList<CategoryModel> listArrayList;
 
 
-public class CategoryAdapter  extends ArrayAdapter<CategoryModel> {
+    public CategoryAdapter(Context c, ArrayList<CategoryModel> listArrayList) {
+        mContext = c;
+        this.listArrayList = listArrayList;
+    }
+
+    @Override
+    public int getCount() {
+        return listArrayList.size();
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return null;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        View grid;
+        LayoutInflater inflater = (LayoutInflater) mContext
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final CategoryModel model = listArrayList.get(position);
+
+
+        if (convertView == null) {
+            grid = new View(mContext);
+            grid = inflater.inflate(R.layout.category_list_entry, null);
+            TextView textName = (TextView) grid.findViewById(R.id.grid_name);
+            TextView textAddress = (TextView) grid.findViewById(R.id.grid_address);
+            ImageView imageView = (ImageView) grid.findViewById(R.id.imageView);
+
+            String address = model.getDescription();
+
+            textName.setText(model.getName());
+            textAddress.setText(address);
+            Util.loadImageWithGlide(Glide.with(mContext),model.getImage(),imageView);
+
+        } else {
+            grid = (View) convertView;
+        }
+
+        return grid;
+    }
+}
+
+
+
+
+
+/*public class CategoryAdapter  extends ArrayAdapter<CategoryModel> {
     Context context;
-    CategoryModel[] categoryModelList;
-    private Activity mActivity;
+    private ArrayList<CategoryModel> categoryModelArrayList;
     private MyApplication app;
+    private final RequestManager glide;
 
-    public CategoryAdapter(Context context, CategoryModel[] modelsArrayList, Activity activity) {
+
+    public CategoryAdapter(Context context, ArrayList<CategoryModel> modelsArrayList, RequestManager glide) {
         super(context, R.layout.autocomplete_row, modelsArrayList);
         this.context = context;
-        this.categoryModelList = modelsArrayList;
-        this.mActivity = activity;
+        this.categoryModelArrayList = modelsArrayList;
+        this.glide = glide;
     }
 
     static class ViewHolder {
         private TextView categoryTextView;
         private TextView categoryDescriptionTextView;
-        private NetworkImageView categoryImageView;
+        private ImageView categoryImageView;
+        private ProgressBar progressBar;
     }
 
 
@@ -51,7 +116,8 @@ public class CategoryAdapter  extends ArrayAdapter<CategoryModel> {
             holder = new ViewHolder();
             holder.categoryTextView = (TextView) convertView.findViewById(R.id.categoryTextView);
             holder.categoryDescriptionTextView = (TextView) convertView.findViewById(R.id.categoryDescriptionTextView);
-            holder.categoryImageView = (NetworkImageView) convertView.findViewById(R.id.imageView);
+            holder.categoryImageView = (ImageView) convertView.findViewById(R.id.imageView);
+            holder.progressBar = (ProgressBar) convertView.findViewById(R.id.image_progress);
             convertView.setTag(holder);
         }
         else {
@@ -75,10 +141,8 @@ public class CategoryAdapter  extends ArrayAdapter<CategoryModel> {
         // loader - loader image, will be displayed before getting image
         // image - ImageView
 
-        holder.categoryImageView.setImageUrl(category.getImage(), imgLoader);
-
-        //holder.categoryImageView.setImage(category.getImage());
-
+        //holder.categoryImageView.setImageUrl(category.getImage(), imgLoader);
+        Util.loadImageWithGlideProgress(glide,category.getImage(),holder.categoryImageView,holder.progressBar);
         return convertView;
     }
-}
+}*/

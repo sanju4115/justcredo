@@ -12,12 +12,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -47,6 +49,11 @@ import com.daimajia.slider.library.Tricks.ViewPagerEx;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.android.gms.common.api.GoogleApiClient;
 
@@ -58,18 +65,8 @@ import java.util.HashMap;
 import java.util.List;
 
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link CategoryFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link CategoryFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class CategoryFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener,BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
+public class CategoryFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener,BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener {
     private GoogleApiClient mGoogleApiClient;
     private String GETCATEGORYHIT = "categories_hit";
     private VolleyJSONRequest request;
@@ -83,6 +80,7 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
     private CategoryModel[] data;
     private static final String URL_FEED = "0:"+Constants.CATEGORY_URL;
     private SliderLayout mDemoSlider;
+    private DatabaseReference mReferenceCategories;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -123,6 +121,20 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
         //setContentView(R.layout.activity_category);
         View view = inflater.inflate(R.layout.fragment_category, container, false);
         progressBar = (ProgressBar)view.findViewById(R.id.progress);
+        mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories");
+        mReferenceCategories.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot category: dataSnapshot.getChildren()) {
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                 .addApi(LocationServices.API)
@@ -150,10 +162,10 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
         mDemoSlider = (SliderLayout)view.findViewById(R.id.slider);
 
         final HashMap<String,String> url_maps = new HashMap<String, String>();
-        url_maps.put("Hannibal", "http://static2.hypable.com/wp-content/uploads/2013/12/hannibal-season-2-release-date.jpg");
-        url_maps.put("Big Bang Theory", "http://tvfiles.alphacoders.com/100/hdclearart-10.png");
-        url_maps.put("House of Cards", "http://cdn3.nflximg.net/images/3093/2043093.jpg");
-        url_maps.put("Game of Thrones", "http://images.boomsbeat.com/data/images/full/19640/game-of-thrones-season-4-jpg.jpg");
+        url_maps.put("Vidya Mandir", "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/Photos%2F152843-2017-10-01+13%3A34%3A10.271?alt=media&token=31f151fc-c7f1-47ba-8962-780690f0b186");
+        url_maps.put("Gyananda Public School", "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/Photos%2F152844-2017-10-01+13%3A34%3A10.324?alt=media&token=aba81a74-1af6-4194-8238-6b2a4158dade");
+        url_maps.put("kv khargone", "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/Photos%2F152846-2017-10-01+13%3A34%3A10.377?alt=media&token=260b39b0-9a30-4984-9efe-73f374abf486");
+        url_maps.put("GEMS Public School", "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/Photos%2F152845-2017-10-01+13%3A34%3A10.349?alt=media&token=03ef2ca8-3ed4-4478-955f-39280f4e6365");
 
         for(String name : url_maps.keySet()){
             TextSliderView textSliderView = new TextSliderView(getActivity());
@@ -189,79 +201,20 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
             }
         });
 
-        Gson gson = new Gson();
-        String strObj = getActivity().getIntent().getStringExtra("category_list");
-        if (strObj !=null) {
-            // To retrieve object in second Activity
-            data = gson.fromJson(strObj, CategoryModel[].class);
-            buildSection();
 
-        }else {
-            Cache cache = MyApplication.getInstance().getRequestQueue().getCache();
-            Cache.Entry entry = cache.get(URL_FEED);
-
-            if (entry == null) {
-
-                Runnable run = new Runnable() {
-
-
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.VISIBLE);
-                        // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
-                        MyApplication.volleyQueueInstance.cancelRequestInQueue(GETCATEGORYHIT);
-
-                        //build Get url of Place Autocomplete and hit the url to fetch result.
-                        request = new VolleyJSONRequest(Request.Method.GET, Constants.CATEGORY_URL, null, null,
-                                new Response.Listener<String>() {
-                                    @Override
-                                    public void onResponse(String response) {
-                                        //searchBtn.setVisibility(View.VISIBLE);
-                                        progressBar.setVisibility(View.GONE);
-                                        Log.d("PLACES RESULT:::", response);
-                                        Gson gson = new Gson();
-                                        data = gson.fromJson(response, CategoryModel[].class);
-                                        buildSection();
-
-                                    }
-                                }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Log.d("PLACES RESULT:::", "Volley Error");
-                                error.printStackTrace();
-                                progressBar.setVisibility(View.GONE);
-
-                            }
-                        });
-
-                        //Give a tag to your request so that you can use this tag to cancle request later.
-                        request.setTag(GETCATEGORYHIT);
-
-                        MyApplication.volleyQueueInstance.addToRequestQueue(request);
-
-                    }
-
-                };
-
-                // only canceling the network calls will not help, you need to remove all callbacks as well
-                // otherwise the pending callbacks and messages will again invoke the handler and will send the request
-                if (handler != null) {
-                    handler.removeCallbacksAndMessages(null);
-                } else {
-                    handler = new Handler();
-                }
-                handler.postDelayed(run, 1000);
-            } else {
-                try {
-                    String str = new String(entry.data, "UTF-8");
-                    gson = new Gson();
-                    data = gson.fromJson(str, CategoryModel[].class);
-                    buildSection();
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+        Button getSchoolsCategoriesBtn = (Button) view.findViewById(R.id.getSchoolsCategories);
+        getSchoolsCategoriesBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(),CategoryWiseActivity.class);
+                startActivity(intent);
             }
-        }
+        });
+
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+        Fragment school = CategoryGridFragment.newInstance("schools","Learning Begins Here"," ");
+        transaction.add(R.id.fragment_container, school );
+        transaction.commit();
 
 
         return view;
@@ -278,6 +231,9 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
         }
         transaction.commit();
     }
+
+
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {

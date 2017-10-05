@@ -11,6 +11,8 @@ android {
         mavenCentral()
         maven { url "https://jitpack.io" }
         maven { url 'http://dl.bintray.com/raphaelbussa/maven' }
+        maven { url 'https://maven.fabric.io/public' }
+        maven { url 'https://maven.google.com' }
     }
 
     defaultConfig {
@@ -38,6 +40,19 @@ android {
         }
     }
 
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+    }
+
 
 }
 
@@ -47,6 +62,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
+    compile 'com.google.android.gms:play-services-auth:10.2.1'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.loopj.android:android-async-http:1.4.9'
@@ -61,14 +77,25 @@ dependencies {
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.diegodobelo.expandingview:expanding-view:0.9.4'
-    compile 'com.facebook.android:facebook-android-sdk:4.1.0'
     compile 'com.daimajia.slider:library:1.1.5@aar'
     compile 'com.github.florent37:diagonallayout:1.0.4'
     compile 'com.github.architjn:SharePanel:1.0'
     compile 'com.github.varunest:sparkbutton:1.0.5'
     compile 'com.github.Yalantis:SearchFilter:v1.0.3'
     compile 'com.facebook.fresco:fresco:0.13.0'
-    compile 'com.github.Yalantis:OfficialFoldingTabBar.Android:v0.9'
     compile 'rebus:bottom-dialog:0.0.5'
+    compile 'com.github.bumptech.glide:glide:3.5.2'
+    compile 'com.github.sujithkanna:smileyrating:1.6.5'
+    compile 'com.google.firebase:firebase-crash:10.2.1'
+    compile 'com.google.firebase:firebase-auth:10.2.1'
+    compile 'com.google.firebase:firebase-database:10.2.1'
+    compile 'com.google.firebase:firebase-messaging:10.2.1'
+    compile 'com.firebase:firebase-client-android:2.5.2'
+    compile 'com.google.firebase:firebase-storage:10.2.1'
+    compile 'com.firebaseui:firebase-ui:1.2.0'
+    compile 'com.theartofdev.edmodo:android-image-cropper:2.4.+'
+    compile 'com.github.aakira:expandable-layout:1.4.2@aar'
     testCompile 'junit:junit:4.12'
 }
+
+apply plugin: 'com.google.gms.google-services'

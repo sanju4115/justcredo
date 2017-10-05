@@ -10,9 +10,11 @@ import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.model.ObjectModel;
+import com.credolabs.justcredo.utility.Util;
 import com.google.gson.internal.LinkedTreeMap;
 
 import java.util.ArrayList;
@@ -34,58 +36,39 @@ public class CategoryGridAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        // TODO Auto-generated method stub
         return listArrayList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public long getItemId(int position) {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        // TODO Auto-generated method stub
         View grid;
         LayoutInflater inflater = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        ImageLoader imageLoader = MyApplication.getInstance().getImageLoader();
         final ObjectModel model = listArrayList.get(position);
 
 
         if (convertView == null) {
-
             grid = new View(mContext);
             grid = inflater.inflate(R.layout.category_grid_single, null);
             TextView textName = (TextView) grid.findViewById(R.id.grid_name);
             TextView textAddress = (TextView) grid.findViewById(R.id.grid_address);
-            NetworkImageView imageView = (NetworkImageView) grid.findViewById(R.id.grid_image);
+            ImageView imageView = (ImageView) grid.findViewById(R.id.grid_image);
 
-            String locality = " ";
-            String city = " ";
-            String state = " ";
-            LinkedTreeMap<String,String> address = new LinkedTreeMap<>();
-            address = (LinkedTreeMap<String, String>) model.getAddress();
-            if (address.get("locality")!= null){
-                locality = address.get("locality");
-            }
-            if (address.get("city")!= null){
-                city = address.get("city");
-            }
-            if (address.get("state")!= null){
-                state = address.get("state");
-            }
+            String address = Util.getAddress(model.getAddress());
 
             textName.setText(model.getName());
-            textAddress.setText(locality + ", "+ city + ", "+ state);
-            imageView.setImageUrl(model.getCoverImage(),imageLoader);
+            textAddress.setText(address);
+            Util.loadImageWithGlide(Glide.with(mContext),Util.getFirstImage(model.getImages()),imageView);
 
         } else {
             grid = (View) convertView;

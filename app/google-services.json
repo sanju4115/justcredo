@@ -1,27 +1,35 @@
 {
   "project_info": {
-    "project_number": "1076419598686",
-    "firebase_url": "https://credo-e836d.firebaseio.com",
-    "project_id": "credo-e836d",
-    "storage_bucket": "credo-e836d.appspot.com"
+    "project_number": "916941463029",
+    "firebase_url": "https://credo-f7d83.firebaseio.com",
+    "project_id": "credo-f7d83",
+    "storage_bucket": "credo-f7d83.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1076419598686:android:47cbc4bbbcf3d653",
+        "mobilesdk_app_id": "1:916941463029:android:19a0c28b11fa79ad",
         "android_client_info": {
-          "package_name": "com.credolabs.com"
+          "package_name": "com.credolabs.justcredo"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1076419598686-qmv3qsl9jeu2mnv3c5rlic8m3q1etj35.apps.googleusercontent.com",
+          "client_id": "916941463029-8n5rke63iqq6qr31mskldp53rmvlmnar.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.credolabs.justcredo",
+            "certificate_hash": "da43b1c7c4ba9819e7dd465708b80f8f0da39735"
+          }
+        },
+        {
+          "client_id": "916941463029-6sbivv5g4k21sm1949218bdj1rg8nmdt.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAZ4ztKuVnQto-s9EI8PSPwiLyem4pZuLM"
+          "current_key": "AIzaSyBVoQ4FbYEkMYBtZIf7UmS2XYPgz3SmZuE"
         }
       ],
       "services": {
@@ -29,8 +37,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "916941463029-6sbivv5g4k21sm1949218bdj1rg8nmdt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2

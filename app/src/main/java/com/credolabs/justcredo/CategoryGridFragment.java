@@ -1,19 +1,16 @@
 package com.credolabs.justcredo;
 
-import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.GridView;
 import android.widget.TextView;
 
 import com.android.volley.Cache;
@@ -23,12 +20,17 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.credolabs.justcredo.adapters.CategoryGridAdapter;
-import com.credolabs.justcredo.adapters.ObjectListViewRecyclerAdapter;
-import com.credolabs.justcredo.model.CategoryModel;
 import com.credolabs.justcredo.model.ObjectModel;
+import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.utility.Constants;
+import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.ExpandableHeightGridView;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 
 import java.io.UnsupportedEncodingException;
@@ -36,17 +38,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link CategoryGridFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link CategoryGridFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class CategoryGridFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+
     private static final String ARG_CATEGORY_NAME = "category_name";
     private static final String ARG_CATEGORY_DESCRIPTION = "category_description";
     private static final String ARG_CATEGORY_IMAGE = "category_image";
@@ -68,8 +61,8 @@ public class CategoryGridFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
+
     public CategoryGridFragment() {
-        // Required empty public constructor
     }
 
     public static CategoryGridFragment newInstance(String categoryName, String categoryDescription, String getCategoryImage) {
@@ -98,7 +91,7 @@ public class CategoryGridFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_category_grid, container, false);
         TextView textName = (TextView) view.findViewById(R.id.category_name);
-        textName.setText(categoryName);
+        textName.setText(categoryName.toUpperCase());
         TextView textDescription = (TextView) view.findViewById(R.id.category_description);
         textDescription.setText(categoryDescription);
         NetworkImageView img = (NetworkImageView) view.findViewById(R.id.category_image);
@@ -122,106 +115,62 @@ public class CategoryGridFragment extends Fragment {
 
             }
         });
+        DatabaseReference highly_paid = FirebaseDatabase.getInstance()
+                .getReference().child(categoryName);
+        highly_paid.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (categoryName.equals("schools")){
+                    School schoolModel;
+                    ArrayList<ObjectModel> schoolArrayList = new ArrayList<>();
+                    for (DataSnapshot object: dataSnapshot.getChildren()) {
+                        schoolModel = object.getValue(School.class);
+                        schoolArrayList.add(schoolModel);
+                    }
 
-        gson = new Gson();
-        final String url = Constants.OBJECTLIST_URL +"?pageNo=1&count=6&category="+categoryName;
-        final String URL_FEED = "0:"+url;
-        Cache cache = MyApplication.getInstance().getRequestQueue().getCache();
-        Cache.Entry entry = cache.get(URL_FEED);
-
-        if (entry == null) {
-            Runnable run = new Runnable() {
-
-
-                @Override
-                public void run() {
-                    //progressBar.setVisibility(View.VISIBLE);
-                    // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
-                    MyApplication.volleyQueueInstance.cancelRequestInQueue(categoryName);
-
-
-                    //build Get url of Place Autocomplete and hit the url to fetch result.
-                    request = new VolleyJSONRequest(Request.Method.GET, url, null, null,
-                            new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response) {
-                                    //searchBtn.setVisibility(View.VISIBLE);
-                                    //progressBar.setVisibility(View.GONE);
-                                    Log.d("PLACES RESULT:::", response);
-
-                                    data = gson.fromJson(response, ObjectModel[].class);
-                                    buildSection();
-
-                                }
-                            }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.d("PLACES RESULT:::", "Volley Error");
-                            error.printStackTrace();
-                            //progressBar.setVisibility(View.GONE);
-
-                        }
-                    });
-
-                    //Give a tag to your request so that you can use this tag to cancle request later.
-                    request.setTag(categoryName);
-
-                    MyApplication.volleyQueueInstance.addToRequestQueue(request);
+                    buildSection(schoolArrayList);
 
                 }
 
-            };
 
-            // only canceling the network calls will not help, you need to remove all callbacks as well
-            // otherwise the pending callbacks and messages will again invoke the handler and will send the request
-            if (handler != null) {
-                handler.removeCallbacksAndMessages(null);
-            } else {
-                handler = new Handler();
             }
-            handler.postDelayed(run, 1000);
 
-        }else {
-            try {
-                String str = new String(entry.data, "UTF-8");
-                data = gson.fromJson(str, ObjectModel[].class);
-                buildSection();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
-        }
+        });
 
-
-        grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        /*grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 Intent intent = new Intent(getActivity(),DetailedObjectActivity.class);
-                intent.putExtra("SchoolDetail",listArrayList.get(position));
+                //intent.putExtra("SchoolDetail",listArrayList.get(position));
                 startActivity(intent);
                 getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
 
             }
-        });
+        });*/
 
         return view;
 
     }
 
-    private void buildSection() {
+    private void buildSection(ArrayList<ObjectModel> schoolArrayList) {
 
-        listArrayList = new ArrayList<>(Arrays.asList(data));
-        if (listArrayList.size() < 6){
+        //listArrayList = new ArrayList<>(Arrays.asList(data));
+        if (schoolArrayList.size() < 6){
             seeMore.setVisibility(View.GONE);
             divider.setVisibility(View.GONE);
         }
-        if (listArrayList.size() == 0) {
+        if (schoolArrayList.size() == 0) {
             message.setText("Nothing nearby you in this category.");
             message.setVisibility(View.VISIBLE);
             seeMore.setVisibility(View.GONE);
             divider.setVisibility(View.GONE);
         }
         if (adapter == null) {
-            adapter = new CategoryGridAdapter(getActivity(), listArrayList);
+            adapter = new CategoryGridAdapter(getActivity(), schoolArrayList);
 
             grid.setAdapter(adapter);
         } else {
@@ -230,7 +179,6 @@ public class CategoryGridFragment extends Fragment {
 
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -254,18 +202,7 @@ public class CategoryGridFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 }

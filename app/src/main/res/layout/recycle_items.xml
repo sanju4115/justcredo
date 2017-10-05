@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="5dp"
+    android:layout_margin="5dp"
+    android:background="@drawable/border">
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageFrame">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/image_progress"
+            style="@android:style/Widget.ProgressBar.Small"
+            />
+
+        <ImageView
+            android:id="@+id/coverImageView"
+            android:layout_width="150dp"
+            android:padding="5dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_nocover"
+            android:layout_height="150dp"/>
+
+    </FrameLayout>
+
+
+
+
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="5dp" >
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="School Name"
+        android:textSize="9sp"
+        android:textColor="@color/colorPrimaryText"
+        android:ellipsize="end"
+        android:maxLines="1"/>
+
+    <TextView
+        android:id="@+id/grid_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="School Address"
+        android:textSize="9sp"
+        android:ellipsize="end"
+        android:maxLines="1"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:id="@+id/mobileNumberLayout">
+
+        <android.support.v7.widget.AppCompatImageView
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginTop="@dimen/dimen_2dp"
+            android:layout_marginEnd="@dimen/dimen_2dp"
+            app:srcCompat="@drawable/ic_local_phone_green_24dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/mobileNumber"
+            android:textSize="9sp"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/websiteLayout">
+
+        <android.support.v7.widget.AppCompatImageView
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginTop="@dimen/dimen_2dp"
+            android:layout_marginEnd="@dimen/dimen_2dp"
+            app:srcCompat="@drawable/ic_web"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Secondary School"
+            android:textSize="9sp"
+            android:id="@+id/website"/>
+
+    </LinearLayout>
+
+    <com.credolabs.justcredo.utility.CustomRatingBar
+        app:stars="0"
+        app:onlyForDisplay="true"
+        app:halfStars="true"
+        android:layout_marginTop="@dimen/dimen_4dp"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/rating"
+        android:layout_marginEnd="5dp"/>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_4dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/school_review"
+            android:paddingRight="2dp"
+            android:textSize="10dp"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reviews"
+            android:textSize="10dp"
+            />
+
+        <android.support.v7.widget.AppCompatImageView
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            app:srcCompat="@drawable/ic_location_on_green"
+            android:layout_gravity="center"
+            android:layout_margin="2dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Not Found"
+            android:textSize="10dp"
+            android:id="@+id/distance"
+            />
+
+    </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

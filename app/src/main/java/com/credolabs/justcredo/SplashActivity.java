@@ -6,8 +6,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -22,6 +24,7 @@ import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.PrefUtil;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 
@@ -42,83 +45,68 @@ public class SplashActivity extends AppCompatActivity {
     private Handler handler;
     private PrefUtil prefUtil;
     private String fbToken;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private boolean verified = false;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         i = new Intent(SplashActivity.this, HomeActivity.class);
-        prefUtil = new PrefUtil(this);
-        fbToken = prefUtil.getToken();
 
-        if (fbToken == null) {
-
-            Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-        } else {
-
-
-            Runnable run = new Runnable() {
+        mAuth = FirebaseAuth.getInstance();
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                if (firebaseAuth.getCurrentUser() == null){
+                    verified = false;
+                }else {
+                    verified = true;
 
 
-                @Override
-                public void run() {
-                    // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
-                    MyApplication.volleyQueueInstance.cancelRequestInQueue(GETCATEGORYHIT);
-                    request = new VolleyJSONRequest(Request.Method.GET, Constants.CATEGORY_URL, null, null,
-                            new Response.Listener<String>() {
-
-                                /**
-                                 * Called when a response is received.
-                                 *
-                                 * @param response
-                                 */
-                                @Override
-                                public void onResponse(String response) {
-                                    Log.d("PLACES RESULT:::", response);
-                                    Gson gson = new Gson();
-                                    data = gson.fromJson(response, CategoryModel[].class);
-                                    i.putExtra("category_list", gson.toJson(data));
-                                    listArrayList = new ArrayList<>(Arrays.asList(data));
-                                    startActivity(i);
-                                    overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
-                                    finish();
-
-
-                                }
-                            }, new Response.ErrorListener() {
-
-                        /**
-                         * Callback method that an error has been occurred with the
-                         * provided error code and optional user-readable message.
-                         *
-                         * @param error
-                         */
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.d("PLACES RESULT:::", "Volley Error");
-                            error.printStackTrace();
-
-                        }
-
-                    });
-                    request.setTag(GETCATEGORYHIT);
-
-                    MyApplication.volleyQueueInstance.addToRequestQueue(request);
                 }
-            };
-            // only canceling the network calls will not help, you need to remove all callbacks as well
-            // otherwise the pending callbacks and messages will again invoke the handler and will send the request
-            if (handler != null) {
-                handler.removeCallbacksAndMessages(null);
-            } else {
-                handler = new Handler();
             }
-            handler.postDelayed(run, 500);
+        };
 
-        }
+        new Handler().postDelayed(new Runnable() {
+
+            /*
+             * Showing splash screen with a timer. This will be useful when you
+             * want to show case your app logo / company
+             */
+
+            @Override
+            public void run() {
+                // This method will be executed once the timer is over
+                // Start your app main activity
+                if (verified){
+                    Intent intent = new Intent(SplashActivity.this,HomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                    finish();
+                }else{
+                    Intent intent = new Intent(SplashActivity.this,AccountSetupActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                    finish();
+                }
+                // close this activity
+                finish();
+            }
+        }, SPLASH_TIME_OUT);
     }
- }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthStateListener);
+    }
+
+
+}
 
 

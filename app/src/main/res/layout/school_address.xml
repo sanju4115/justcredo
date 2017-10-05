@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginBottom="5dp"
-    android:padding="5dp"
     android:background="@color/colorIcons">
 
     <LinearLayout
@@ -21,6 +20,8 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:padding="5dp"
+
                 android:orientation="vertical">
                 <TextView
                     android:layout_width="wrap_content"
@@ -41,13 +42,28 @@
             </LinearLayout>
 
 
+            <RelativeLayout
+                android:id="@+id/relativeLayout1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
 
-            <fragment android:layout_width="100dp"
-                android:layout_height="match_parent"
-                android:id="@+id/map"
-                tools:context=".DetailedObjectActivity"
-                android:name="com.google.android.gms.maps.MapFragment"
-                android:layout_weight="1"/>
+                <fragment
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/map"
+                    android:layout_marginTop="-100dp"
+                    android:layout_marginBottom="-100dp"
+                    tools:context=".DetailedObjectActivity"
+                    android:name="com.credolabs.justcredo.utility.WorkaroundMapFragment" />
+
+
+                <ImageView
+                    android:id="@+id/imageView123"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@color/tw__transparent" />
+            </RelativeLayout>
+
 
         </LinearLayout>
 

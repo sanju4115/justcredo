@@ -3,14 +3,39 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.android.volley.toolbox.NetworkImageView
+    <!--<com.android.volley.toolbox.NetworkImageView
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:id="@+id/school_image"
         android:src="@drawable/ic_nocover"
         android:scaleType="centerCrop"
         android:transitionName="@string/image_trans"
-        />
+        />-->
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageFrame">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/image_progress"
+            style="@android:style/Widget.ProgressBar.Small"
+            />
+
+        <ImageView
+            android:id="@+id/school_image"
+            android:layout_width="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_nocover"
+            android:transitionName="@string/image_trans"
+            android:layout_height="300dp"/>
+
+    </FrameLayout>
+
 
 
     <TextView

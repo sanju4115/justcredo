@@ -4,10 +4,21 @@
     android:layout_height="match_parent"
     tools:context="com.credolabs.justcredo.DashboarfFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:id="@+id/review_list"
+        android:background="@color/tagColor"/>
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progress"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        style="?android:attr/progressBarStyleLarge"
+        />
+
+    <include layout="@layout/search_not_found" />
 
 </FrameLayout>

@@ -3,6 +3,8 @@ package com.credolabs.justcredo.adapters;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -18,10 +20,12 @@ import com.credolabs.justcredo.utility.CustomRatingBar;
 public class ObjectListViewHolder extends RecyclerView.ViewHolder implements
         View.OnClickListener {
     // View holder for list recycler view as we used in listview
-    public TextView school_name, school_address, school_review, distance, phone, category, medium;
+    public TextView school_name, school_address, school_review, distance, phone, website;
     public CustomRatingBar rating;
-    public NetworkImageView image;
+    public ImageView image;
     public RelativeLayout listLayout;
+    public LinearLayout mobileNumberLayout, websiteLayout;
+    public ProgressBar progressBar;
 
     private RecyclerViewOnClickListener.OnClickListener onClickListener;
 
@@ -35,9 +39,11 @@ public class ObjectListViewHolder extends RecyclerView.ViewHolder implements
         this.distance = (TextView) view.findViewById(R.id.distance);
         this.rating = (CustomRatingBar) view.findViewById(R.id.rating);
         this.phone = (TextView) view.findViewById(R.id.phone);
-        this.category = (TextView) view.findViewById(R.id.category);
-        this.medium = (TextView) view.findViewById(R.id.medium);
-        this.image = (NetworkImageView)view.findViewById(R.id.cover_image);
+        this.website = (TextView) view.findViewById(R.id.website);
+        this.image = (ImageView)view.findViewById(R.id.cover_image);
+        this.progressBar = (ProgressBar) view.findViewById(R.id.image_progress);
+        this.mobileNumberLayout = (LinearLayout) view.findViewById(R.id.mobileNumberLayout);
+        this.websiteLayout = (LinearLayout) view.findViewById(R.id.websiteLayout);
 
         this.listLayout = (RelativeLayout) view.findViewById(R.id.list_layout);
 

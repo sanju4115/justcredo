@@ -4,13 +4,30 @@
     android:layout_height="match_parent"
     android:gravity="center">
 
-    <com.credolabs.justcredo.utility.ZoomNetworkImageView
+
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/school_image"
-        android:src="@drawable/ic_nocover"
-        android:transitionName="@string/image_trans"
-        />
+        android:id="@+id/imageFrame">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/image_progress"
+            style="@android:style/Widget.ProgressBar.Small"
+            />
+
+        <com.credolabs.justcredo.utility.TouchImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/school_image"
+            android:src="@drawable/ic_nocover"
+            android:transitionName="@string/image_trans"
+            />
+
+    </FrameLayout>
+
 
 
 </RelativeLayout>

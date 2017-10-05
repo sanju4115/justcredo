@@ -2,67 +2,46 @@ package com.credolabs.justcredo;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AbsListView;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+
+
 import com.credolabs.justcredo.adapters.ObjectListViewRecyclerAdapter;
 import com.credolabs.justcredo.model.FilterModel;
-import com.credolabs.justcredo.model.ObjectModel;
-import com.credolabs.justcredo.utility.Constants;
-import com.credolabs.justcredo.utility.VolleyJSONRequest;
-import com.google.gson.Gson;
+import com.credolabs.justcredo.model.School;
+
+import com.google.android.gms.vision.text.Line;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
 
 public class ObjectListActivity extends AppCompatActivity {
     private  RecyclerView listRecyclerView;
-    private  ArrayList<ObjectModel> listArrayList;
     private  ObjectListViewRecyclerAdapter adapter;
-    private VolleyJSONRequest request;
-    private String GETOBJECTLISTHIT = "object_list_hit";
-    private Handler handler;
-    private  RelativeLayout bottomLayout;
     private  LinearLayoutManager mLayoutManager;
     private ProgressBar progressBar;
-    private int page = 1;
-    private int count = 20;
-    private boolean dataFinished = false;
-    private String url;
 
-    private String categoryName;
     private HashMap<String,ArrayList<FilterModel>> filterMap = new HashMap<>();
     HashMap<String, JSONArray> params;
     private JSONObject jsonObject;
-    private String jsonString = "";
-
-
-
-    // Variables for scroll listener
-    private boolean userScrolled = true;
-    int pastVisiblesItems, visibleItemCount, totalItemCount;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,21 +52,9 @@ public class ObjectListActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        //Get the bundle
-        Bundle bundle = getIntent().getExtras();
-        categoryName = bundle.getString("Title", " ");
-        toolbar.setTitle(categoryName+" List");
+        String category = getIntent().getStringExtra("category");
+        toolbar.setTitle(category+" List");
         progressBar = (ProgressBar)findViewById(R.id.progress);
-        url = Constants.OBJECTLIST_URL+"/filter";
-        jsonObject = new JSONObject();
-        try {
-            jsonObject.put("category", categoryName);
-            jsonString = jsonObject.toString();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
 
         filterMap = (HashMap<String, ArrayList<FilterModel>>) getIntent().getSerializableExtra("filter");
         if (filterMap != null) {
@@ -107,221 +74,56 @@ public class ObjectListActivity extends AppCompatActivity {
             }
         }
 
-        if (params!=null) {
-            jsonObject = new JSONObject(params);
-             jsonString = jsonObject.toString();
-        }
+        final LinearLayout not_found = (LinearLayout) findViewById(R.id.not_found);
 
-
-        bottomLayout = (RelativeLayout)findViewById(R.id.loadItemsLayout_recyclerView);
         mLayoutManager = new LinearLayoutManager(this);
         listRecyclerView = (RecyclerView)findViewById(R.id.linear_recyclerview);
         listRecyclerView.setHasFixedSize(true);
-        listRecyclerView.setLayoutManager(mLayoutManager);// for linea data display we use linear layoutmanager
-        populatRecyclerView();
-        implementScrollListener();
-    }
+        listRecyclerView.setLayoutManager(mLayoutManager);
+        DatabaseReference mDatabaseSchoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
+        mDatabaseSchoolReference.keepSynced(true);
 
+        final ArrayList<School> schoolsList = new ArrayList<>();
 
-    // populate the list view by adding data to arraylist
-    private void populatRecyclerView() {
-        listArrayList = new ArrayList<ObjectModel>();
-
-        Runnable run = new Runnable() {
-
+        mDatabaseSchoolReference.orderByChild("categories/"+category).equalTo(category).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                School place = dataSnapshot.getValue(School.class);
+                schoolsList.add(place);
+                if (schoolsList.size() > 0 & listRecyclerView != null) {
+                    if ( adapter== null) {
+                        not_found.setVisibility(View.GONE);
+                        adapter = new ObjectListViewRecyclerAdapter(ObjectListActivity.this, schoolsList);
+                        listRecyclerView.setAdapter(adapter);
+                    } else {
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            }
 
             @Override
-            public void run() {
-                progressBar.setVisibility(View.VISIBLE);
-                // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
-                MyApplication.volleyQueueInstance.cancelRequestInQueue(GETOBJECTLISTHIT);
-
-                //build Get url of Place Autocomplete and hit the url to fetch result.
-                request = new VolleyJSONRequest(Request.Method.POST, url+"?pageNo="+page+"&count="+count , jsonString, null,
-                        new Response.Listener<String>(){
-
-                            /**
-                             * Called when a response is received.
-                             *
-                             * @param response
-                             */
-                            @Override
-                            public void onResponse(String response) {
-                                //searchBtn.setVisibility(View.VISIBLE);
-                                progressBar.setVisibility(View.GONE);
-                                Log.d("PLACES RESULT:::", response);
-                                Gson gson = new Gson();
-                                ObjectModel[] data = gson.fromJson(response, ObjectModel[].class);
-                                if(data.length != count){
-                                    dataFinished = true;
-                                }
-                                listArrayList = new ArrayList<ObjectModel>(Arrays.asList(data));
-                                if ( adapter== null) {
-                                    adapter = new ObjectListViewRecyclerAdapter(ObjectListActivity.this, listArrayList);
-
-                                    listRecyclerView.setAdapter(adapter);
-                                } else {
-                                    adapter.notifyDataSetChanged();
-                                }
-                            }
-                        },new Response.ErrorListener(){
-
-                    /**
-                     * Callback method that an error has been occurred with the
-                     * provided error code and optional user-readable message.
-                     *
-                     * @param error
-                     */
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("PLACES RESULT:::", "Volley Error");
-                        error.printStackTrace();
-                        progressBar.setVisibility(View.GONE);
-
-                    }
-                });
-
-                //Give a tag to your request so that you can use this tag to cancle request later.
-                request.setTag(GETOBJECTLISTHIT);
-
-                MyApplication.volleyQueueInstance.addToRequestQueue(request);
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
             }
 
-        };
-
-        // only canceling the network calls will not help, you need to remove all callbacks as well
-        // otherwise the pending callbacks and messages will again invoke the handler and will send the request
-        if (handler != null) {
-            handler.removeCallbacksAndMessages(null);
-        } else {
-            handler = new Handler();
-        }
-        handler.postDelayed(run, 1000);
-
-    }
-
-    // Implement scroll listener
-    private void implementScrollListener() {
-        listRecyclerView
-                .addOnScrollListener(new RecyclerView.OnScrollListener() {
-
-                    @Override
-                    public void onScrollStateChanged(RecyclerView recyclerView,
-                                                     int newState) {
-
-                        super.onScrollStateChanged(recyclerView, newState);
-
-                        // If scroll state is touch scroll then set userScrolled
-                        // true
-                        if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
-                            userScrolled = true;
-
-                        }
-
-                    }
-
-                    @Override
-                    public void onScrolled(RecyclerView recyclerView, int dx,
-                                           int dy) {
-
-                        super.onScrolled(recyclerView, dx, dy);
-                        // Here get the child count, item count and visibleitems
-                        // from layout manager
-
-                        visibleItemCount = mLayoutManager.getChildCount();
-                        totalItemCount = mLayoutManager.getItemCount();
-                        pastVisiblesItems = mLayoutManager
-                                .findFirstVisibleItemPosition();
-
-                        // Now check if userScrolled is true and also check if
-                        // the item is end then update recycler view and set
-                        // userScrolled to false
-                        if (userScrolled
-                                && (visibleItemCount + pastVisiblesItems) == totalItemCount && !dataFinished) {
-                            userScrolled = false;
-
-
-                            updateRecyclerView();
-                        }
-
-                    }
-
-                });
-
-
-    }
-
-
-    // Method for repopulating recycler view
-    private void updateRecyclerView() {
-
-        // Show Progress Layout
-        bottomLayout.setVisibility(View.VISIBLE);
-
-        // Handler to show refresh for a period of time you can use async task
-        // while commnunicating serve
-
-        new Handler().postDelayed(new Runnable() {
-
             @Override
-            public void run() {
-
-                page++;
-                MyApplication.volleyQueueInstance.cancelRequestInQueue(GETOBJECTLISTHIT);
-
-                //build Get url of Place Autocomplete and hit the url to fetch result.
-                request = new VolleyJSONRequest(Request.Method.POST, url+"?pageNo="+page+"&count="+count , jsonString, null,
-                        new Response.Listener<String>(){
-
-                            /**
-                             * Called when a response is received.
-                             *
-                             * @param response
-                             */
-                            @Override
-                            public void onResponse(String response) {
-                                Log.d("PLACES RESULT:::", response);
-                                Gson gson = new Gson();
-                                ObjectModel[] data = gson.fromJson(response, ObjectModel[].class);
-                                if(data.length != count){
-                                    dataFinished = true;
-                                }
-                                //listArrayList = new ArrayList<ObjectModel>(Arrays.asList(data));
-                                listArrayList.addAll(Arrays.asList(data));
-                                adapter.notifyDataSetChanged();
-                            }
-                        },new Response.ErrorListener(){
-
-                    /**
-                     * Callback method that an error has been occurred with the
-                     * provided error code and optional user-readable message.
-                     *
-                     * @param error
-                     */
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("PLACES RESULT:::", "Volley Error");
-                        error.printStackTrace();
-                    }
-                });
-
-                //Give a tag to your request so that you can use this tag to cancle request later.
-                request.setTag(GETOBJECTLISTHIT);
-
-                MyApplication.volleyQueueInstance.addToRequestQueue(request);
-
-                // Toast for task completion
-                Toast.makeText(ObjectListActivity.this, "Items Updated.",
-                        Toast.LENGTH_SHORT).show();
-
-                // After adding new data hide the view.
-                bottomLayout.setVisibility(View.GONE);
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
 
             }
-        }, 1000);
-    }
 
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+    }
 
     @Override
     public void onBackPressed(){

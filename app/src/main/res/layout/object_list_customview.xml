@@ -4,10 +4,8 @@
     android:id="@+id/list_layout"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="5dp"
     android:padding="10dp"
-    android:background="@color/colorIcons">
-
+    android:background="@drawable/border">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -26,6 +24,7 @@
                 android:id="@+id/school_name"
                 android:textColor="@color/colorPrimaryText"/>
             <TextView
+                android:visibility="invisible"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Adress"
@@ -39,7 +38,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="10"
+                    android:text="0"
                     android:id="@+id/school_review"
                     android:paddingRight="2dp"
                     android:textSize="10dp"
@@ -51,10 +50,10 @@
                     android:textSize="10dp"
                     />
 
-                <View
-                    android:layout_width="5dp"
-                    android:layout_height="5dp"
-                    android:background="@drawable/dot"
+                <android.support.v7.widget.AppCompatImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    app:srcCompat="@drawable/ic_location_on_green"
                     android:layout_gravity="center"
                     android:layout_margin="2dp"
                     />
@@ -62,7 +61,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="1 km"
+                    android:text="Not Found"
                     android:textSize="10dp"
                     android:id="@+id/distance"
                     />
@@ -74,7 +73,7 @@
 
 
         <com.credolabs.justcredo.utility.CustomRatingBar
-            app:stars="5"
+            app:stars="0"
             app:onlyForDisplay="true"
             app:halfStars="true"
             android:layout_width="60dp"
@@ -98,12 +97,35 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <com.android.volley.toolbox.NetworkImageView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+            <!--<com.android.volley.toolbox.NetworkImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:src="@drawable/ic_nocover"
+                android:scaleType="centerCrop"
                 android:id="@+id/cover_image"
-                />
+                />-->
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageFrame">
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/image_progress"
+                    style="@android:style/Widget.ProgressBar.Small"
+                    />
+
+                <ImageView
+                    android:id="@+id/cover_image"
+                    android:layout_width="80dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_nocover"
+                    android:layout_height="80dp"/>
+
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -114,50 +136,43 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Phone : "/>
+                    android:orientation="horizontal"
+                    android:id="@+id/mobileNumberLayout">
+
+                    <android.support.v7.widget.AppCompatImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginEnd="@dimen/dimen_4dp"
+                        app:srcCompat="@drawable/ic_local_phone_green_24dp"/>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:id="@+id/phone"
                         android:text="8103032205"/>
+
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Category : "/>
+                    android:orientation="horizontal"
+                    android:id="@+id/websiteLayout">
+
+                    <android.support.v7.widget.AppCompatImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginEnd="@dimen/dimen_4dp"
+                        app:srcCompat="@drawable/ic_web"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Secondary School"
-                        android:id="@+id/category"/>
+                        android:id="@+id/website"/>
+
                 </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Medium : "/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Hindi"
-                        android:id="@+id/medium"/>
-                </LinearLayout>
-
-
-
 
             </LinearLayout>
 
