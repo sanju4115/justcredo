@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardElevation="12dp"
+    app:cardCornerRadius="2dp"
+    android:layout_margin="5dp">
+
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:id="@+id/listLayout">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageFrame">
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:id="@+id/image_progress"
+                style="@android:style/Widget.ProgressBar.Small"
+                />
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="center"
+                android:layout_alignParentLeft="true"
+                android:layout_marginRight="8dp" />
+
+        </FrameLayout>
+        <TextView
+            android:id="@+id/categoryTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/imageFrame"
+            android:layout_toRightOf="@+id/imageFrame"
+            android:textSize="@dimen/title"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/categoryDescriptionTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/categoryTextView"
+            android:layout_marginTop="5dp"
+            android:layout_toRightOf="@+id/imageFrame"
+            android:textColor="@color/genre"
+            android:textSize="@dimen/genre" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/distance_layout"
+            android:layout_centerInParent="true"
+            android:layout_alignParentEnd="true"
+            android:orientation="horizontal">
+
+            <android.support.v7.widget.AppCompatImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_gravity="center"
+                app:srcCompat="@drawable/ic_location_on_green" />
+
+            <TextView
+                android:id="@+id/distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="10dp" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/edit_place"
+            android:src="@mipmap/ic_edit"
+            android:layout_centerInParent="true"
+            android:layout_alignParentEnd="true"
+            android:visibility="gone"
+            />
+
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

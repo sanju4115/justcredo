@@ -176,6 +176,7 @@ public class SignUpFragment extends Fragment implements View.OnClickListener{
                     if (task.isSuccessful()) {
                         String userID = mAuth.getCurrentUser().getUid();
                         DatabaseReference currentUserDB = mReferenceUsers.child(userID);
+                        currentUserDB.child("uid").setValue(currentUserDB.getKey());
                         currentUserDB.child("name").setValue(getFullName);
                         currentUserDB.child("email").setValue(getEmailId);
                         currentUserDB.child("mobile").setValue(getMobileNumber);

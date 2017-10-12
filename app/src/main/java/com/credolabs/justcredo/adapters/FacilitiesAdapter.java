@@ -21,14 +21,12 @@ import java.util.ArrayList;
 public class FacilitiesAdapter extends ArrayAdapter<String> {
     private ArrayList<String> list;
     private Context context;
-    private Activity mActivity;
 
-    public FacilitiesAdapter(Context context, ArrayList<String> list, DetailedObjectActivity activity) {
+    public FacilitiesAdapter(Context context, ArrayList<String> list) {
         super(context, R.layout.school_facilities_item, list);
         // TODO Auto-generated constructor stub
         this.list=list;
-        this.context=activity;
-        this.mActivity = activity;
+        this.context=context;
     }
     @Override
     public int getCount() {

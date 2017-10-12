@@ -52,8 +52,11 @@ public class HorizontalListViewFragment extends Fragment {
                 }
 
                 if (schoolsList.size() > 0 & recyclerView != null) {
-                    recyclerView.setAdapter(new HorizontalViewAdapter(schoolsList, Glide.with(HorizontalListViewFragment.this)));
+                    HorizontalViewAdapter horizontalViewAdapter = new HorizontalViewAdapter(getActivity(),schoolsList, Glide.with(HorizontalListViewFragment.this));
+                    recyclerView.setAdapter(horizontalViewAdapter);
+                    horizontalViewAdapter.notifyDataSetChanged();
                 }
+
                 recyclerView.setLayoutManager(MyLayoutManager);
 
             }

@@ -9,19 +9,22 @@ import android.widget.TextView;
 
 import com.android.volley.toolbox.NetworkImageView;
 import com.credolabs.justcredo.R;
+import com.credolabs.justcredo.adapters.RecyclerViewOnClickListener;
 import com.credolabs.justcredo.utility.CustomRatingBar;
 
 /**
  * Created by Sanjay kumar on 9/24/2017.
  */
 
-public class HorizontalViewHolder extends RecyclerView.ViewHolder {
+public class HorizontalViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-    public TextView titleTextView, mobileNumberText,grid_address,school_review,website;
+    public TextView titleTextView, mobileNumberText,grid_address,school_review,website,
+            distance;
     public CustomRatingBar rating;
     public ImageView coverImageView;
     public ProgressBar progressBar;
-    public LinearLayout mobileNumberLayout, websiteLayout;
+    public LinearLayout mobileNumberLayout, websiteLayout,listLayout;
+    private RecyclerViewOnClickListener.OnClickListener onClickListener;
 
 
     public HorizontalViewHolder(View v) {
@@ -36,23 +39,24 @@ public class HorizontalViewHolder extends RecyclerView.ViewHolder {
         rating = (CustomRatingBar) v.findViewById(R.id.rating);
         websiteLayout = (LinearLayout) v.findViewById(R.id.websiteLayout);
         website = (TextView) v.findViewById(R.id.website);
+        distance = (TextView) v.findViewById(R.id.distance);
+        this.listLayout = (LinearLayout) v.findViewById(R.id.listLayout);
+
+        // Implement click listener over views that we need
+
+        this.listLayout.setOnClickListener(this);
 
 
-//        shareImageView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                Uri imageUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
-//                        "://" + getResources().getResourcePackageName(coverImageView.getId())
-//                        + '/' + "drawable" + '/' +
-//                        getResources().getResourceEntryName((int)coverImageView.getTag()));
-//                Intent shareIntent = new Intent();
-//                shareIntent.setAction(Intent.ACTION_SEND);
-//                shareIntent.putExtra(Intent.EXTRA_STREAM,imageUri);
-//                shareIntent.setType("image/jpeg");
-//                startActivity(Intent.createChooser
-//                        (shareIntent, getResources().getText(R.string.send_to)));
-//            }
-//        });
+    }
+
+    @Override
+    public void onClick(View v) {
+
+    }
+
+    // Setter for listener
+    public void setClickListener(
+            RecyclerViewOnClickListener.OnClickListener onClickListener) {
+        this.onClickListener = onClickListener;
     }
 }

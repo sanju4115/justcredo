@@ -1,6 +1,7 @@
 package com.credolabs.justcredo.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,8 @@ import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.holder.HorizontalViewHolder;
 import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.school.SchoolDetailActivity;
+import com.credolabs.justcredo.utility.NearByPlaces;
 import com.credolabs.justcredo.utility.Util;
 
 import java.util.ArrayList;
@@ -26,9 +29,11 @@ import java.util.Map;
 public class HorizontalViewAdapter extends RecyclerView.Adapter<HorizontalViewHolder> {
     private ArrayList<School> list;
     private RequestManager glide;
-    public HorizontalViewAdapter(ArrayList<School> Data, RequestManager glide) {
+    private Context context;
+    public HorizontalViewAdapter(Context context, ArrayList<School> Data, RequestManager glide) {
         list = Data;
         this.glide = glide;
+        this.context=context;
     }
     @Override
     public HorizontalViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -71,6 +76,13 @@ public class HorizontalViewAdapter extends RecyclerView.Adapter<HorizontalViewHo
             holder.school_review.setText(String.valueOf(list.get(position).getNoOfReview()));
         }
 
+        int distance = NearByPlaces.distance(context,list.get(position).getLatitude(),list.get(position).getLongitude());
+        if (distance !=0){
+            holder.distance.setText(distance+" km");
+        }else {
+            holder.distance.setText("Near By");
+        }
+
         HashMap<String, String> images = list.get(position).getImages();
 
         if (images !=null){
@@ -79,6 +91,18 @@ public class HorizontalViewAdapter extends RecyclerView.Adapter<HorizontalViewHo
             String value=entry.getValue();
             Util.loadImageWithGlideProgress(glide,value,holder.coverImageView,holder.progressBar);
         }
+
+        holder.setClickListener(new RecyclerViewOnClickListener.OnClickListener() {
+            @Override
+            public void OnItemClick(View view, int position) {
+                Intent intent = new Intent(context,SchoolDetailActivity.class);
+                intent.putExtra("SchoolDetail",list.get(position).getId());
+                context.startActivity(intent);
+                //context.overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+            }
+        });
+
+
 
     }
     @Override

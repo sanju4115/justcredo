@@ -1,11 +1,13 @@
 package com.credolabs.justcredo;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -19,6 +21,8 @@ import com.credolabs.justcredo.adapters.CheckBoxAdapter;
 import com.credolabs.justcredo.model.CategoryModel;
 import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.ExpandableHeightGridView;
+import com.credolabs.justcredo.utility.NearByFragment;
+import com.credolabs.justcredo.utility.NearByPlaces;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,7 +31,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class CategoryWiseActivity extends AppCompatActivity {
+public class CategoryWiseActivity extends AppCompatActivity implements NearByFragment.OnFragmentInteractionListener{
 
     private DatabaseReference mReferenceCategories;
     private ArrayList<CategoryModel> categoryModelArrayList = new ArrayList();
@@ -43,15 +47,22 @@ public class CategoryWiseActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        Fragment school = new HorizontalListViewFragment();
+        transaction.add(R.id.fragment_container, school );
+        transaction.add(R.id.fragment_container, new NearByFragment());
+        transaction.commit();
+
+        /*FragmentManager fm = getSupportFragmentManager();
         Fragment fragment = fm.findFragmentById(R.id.fragmentContainer);
 
         if (fragment == null) {
             fragment = new HorizontalListViewFragment();
             fm.beginTransaction()
                     .add(R.id.fragmentContainer, fragment)
+                    .add(R.id.fragment_container, new NearByFragment())
                     .commit();
-        }
+        }*/
 
         categoryListView = (ExpandableHeightGridView) findViewById(R.id.category_list);
         mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories").child("schools");
@@ -105,4 +116,8 @@ public class CategoryWiseActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(menuItem);
     }
 
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
 }

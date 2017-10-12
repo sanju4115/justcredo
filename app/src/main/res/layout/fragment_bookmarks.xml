@@ -1,0 +1,44 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.credolabs.justcredo.profile.ProfileBookmarksFragment">
+
+    <include layout="@layout/search_not_found" />
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?android:attr/progressBarStyleLarge"
+        android:max="100"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:id="@+id/tag_line"
+        android:background="@drawable/card"
+        android:text="@string/places_bookmarked"/>
+
+
+
+    <!-- Recycler View -->
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/linear_recyclerview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/tag_line"
+        />
+
+    </RelativeLayout>
+
+</FrameLayout>

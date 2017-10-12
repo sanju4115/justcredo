@@ -178,17 +178,43 @@ public class Util {
         int j = 1;
         for(int i=str.length-1; i >=0 ; i--){
             if(j==1){
-                currentAddress.put("addressCountry",str[i]);
+                currentAddress.put("addressCountry",str[i].trim());
             }else if (j==2){
-                currentAddress.put("addressState",str[i]);
+                currentAddress.put("addressState",str[i].trim());
             }else if (j==3){
-                currentAddress.put("addressCity",str[i]);
+                currentAddress.put("addressCity",str[i].trim());
             }else if (j==4){
-                currentAddress.put("addressLine2",str[i]);
+                currentAddress.put("addressLine2",str[i].trim());
             }else if (j==5){
-                currentAddress.put("addressLine1",str[i]);
+                currentAddress.put("addressLine1",str[i].trim());
             }else {
-                currentAddress.put("addressLine1",currentAddress.get("addressLine1").concat(" "+str[i]));
+                currentAddress.put("addressLine1",currentAddress.get("addressLine1").concat(" "+str[i].trim()));
+            }
+            j++;
+        }
+        return currentAddress;
+    }
+
+
+    public static HashMap<String,String> getCurrentUSerAddress(Context context){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
+        String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+        String[] str= location.split(",");
+        HashMap<String, String> currentAddress = new HashMap<>();
+        int j = 1;
+        for(int i=str.length-1; i >=0 ; i--){
+            if(j==1){
+                currentAddress.put("addressCountry",str[i].trim());
+            }else if (j==2){
+                currentAddress.put("addressState",str[i].trim());
+            }else if (j==3){
+                currentAddress.put("addressCity",str[i].trim());
+            }else if (j==4){
+                currentAddress.put("addressLine2",str[i].trim());
+            }else if (j==5){
+                currentAddress.put("addressLine1",str[i].trim());
+            }else {
+                currentAddress.put("addressLine1",currentAddress.get("addressLine1").concat(" "+str[i].trim()));
             }
             j++;
         }

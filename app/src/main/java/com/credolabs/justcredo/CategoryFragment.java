@@ -159,7 +159,7 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
 
 
         //for banner slider
-        mDemoSlider = (SliderLayout)view.findViewById(R.id.slider);
+        mDemoSlider = (SliderLayout) view.findViewById(R.id.slider);
 
         final HashMap<String,String> url_maps = new HashMap<String, String>();
         url_maps.put("Vidya Mandir", "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/Photos%2F152843-2017-10-01+13%3A34%3A10.271?alt=media&token=31f151fc-c7f1-47ba-8962-780690f0b186");
@@ -183,7 +183,7 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
 
             mDemoSlider.addSlider(textSliderView);
         }
-        mDemoSlider.setPresetTransformer(SliderLayout.Transformer.Accordion);
+        mDemoSlider.setPresetTransformer(SliderLayout.Transformer.Default);
         mDemoSlider.setPresetIndicator(SliderLayout.PresetIndicators.Center_Bottom);
         mDemoSlider.setCustomAnimation(new DescriptionAnimation());
         mDemoSlider.setDuration(4000);

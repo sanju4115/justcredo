@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -52,12 +53,21 @@ import com.credolabs.justcredo.utility.UserLocation;
 import com.credolabs.justcredo.utility.Util;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.AutocompleteFilter;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -78,6 +88,8 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
     private AutoCompleteAdapter mAutoCompleteAdapter;
     private int CUSTOM_AUTOCOMPLETE_REQUEST_CODE = 20;
     private static final int MY_PERMISSIONS_REQUEST_LOC = 30;
+    private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+    private static final int PERMISSION_REQUEST_FINE_LOCATION = 101;
     //private ImageView searchBtn;
     private ProgressBar progressBar;
     private FragmentManager fragmentManager;
@@ -86,7 +98,7 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
     private VolleyJSONRequest request;
     private SharedPreferences sharedPreference;
     private Button locationBtn;
-    private static final int PERMISSION_REQUEST_FINE_LOCATION = 101;
+
     private boolean permissionGranted = true;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
@@ -126,6 +138,30 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
         //fragmentManager = getSupportFragmentManager();
 
         address = (EditText) findViewById(R.id.adressText);
+
+        address.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
+                            .setCountry("IN")
+                            .setTypeFilter(AutocompleteFilter.TYPE_FILTER_REGIONS)
+                            .build();
+                    Intent intent =
+                            new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
+                                    .setFilter(typeFilter)
+                                    .build(PickLocationActivity.this);
+                    startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+                } catch (GooglePlayServicesRepairableException e) {
+                    // TODO: Handle the error.
+                } catch (GooglePlayServicesNotAvailableException e) {
+                    // TODO: Handle the error.
+                }
+            }
+        });
+
+
+
         mAutoCompleteList = (ListView) findViewById(R.id.searchResultLV);
         //searchBtn = (ImageView) findViewById(R.id.search);
         progressBar = (ProgressBar)findViewById(R.id.progress);
@@ -263,8 +299,8 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
             editor.apply();
             //new CustomToast().Show_Toast(PickLocationActivity.this, Util.getCurrentUSerAddress(sharedPreference).get("addressCity"));
             NearByPlaces.getNearByCities(getApplicationContext(), Util.getCurrentUSerAddress(sharedPreference).get("addressCity"));
-            HistorySearchedModel model = new HistorySearchedModel(structured_formatting.get("main_text"),structured_formatting.get("secondary_text"));
-            saveObject(model);
+            //HistorySearchedModel model = new HistorySearchedModel(structured_formatting.get("main_text"),structured_formatting.get("secondary_text"));
+            //saveObject(model);
             Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
             startActivity(intent1);
             finish();
@@ -291,18 +327,19 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
                 SharedPreferences.Editor editor = sharedPreference.edit();
                 editor.putString(Constants.MAIN_TEXT,locations.getMainText());
                 editor.putString(Constants.SECONDARY_TEXT,locations.getSecText());
-                editor.putString(Constants.LATITUDE,"");
-                editor.putString(Constants.LONGIITUDE,"");
-                editor.putString(Constants.ADDRESS,"");
-                editor.putString(Constants.CITY,"");
-                editor.putString(Constants.COUNTRY,"");
+                editor.putString(Constants.LATITUDE,locations.getLatitude());
+                editor.putString(Constants.LONGIITUDE,locations.getLongitude());
+                editor.putString(Constants.ADDRESS,locations.getMainText()+", "+locations.getSecText());
+                editor.putString(Constants.CITY,locations.getAddressCity());
+                editor.putString(Constants.COUNTRY,locations.getAddressCountry());
                 editor.putString(Constants.POSTAL_CODE,"");
-                editor.putString(Constants.STATE,"");
+                editor.putString(Constants.STATE,locations.getAddressState());
                 editor.putString(Constants.KNOWN_NAME,"");
                 editor.apply();
-                NearByPlaces.getNearByCities(getApplicationContext(), Util.getCurrentUSerAddress(sharedPreference).get("addressCity"));
-                Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-                startActivity(intent1);
+                //new CustomToast().Show_Toast(PickLocationActivity.this, locations.getLatitude());
+                NearByPlaces.getNearByCities(getApplicationContext(), locations.getAddressCity());
+                //Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+                //startActivity(intent1);
                 finish();
             }
         });
@@ -527,12 +564,12 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
                     mUserLocation.getState()+ ", "+
                     mUserLocation.getCountry());
 
-            new CustomToast().Show_Toast(this, mUserLocation.getCity());
+            //new CustomToast().Show_Toast(this, Double.toString(latitude));
             NearByPlaces.getNearByCities(getApplicationContext(),mUserLocation.getCity());
 
             editor.apply();
-            Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-            startActivity(intent1);
+            //Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+            //startActivity(intent1);
             finish();
 
         }
@@ -579,6 +616,83 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
         editor.commit();
         //textView.setText("Object Stored");
         //Toast.makeText(getApplicationContext(), "Object Stored", 1000).show();
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (intent != null) {
+            switch (requestCode) {
+                case PLACE_AUTOCOMPLETE_REQUEST_CODE:
+                    if (resultCode == RESULT_OK) {
+                        Place place = PlaceAutocomplete.getPlace(this, intent);
+                        String address = String.valueOf(place.getAddress());
+                        LatLng latLng = place.getLatLng();
+                        String[] str= address.split(",");
+                        int j = 1;
+                        String addressLine1="";
+                        String addressLine2="";
+                        String addressCity="";
+                        String addressState="";
+                        String addressCountry="";
+                        for(int i=str.length-1; i >=0 ; i--){
+                            if(j==1){
+                                addressCountry = str[i].trim();
+                            }else if (j==2){
+                                addressState = str[i].trim();
+                            }else if (j==3){
+                                addressCity = str[i].trim();
+                            }else if (j==4){
+                                addressLine2 = str[i].trim();
+                            }else if (j==5){
+                                addressLine1 = str[i].trim();
+                            }else {
+                                addressLine1 = addressLine1.concat(" "+str[i].trim());
+                            }
+                            j++;
+                        }
+
+                        String main_text="";
+                        if (addressLine1 != ""){
+                            main_text = addressLine1;
+                        }
+                        if (addressLine2 != "" && addressLine1 == ""){
+                            main_text = addressLine2;
+                        }else if(addressLine2 != "" && addressLine1 != ""){
+                            main_text = main_text + ", "+addressLine2;
+                        }
+
+                        String secondary_text = addressCity+", "+addressState+", "+addressCountry ;
+                        SharedPreferences.Editor editor = sharedPreference.edit();
+                        editor.putString(Constants.MAIN_TEXT,main_text);
+                        editor.putString(Constants.SECONDARY_TEXT,secondary_text);
+                        editor.putString(Constants.LATITUDE, Double.toString(latLng.latitude));
+                        editor.putString(Constants.LONGIITUDE,Double.toString(latLng.longitude));
+                        editor.putString(Constants.ADDRESS,main_text+", "+secondary_text);
+                        editor.putString(Constants.CITY,addressCity);
+                        editor.putString(Constants.COUNTRY,addressCountry);
+                        editor.putString(Constants.POSTAL_CODE,"");
+                        editor.putString(Constants.STATE,addressState);
+                        editor.putString(Constants.KNOWN_NAME,"");
+                        editor.apply();
+                        //new CustomToast().Show_Toast(this, Double.toString(latitude));
+                        NearByPlaces.getNearByCities(getApplicationContext(), addressCity);
+                        HistorySearchedModel model = new HistorySearchedModel(main_text, secondary_text, Double.toString(latLng.latitude), Double.toString(latLng.longitude), addressLine1, addressLine2, addressCity, addressState, addressCountry);
+                        saveObject(model);
+                        //Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+                        //startActivity(intent1);
+                        finish();
+                    } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+                        Status status = PlaceAutocomplete.getStatus(this, intent);
+                        Log.i("TAG", status.getStatusMessage());
+                    } else if (resultCode == RESULT_CANCELED) {
+                        // The user canceled the operation.
+                    }
+                    break;
+
+            }
+        }
     }
 
 

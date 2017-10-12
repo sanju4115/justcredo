@@ -43,10 +43,12 @@ public class FeedListViewRecyclerAdapter extends RecyclerView.Adapter<FeedViewHo
     private FirebaseAuth mAuth;
     private String uid;
     private User user;
+    private String parent;
 
-    public FeedListViewRecyclerAdapter(Context context, ArrayList<Review> arrayList) {
+    public FeedListViewRecyclerAdapter(Context context, ArrayList<Review> arrayList, String parent) {
         this.context = context;
         this.arrayList = arrayList;
+        this.parent=parent;
 
         mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("reviews");
         mLikeReference = FirebaseDatabase.getInstance().getReference().child("likes");
@@ -91,6 +93,11 @@ public class FeedListViewRecyclerAdapter extends RecyclerView.Adapter<FeedViewHo
     public void onBindViewHolder(final FeedViewHolder viewHolder, int position) {
         final Review model = arrayList.get(position);
         final String reviewKey = model.getId();
+
+        if (parent.trim().equalsIgnoreCase("own_profile")){
+            viewHolder.complete_profile_layout.setVisibility(View.GONE);
+        }
+
         if (model!=null){
             viewHolder.setHeader(reviewKey, context, model);
         }

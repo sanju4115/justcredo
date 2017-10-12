@@ -4,38 +4,27 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
 
-import com.android.volley.Cache;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.credolabs.justcredo.adapters.CategoryGridAdapter;
 import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.model.School;
-import com.credolabs.justcredo.utility.Constants;
-import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.ExpandableHeightGridView;
-import com.credolabs.justcredo.utility.VolleyJSONRequest;
+import com.credolabs.justcredo.school.SchoolDetailActivity;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.gson.Gson;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 
 public class CategoryGridFragment extends Fragment {
@@ -48,15 +37,10 @@ public class CategoryGridFragment extends Fragment {
     private String categoryDescription;
     private String categoryImage;
 
-    private VolleyJSONRequest request;
-    private  ArrayList<ObjectModel> listArrayList;
     private CategoryGridAdapter adapter;
     private ExpandableHeightGridView grid;
-    private Handler handler;
-    private ObjectModel[] data;
     private TextView seeMore;
     private TextView message;
-    private Gson gson;
     private View divider;
 
     private OnFragmentInteractionListener mListener;
@@ -122,13 +106,24 @@ public class CategoryGridFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (categoryName.equals("schools")){
                     School schoolModel;
-                    ArrayList<ObjectModel> schoolArrayList = new ArrayList<>();
+                    final ArrayList<ObjectModel> schoolArrayList = new ArrayList<>();
                     for (DataSnapshot object: dataSnapshot.getChildren()) {
                         schoolModel = object.getValue(School.class);
                         schoolArrayList.add(schoolModel);
                     }
 
                     buildSection(schoolArrayList);
+                    grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                            Intent intent = new Intent(getActivity(),SchoolDetailActivity.class);
+                            intent.putExtra("SchoolDetail",schoolArrayList.get(position).getId());
+                            startActivity(intent);
+                            getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+
+                        }
+                    });
+
 
                 }
 
@@ -140,17 +135,6 @@ public class CategoryGridFragment extends Fragment {
 
             }
         });
-
-        /*grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                Intent intent = new Intent(getActivity(),DetailedObjectActivity.class);
-                //intent.putExtra("SchoolDetail",listArrayList.get(position));
-                startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
-
-            }
-        });*/
 
         return view;
 

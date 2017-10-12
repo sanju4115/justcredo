@@ -34,17 +34,18 @@
 
 
                     <EditText
+                        android:id="@+id/adressText"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
-                        android:id="@+id/adressText"
                         android:background="@drawable/card"
-                        android:inputType="textEmailAddress"
-                        android:drawableLeft="@drawable/ic_search_black_24dp"
                         android:drawablePadding="15dp"
-                        android:paddingLeft="5dp"
-                        android:paddingTop="12dp"
+                        android:drawableStart="@drawable/ic_search_black_24dp"
+                        android:focusable="false"
+                        android:hint="Please Search Address"
+                        android:inputType="none"
                         android:paddingBottom="12dp"
-                        android:hint="Enter Place Name"                        />
+                        android:paddingStart="5dp"
+                        android:paddingTop="12dp" />
 
                     <!--<EditText-->
                         <!--android:id="@+id/adressText"-->

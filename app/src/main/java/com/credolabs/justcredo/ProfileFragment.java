@@ -2,28 +2,28 @@ package com.credolabs.justcredo;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.android.volley.Cache;
-import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.NetworkImageView;
-import com.bumptech.glide.Glide;
+import com.credolabs.justcredo.adapters.ViewPagerAdapter;
 import com.credolabs.justcredo.model.User;
-import com.credolabs.justcredo.utility.CircularNetworkImageView;
+import com.credolabs.justcredo.profile.ProfileBookmarksFragment;
+import com.credolabs.justcredo.profile.ProfileFollowerFragment;
+import com.credolabs.justcredo.profile.ProfileFollowingFragment;
+import com.credolabs.justcredo.profile.ProfileHomeFragment;
+import com.credolabs.justcredo.profile.ProfilePlaceFragment;
+import com.credolabs.justcredo.profile.ProfileReviewFragment;
 import com.credolabs.justcredo.utility.Constants;
-import com.credolabs.justcredo.utility.PrefUtil;
 import com.credolabs.justcredo.utility.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -34,34 +34,19 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link ProfileFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link ProfileFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class ProfileFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
     private OnFragmentInteractionListener mListener;
-    private ImageLoader imageLoader;
-
-    private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthStateListener;
     private DatabaseReference mReferenceUser;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
 
 
     public ProfileFragment() {
-        // Required empty public constructor
     }
     public static ProfileFragment newInstance(String param1, String param2) {
         ProfileFragment fragment = new ProfileFragment();
@@ -79,37 +64,21 @@ public class ProfileFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-
-        mAuth = FirebaseAuth.getInstance();
-        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-            }
-        };
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
-        imageLoader = MyApplication.getInstance().getImageLoader();
-
-        final PrefUtil prefUtil = new PrefUtil(getActivity());
-        //SharedPreferences prefs = getActivity().getSharedPreferences(Constants.FacebookPreferences, Context.MODE_PRIVATE);;
-        //String textFirstName = prefs.getString("fb_first_name" ,"No name");
-        //String textLastName = prefs.getString("fb_last_name" ,"No name");
-        //String textEmail = prefs.getString("fb_email" ,"No Email");
-
         final TextView name = (TextView) view.findViewById(R.id.profile_name);
-        //TextView email = (TextView) view.findViewById(R.id.profile_email);
         final ImageView profilePic = (ImageView) view.findViewById(R.id.profile_pic);
-        final ImageView coverPic = (ImageView) view.findViewById(R.id.cover_profile);
-        //profilePic.setImageUrl(prefs.getString("fb_profilePicURL"," "),imageLoader);
-        //coverPic.setImageUrl(prefs.getString("fb_coverPhotoURL", " "),imageLoader);
-        //name.setText(textFirstName + " "+textLastName);
-        //email.setText(textEmail);
-        final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.image_progress);
+        //final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.image_progress);
+        final TextView profile_description = (TextView) view.findViewById(R.id.profile_description);
+        final TextView no_follower = (TextView) view.findViewById(R.id.no_follower);
+        final TextView no_following = (TextView) view.findViewById(R.id.no_following);
+        final TextView no_post = (TextView) view.findViewById(R.id.no_post);
+
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
         mReferenceUser = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
@@ -117,20 +86,15 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User user = dataSnapshot.getValue(User.class);
-                ImageLoader imageLoader = MyApplication.getInstance().getImageLoader();
+                user.buildUser(no_follower,no_following,no_post);
                 if (user.getName()!=null) name.setText(user.getName());
-                if (user.getCoverPic()!=null){
-                    Util.loadImageWithGlideProgress(Glide.with(getActivity().getApplicationContext()),user.getCoverPic(),coverPic,progressBar);
-                    //Util.loadImageVolley(user.getCoverPic(),coverPic);
-                }else{
-                    Util.loadImageWithGlideProgress(Glide.with(getActivity().getApplicationContext()),Constants.NO_COVER_PIC_URL,coverPic,progressBar);
-                    //Util.loadImageVolley(Constants.NO_COVER_PIC_URL,coverPic);
+                if (user.getDescription()!=null){
+                    profile_description.setText(user.getDescription());
                 }
                 if (user.getProfilePic()!=null){
                     Util.loadCircularImageWithGlide(getActivity().getApplicationContext(),user.getProfilePic(),profilePic);
                 }else{
                     Util.loadCircularImageWithGlide(getActivity().getApplicationContext(),Constants.NO_COVER_PIC_URL,profilePic);
-                    //Util.loadImageVolley(Constants.NO_COVER_PIC_URL,profilePic);
                 }
             }
 
@@ -141,24 +105,8 @@ public class ProfileFragment extends Fragment {
         });
 
 
-        LinearLayout logoutLayout = (LinearLayout) view.findViewById(R.id.layout_logout);
-        logoutLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                /*PrefUtil prefUtil1 = new PrefUtil(getActivity());
-                prefUtil.clearToken();
-                Intent intent = new Intent(getActivity(),LoginActivity.class);
-                MyApplication.getInstance().getRequestQueue().getCache().clear();
-                startActivity(intent);
-                getActivity().finish();*/
-                mAuth.signOut();
-                Intent intent = new Intent(getActivity(),AccountSetupActivity.class);
-                startActivity(intent);
-                getActivity().finish();
-            }
-        });
 
-        ImageView editProfile = (ImageView) view.findViewById(R.id.edit_profile);
+        TextView editProfile = (TextView) view.findViewById(R.id.edit_profile);
         editProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -167,23 +115,57 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        LinearLayout layout_add_place = (LinearLayout) view.findViewById(R.id.layout_add_place);
-        layout_add_place.setOnClickListener(new View.OnClickListener() {
+
+        tabLayout = (TabLayout) view.findViewById(R.id.profile_tablayout);
+        viewPager = (ViewPager) view.findViewById(R.id.profile_viewPager);
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getChildFragmentManager());
+        adapter.addFragment(new ProfileHomeFragment(), ""); //Menu
+        adapter.addFragment(new ProfileReviewFragment(), ""); //Post
+        adapter.addFragment(new ProfileBookmarksFragment(), "");//ProfileBookmarksFragment
+        adapter.addFragment(new ProfileFollowerFragment(), "");//Followers
+        adapter.addFragment(new ProfileFollowingFragment(), "");//Following
+        adapter.addFragment(new ProfilePlaceFragment(), "");//My Place
+        viewPager.setAdapter(adapter);
+        tabLayout.setupWithViewPager(viewPager);
+
+        tabLayout.getTabAt(0).setIcon(R.drawable.ic_menu);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            tabLayout.getTabAt(0).getIcon().setTint(getResources().getColor(R.color.colorAccent,null));
+        }
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_rate_review_black);
+        tabLayout.getTabAt(2).setIcon(R.drawable.ic_bookmark_black);
+        tabLayout.getTabAt(3).setIcon(R.drawable.ic_people);
+        tabLayout.getTabAt(4).setIcon(R.drawable.ic_following);
+        tabLayout.getTabAt(5).setIcon(R.drawable.ic_business);
+
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(),AddPlaceActivity.class);
-                startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
-               // getActivity().finish();
+            public void onTabSelected(TabLayout.Tab tab) {
+                if (tab.getIcon()!=null){
+                    tab.getIcon().setTint(getResources().getColor(R.color.colorAccent,null));
+                }
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                if (tab.getIcon()!=null){
+                    tab.getIcon().setTint(getResources().getColor(R.color.black,null));
+                }
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
             }
         });
-
 
 
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -201,32 +183,30 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getIcon().setTint(getResources().getColor(R.color.black,null));
     }
 
 
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mAuth.addAuthStateListener(mAuthStateListener);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
     }
 }

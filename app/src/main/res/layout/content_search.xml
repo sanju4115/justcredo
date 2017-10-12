@@ -14,10 +14,15 @@
     android:paddingRight="5dp"
     android:paddingLeft="5dp">
 
-    <RelativeLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp">
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_marginTop="@dimen/container_height"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp">
 
             <EditText
                 android:layout_width="match_parent"
@@ -34,13 +39,40 @@
                 android:focusable="true"/>
 
 
-    </RelativeLayout>
+        </RelativeLayout>
+
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:max="100"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:layout_marginTop="106dp"
+            android:layout_width="match_parent"
+            android:layout_marginStart="10dp"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="Suggestions For Places Near By Your Location"/>
 
 
-    <com.yalantis.filter.widget.Filter
-        android:id="@+id/filter"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <android.support.v7.widget.RecyclerView
+            android:layout_marginTop="136dp"
+            android:id="@+id/searched_items"
+            android:background="@drawable/card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
+
+
+        <com.yalantis.filter.widget.Filter
+            android:id="@+id/filter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </FrameLayout>
 </LinearLayout>
 

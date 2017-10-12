@@ -173,6 +173,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                     DatabaseReference currentUserDB = mUsersReference.child(userID);
                     currentUserDB.child("name").setValue(account.getDisplayName());
                     currentUserDB.child("email").setValue(account.getEmail());
+                    currentUserDB.child("uid").setValue(user.getUid());
                     currentUserDB.child("profilePic").setValue(account.getPhotoUrl().toString());
                     startActivity(i);
                     getActivity().finish();

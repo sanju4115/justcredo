@@ -2,25 +2,17 @@ package com.credolabs.justcredo.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
-import com.android.volley.toolbox.ImageLoader;
 import com.bumptech.glide.Glide;
-import com.credolabs.justcredo.DetailedObjectActivity;
-import com.credolabs.justcredo.MyApplication;
-import com.credolabs.justcredo.ObjectListActivity;
 import com.credolabs.justcredo.R;
-import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.utility.NearByPlaces;
+import com.credolabs.justcredo.school.SchoolDetailActivity;
 import com.credolabs.justcredo.utility.Util;
-import com.google.gson.internal.LinkedTreeMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,17 +41,16 @@ public class ObjectListViewRecyclerAdapter extends
     }
 
     @Override
-    public void onBindViewHolder(ObjectListViewHolder holder, int position) {
+    public void onBindViewHolder(ObjectListViewHolder mainHolder, int position) {
         final School model = arrayList.get(position);
 
-        ObjectListViewHolder mainHolder =  holder;// holder
         String locality = " ";
         String city = " ";
         String state = " ";
         // setting data over views
         mainHolder.school_name.setText(model.getName());
         HashMap<String,String> address = new HashMap<>();
-        address = (HashMap<String, String>) model.getAddress();
+        address =  model.getAddress();
         if (address.get("addressLine2")!= null){
             locality = address.get("addressLine2");
         }
@@ -91,18 +82,12 @@ public class ObjectListViewRecyclerAdapter extends
             mainHolder.websiteLayout.setVisibility(View.GONE);
         }
 
-        int loader = R.drawable.cast_album_art_placeholder_large;
-
-        // ImageLoader class instance
-        ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
         HashMap<String, String> images = arrayList.get(position).getImages();
 
         if (images !=null){
             Map.Entry<String,String> entry=images.entrySet().iterator().next();
             String key= entry.getKey();
             String value=entry.getValue();
-
-            //mainHolder.image.setImageUrl(value, imgLoader);
             Util.loadImageWithGlideProgress(Glide.with(context),value,mainHolder.image,mainHolder.progressBar);
         }
 
@@ -113,8 +98,8 @@ public class ObjectListViewRecyclerAdapter extends
             public void OnItemClick(View view, int position) {
                 switch (view.getId()) {
                     case R.id.list_layout:
-                        Intent intent = new Intent(context,DetailedObjectActivity.class);
-                        intent.putExtra("SchoolDetail",arrayList.get(position));
+                        Intent intent = new Intent(context,SchoolDetailActivity.class);
+                        intent.putExtra("SchoolDetail",arrayList.get(position).getId());
                         context.startActivity(intent);
                         //overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
                         //finish();
@@ -124,6 +109,13 @@ public class ObjectListViewRecyclerAdapter extends
             }
 
         });
+
+        int distance = NearByPlaces.distance(context,arrayList.get(position).getLatitude(),arrayList.get(position).getLongitude());
+        if (distance !=0){
+            mainHolder.distance.setText(distance+" km");
+        }else {
+            mainHolder.distance.setText("Near By");
+        }
 
     }
 
@@ -135,8 +127,7 @@ public class ObjectListViewRecyclerAdapter extends
 
         ViewGroup mainGroup = (ViewGroup) mInflater.inflate(
                 R.layout.object_list_customview, viewGroup, false);
-        ObjectListViewHolder listHolder = new ObjectListViewHolder(mainGroup);
-        return listHolder;
+        return new ObjectListViewHolder(mainGroup);
 
     }
 

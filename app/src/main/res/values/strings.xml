@@ -251,5 +251,19 @@
     <string name="top_results">Showing top Schools In Your Area (Sponsored)</string>
     <string name="not_found_main_text">Sorry we couldn\'t find any matches</string>
     <string name="not_found_secondary_text">Maybe your search was too specific, please try searching with another term.</string>
+    <string name="places_bookmarked">Places Bookmarked By You</string>
+    <string name="place_reviewed">Experiences Shared By You</string>
+    <string name="your_followers">Your Followers</string>
+    <string name="your_following">People You Are Following</string>
+    <string name="your_place">Manage Your Place Here</string>
+    <string name="title_activity_school_detail">SchoolDetailActivity</string>
+    <string name="custom_gallery">Choose Photos</string>
+    <string name="edit_home_text">You can edit name and description here.</string>
+    <string name="gender">Gender</string>
+    <string-array name="gender_cat">
+        <item>Male</item>
+        <item>Female</item>
+        <item>Not Specified</item>
+    </string-array>
 
 </resources>

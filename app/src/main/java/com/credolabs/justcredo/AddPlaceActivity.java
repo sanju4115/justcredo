@@ -160,7 +160,7 @@ public class AddPlaceActivity extends AppCompatActivity implements View.OnClickL
                 try {
                     AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
                             .setCountry("IN")
-                            .setTypeFilter(AutocompleteFilter.TYPE_FILTER_ADDRESS)
+                            .setTypeFilter(AutocompleteFilter.TYPE_FILTER_GEOCODE)
                             .build();
                     Intent intent =
                             new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
@@ -497,9 +497,9 @@ public class AddPlaceActivity extends AppCompatActivity implements View.OnClickL
         String line1   = addressLine1.getText().toString().trim();
         String line2   = addressLine2.getText().toString().trim();
         String city    = addressCity.getText().toString().trim();
-        String state = addressState.getText().toString().trim();
-        String str[] = addressCountry.getText().toString().split(" ");
-        String country = str[0].trim();
+        String str[] = addressState.getText().toString().trim().split(" ");
+        String country = addressCountry.getText().toString().trim();
+        String state = str[0].trim();
 
         String mobile = mobileNumber.getText().toString().trim();
 

@@ -266,7 +266,6 @@ public class ReadReviewActivity extends AppCompatActivity {
 
     private static class ReviewHolder extends RecyclerView.ViewHolder{
         View mView;
-        ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
         TextView like,comment_count,like_count;
         DatabaseReference mLikeReference;
         DatabaseReference mCommentReference,mFollowingReference;

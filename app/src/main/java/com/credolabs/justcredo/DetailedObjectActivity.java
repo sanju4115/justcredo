@@ -57,6 +57,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 
 import org.jetbrains.annotations.NotNull;
@@ -89,52 +90,311 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         fragment = new ImageFragment();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.images, fragment).commit();
-        model = (School) getIntent().getSerializableExtra("SchoolDetail");
+        final FragmentTransaction transaction = fragmentManager.beginTransaction();
+        String id = getIntent().getStringExtra("SchoolDetail");
+        final HashMap<String, Boolean> firstTime = new HashMap<String, Boolean>();
+        firstTime.put("first_time",true);
 
-        final ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
 
-        layoutReviews = (LinearLayout) findViewById(R.id.layout_reviews);
-        layoutReviews.setOnClickListener(new View.OnClickListener() {
+        DatabaseReference schoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
+        schoolReference.child(id).addValueEventListener(new ValueEventListener() {
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DetailedObjectActivity.this,ReadReviewActivity.class);
-                //intent.putExtra("name",model);
-                //intent.putExtra("id",model.getId());
-                intent.putExtra("key",model.getId());
-                intent.putExtra("type","schools");
-                /*String addressStr = Util.getAddress(model.getAddress());
-                //intent.putExtra("school_address",addressStr);
-                HashMap<String, String> images = model.getImages();
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                model = dataSnapshot.getValue(School.class);
+                layoutReviews = (LinearLayout) findViewById(R.id.layout_reviews);
+                layoutReviews.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(DetailedObjectActivity.this,ReadReviewActivity.class);
+                        intent.putExtra("key",model.getId());
+                        intent.putExtra("type","schools");
+                        startActivity(intent);
+                    }
+                });
 
-                if (images !=null){
-                    Map.Entry<String,String> entry=images.entrySet().iterator().next();
-                    String key= entry.getKey();
-                    String value=entry.getValue();
-                    intent.putExtra("school_cover",value);
-                }*/
+                reviewBtn = (TextView) findViewById(R.id.btn_review);
+                reviewBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(DetailedObjectActivity.this,ReviewActivity.class);
+                        intent.putExtra("name",model.getName());
+                        intent.putExtra("type","schools");
+                        intent.putExtra("id",model.getId());
+                        intent.putExtra("addressCity",model.getAddress().get("addressCity"));
+                        intent.putExtra("addressState",model.getAddress().get("addressState"));
+                        startActivity(intent);
+
+                    }
+                });
 
 
-                startActivity(intent);
+                if (firstTime.get("first_time")){
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("images",model);
+                    fragment.setArguments(bundle);
+                    transaction.replace(R.id.images, fragment).commit();
+                }
+
+                firstTime.put("first_time",false);
+
+                // for school header details
+                TextView schoolName = (TextView) findViewById(R.id.school_name);
+                schoolName.setText(model.getName());
+                TextView schoolAddress = (TextView) findViewById(R.id.school_address);
+                schoolAddress.setText(Util.getAddress(model.getAddress()));
+                TextView schoolReviewNo = (TextView) findViewById(R.id.school_review_no);
+                if (model.getNoOfReview()!=null){
+                    schoolReviewNo.setText(String.valueOf(model.getNoOfReview()));
+                }
+
+
+                // for school description
+                TextView schoolDescription = (TextView) findViewById(R.id.description);
+                schoolDescription.setText(model.getDescription());
+                TextView schoolCategory = (TextView) findViewById(R.id.category);
+                TextView schoolMedium = (TextView) findViewById(R.id.medium);
+                TextView schoolGender = (TextView) findViewById(R.id.gender);
+                schoolCategory.setText(String.valueOf(model.getCategories().values()));
+                schoolMedium.setText("medium");
+                schoolGender.setText("gender");
+
+
+                // rating and review section
+                TextView schoolRating = (TextView) findViewById(R.id.rating);
+                TextView noOfRatings = (TextView) findViewById(R.id.noOfRatings);
+                LinearLayoutCompat layoutRating = (LinearLayoutCompat) findViewById(R.id.layout_rating);
+                if (model.getNoOfRating() ==null || model.getNoOfRating()==0){
+                    layoutRating.setVisibility(View.GONE);
+                }else {
+                    schoolRating.setText(String.valueOf(model.getRating()));
+                    noOfRatings.setText(String.valueOf(model.getNoOfRating()));
+                }
+                final ImageView profile1 = (ImageView) findViewById(R.id.profile1);
+                final ImageView profile2 = (ImageView) findViewById(R.id.profile2);
+                final ImageView profile3 = (ImageView) findViewById(R.id.profile3);
+                String nameFirstUser = " ";
+                final LinearLayout layoutReviews = (LinearLayout) findViewById(R.id.layout_reviews);
+                final LinearLayout layoutReviewsNo = (LinearLayout) findViewById(R.id.layout_reviews_no);
+
+                TextView noOfReviewsMinusOne = (TextView) findViewById(R.id.noOfReviewsMinusOne);
+                if (model.getNoOfReview()!=null && model.getNoOfReview()!=0){
+                    noOfReviewsMinusOne.setText(String.valueOf(model.getNoOfReview()-1));
+                    TextView allReview = (TextView) findViewById(R.id.all_review);
+                    allReview.setText("Read All Reviews ("+model.getNoOfReview()+")");
+                }
+
+                DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("reviews");
+                final TextView reviewerName1 = (TextView) findViewById(R.id.reviewer_name1);
+
+                final ArrayList<Review> reviews= new ArrayList<>() ;
+                mDatabaseReference.orderByChild("schoolID").equalTo(model.getId()).addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        Review review = dataSnapshot.getValue(Review.class);
+                        reviews.add(review);
+                        switch (reviews.size()){
+                            case 1:
+                                layoutReviews.setVisibility(View.VISIBLE);
+                                layoutReviewsNo.setVisibility(View.GONE);
+                                profile1.setVisibility(View.VISIBLE);
+                                DatabaseReference userReference = FirebaseDatabase.getInstance().getReference().child("users");
+                                userReference.orderByKey().equalTo(review.getUserID()).addChildEventListener(new ChildEventListener() {
+                                    @Override
+                                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                        User user = dataSnapshot.getValue(User.class);
+                                        //profile1.setImageUrl(user.getProfilePic(),imgLoader);
+                                        Util.loadCircularImageWithGlide(getApplicationContext(),user.getProfilePic(),profile1);
+                                        reviewerName1.setText(user.getName());
+                                    }
+
+                                    @Override
+                                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                                break;
+                            case 2:
+                                profile2.setVisibility(View.VISIBLE);
+                                DatabaseReference userReference2 = FirebaseDatabase.getInstance().getReference().child("users");
+                                userReference2.orderByKey().equalTo(review.getUserID()).addChildEventListener(new ChildEventListener() {
+                                    @Override
+                                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                        User user = dataSnapshot.getValue(User.class);
+                                        //profile2.setImageUrl(user.getProfilePic(),imgLoader);
+                                        Util.loadCircularImageWithGlide(getApplicationContext(),user.getProfilePic(),profile2);
+
+                                    }
+
+                                    @Override
+                                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                                break;
+                            case 3:
+                                profile3.setVisibility(View.VISIBLE);
+                                DatabaseReference userReference3 = FirebaseDatabase.getInstance().getReference().child("users");
+                                userReference3.orderByKey().equalTo(review.getUserID()).addChildEventListener(new ChildEventListener() {
+                                    @Override
+                                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                        User user = dataSnapshot.getValue(User.class);
+                                        //profile3.setImageUrl(user.getProfilePic(),imgLoader);
+                                        Util.loadCircularImageWithGlide(getApplicationContext(),user.getProfilePic(),profile3);
+
+                                    }
+
+                                    @Override
+                                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                                break;
+                        }
+
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+
+                // Facilites section
+                int adapterCount;
+                if (model.getFacilities()!=null){
+                    ArrayList<String> facilities = new ArrayList<String>(model.getFacilities().values());
+                    FacilitiesAdapter facilitiesAdapter = new FacilitiesAdapter(DetailedObjectActivity.this,facilities);
+                    LinearLayout facilitiesLinearLayout = (LinearLayout) findViewById(R.id.linear_layout_facilities);
+                    adapterCount = facilitiesAdapter.getCount();
+                    if (facilities.size()>0) {
+                        for (int i = 0; i < adapterCount; i++) {
+                            View item = facilitiesAdapter.getView(i, null, null);
+                            facilitiesLinearLayout.addView(item);
+                        }
+                    }
+                }else {
+                    LinearLayout facilitiesSection = (LinearLayout) findViewById(R.id.facilities_section);
+                    facilitiesSection.setVisibility(View.GONE);
+                }
+                if (model.getExtracurricular()!=null){
+                    ArrayList<String> curriculumn = new ArrayList<String>(model.getExtracurricular().values());
+                    FacilitiesAdapter curriculumnAdapter = new FacilitiesAdapter(DetailedObjectActivity.this,curriculumn);
+                    LinearLayout curriculumnLinearLayout = (LinearLayout) findViewById(R.id.linear_layout_curriculumn);
+                    if (curriculumn.size()>0) {
+                        adapterCount = curriculumnAdapter.getCount();
+                        for (int i = 0; i < adapterCount; i++) {
+                            View item = curriculumnAdapter.getView(i, null, null);
+                            curriculumnLinearLayout.addView(item);
+                        }
+                    }
+                }else {
+                    LinearLayout curricularSection = (LinearLayout) findViewById(R.id.curricular_section);
+                    curricularSection.setVisibility(View.GONE);
+                }
+                if (model.getSports()!=null){
+                    ArrayList<String> sports = new ArrayList<String>(model.getSports().values());
+                    FacilitiesAdapter sportsAdapter = new FacilitiesAdapter(DetailedObjectActivity.this,sports);
+                    LinearLayout sportsLinearLayout = (LinearLayout) findViewById(R.id.linear_layout_sports);
+                    if (sports.size()>0) {
+                        adapterCount = sportsAdapter.getCount();
+                        for (int i = 0; i < adapterCount; i++) {
+                            View item = sportsAdapter.getView(i, null, null);
+                            sportsLinearLayout.addView(item);
+                        }
+                    }
+                }else {
+                    LinearLayout sportsSection = (LinearLayout) findViewById(R.id.sports_section);
+                    sportsSection.setVisibility(View.GONE);
+                }
+
+
+                //Address section
+                TextView schoolAddressSecton = (TextView) findViewById(R.id.school_address_locality);
+                schoolAddressSecton.setText(Util.getAddress(model.getAddress()));
+                WorkaroundMapFragment mapFragment = (WorkaroundMapFragment) getSupportFragmentManager()
+                        .findFragmentById(R.id.map);
+                final NestedScrollView mScrollView = (NestedScrollView) findViewById(R.id.scrollView); //parent scrollview in xml, give your scrollview id value
+
+                ((WorkaroundMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
+                        .setListener(new WorkaroundMapFragment.OnTouchListener() {
+                            @Override
+                            public void onTouch() {
+                                mScrollView.requestDisallowInterceptTouchEvent(true);
+                            }
+                        });
+                mapFragment.getMapAsync(DetailedObjectActivity.this);
+
+
+
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
         });
-
-        reviewBtn = (TextView) findViewById(R.id.btn_review);
-        reviewBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DetailedObjectActivity.this,ReviewActivity.class);
-                intent.putExtra("name",model.getName());
-                intent.putExtra("type","schools");
-                intent.putExtra("id",model.getId());
-                intent.putExtra("addressCity",model.getAddress().get("addressCity"));
-                intent.putExtra("addressState",model.getAddress().get("addressState"));
-                startActivity(intent);
-
-            }
-        });
-
 
         //for hiding the title when viewpager is expanded and showing title when collapsed
         final CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.htab_collapse_toolbar);
@@ -162,7 +422,50 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
         });
 
 
-        //for images on school detail pages
+
+        /*layoutReviews = (LinearLayout) findViewById(R.id.layout_reviews);
+        layoutReviews.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DetailedObjectActivity.this,ReadReviewActivity.class);
+                //intent.putExtra("name",model);
+                //intent.putExtra("id",model.getId());
+                intent.putExtra("key",model.getId());
+                intent.putExtra("type","schools");
+                *//*String addressStr = Util.getAddress(model.getAddress());
+                //intent.putExtra("school_address",addressStr);
+                HashMap<String, String> images = model.getImages();
+
+                if (images !=null){
+                    Map.Entry<String,String> entry=images.entrySet().iterator().next();
+                    String key= entry.getKey();
+                    String value=entry.getValue();
+                    intent.putExtra("school_cover",value);
+                }*//*
+
+
+                startActivity(intent);
+            }
+        });
+
+        reviewBtn = (TextView) findViewById(R.id.btn_review);
+        reviewBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DetailedObjectActivity.this,ReviewActivity.class);
+                intent.putExtra("name",model.getName());
+                intent.putExtra("type","schools");
+                intent.putExtra("id",model.getId());
+                intent.putExtra("addressCity",model.getAddress().get("addressCity"));
+                intent.putExtra("addressState",model.getAddress().get("addressState"));
+                startActivity(intent);
+
+            }
+        });
+*/
+
+
+        /*//for images on school detail pages
         Bundle bundle = new Bundle();
         bundle.putSerializable("images",model);
         fragment.setArguments(bundle);
@@ -490,55 +793,9 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
                         mScrollView.requestDisallowInterceptTouchEvent(true);
                     }
                 });
-        mapFragment.getMapAsync(this);
+        mapFragment.getMapAsync(this);*/
 
-        /*expandableListView = (ExpandableListView) findViewById(R.id.expandableListView);
-        expandableListDetail = ExpandableListDataPump.getData(model.getClasses());
-        expandableListTitle = new ArrayList<String>(expandableListDetail.keySet());
-        expandableListAdapter = new CustomExpandableListAdapter(this, expandableListTitle, expandableListDetail);
-        expandableListView.setAdapter(expandableListAdapter);
-        //setExpandableListViewHeight(expandableListView, -3);
-        expandableListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
 
-            @Override
-            public void onGroupExpand(int groupPosition) {
-                Toast.makeText(getApplicationContext(),
-                        expandableListTitle.get(groupPosition) + " List Expanded.",
-                        Toast.LENGTH_SHORT).show();
-                if (lastExpandedPosition != -1
-                        && groupPosition != lastExpandedPosition) {
-                    expandableListView.collapseGroup(lastExpandedPosition);
-                }
-                lastExpandedPosition = groupPosition;
-            }
-        });
-
-        expandableListView.setOnGroupCollapseListener(new ExpandableListView.OnGroupCollapseListener() {
-
-            @Override
-            public void onGroupCollapse(int groupPosition) {
-                Toast.makeText(getApplicationContext(),
-                        expandableListTitle.get(groupPosition) + " List Collapsed.",
-                        Toast.LENGTH_SHORT).show();
-
-            }
-        });
-
-        expandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-            @Override
-            public boolean onChildClick(ExpandableListView parent, View v,
-                                        int groupPosition, int childPosition, long id) {
-                Toast.makeText(
-                        getApplicationContext(),
-                        expandableListTitle.get(groupPosition)
-                                + " -> "
-                                + expandableListDetail.get(
-                                expandableListTitle.get(groupPosition)).get(
-                                childPosition), Toast.LENGTH_SHORT
-                ).show();
-                return false;
-            }
-        });*/
 
     }
 
@@ -557,9 +814,6 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == android.R.id.home) {
-            //Intent intent = new Intent(this, CategoryActivity.class);
-            //startActivity(intent);
-            //overridePendingTransition(R.anim.enter_from_left, R.anim.exit_on_right);
             this.finish();
         }
         return super.onOptionsItemSelected(menuItem);
@@ -567,25 +821,15 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        // Add a marker in Sydney, Australia,
-        // and move the map's camera to the same location.
         LatLng schoolLocation = new LatLng(model.getLatitude(), model.getLongitude());
         googleMap.addMarker(new MarkerOptions().position(schoolLocation)
                 .title(model.getName()));
-        //googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        //googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(schoolLocation));
         CameraPosition cameraPosition = new CameraPosition.Builder().target(schoolLocation).zoom(14.0f).build();
         CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
         googleMap.moveCamera(cameraUpdate);
     }
 
-
-    /**
-     * Called when a view has been clicked.
-     *
-     * @param view The view that was clicked.
-     */
     @Override
     public void onClick(View view) {
         switch (view.getId()) {

@@ -146,7 +146,7 @@ public class DashboarfFragment extends Fragment {
                 if (reviews.size() > 0 & reviewRecyclerView != null) {
                     if ( adapter== null) {
                         //not_found.setVisibility(View.GONE);
-                        adapter = new FeedListViewRecyclerAdapter(getActivity(), reviews);
+                        adapter = new FeedListViewRecyclerAdapter(getActivity(), reviews,"feed");
                         reviewRecyclerView.setAdapter(adapter);
                         progress.setVisibility(View.GONE);
                     } else {
@@ -163,126 +163,6 @@ public class DashboarfFragment extends Fragment {
 
             }
         });
-
-
-
-        /*FirebaseRecyclerAdapter<Review,ReviewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Review, ReviewHolder>(
-                Review.class,
-                R.layout.feed_list_entry,
-                ReviewHolder.class,
-                mDatabaseReference.orderByChild(query2).equalTo(query1)
-        ) {
-            @Override
-            protected void populateViewHolder(final ReviewHolder viewHolder, final Review model, final int position) {
-                final String reviewKey = getRef(position).getKey();
-                if (model!=null){
-                    viewHolder.setHeader(reviewKey, getActivity(), model);
-                }
-
-                viewHolder.setReviewText(model);
-
-                if (model.getTime()!=null){
-                    viewHolder.setTime(model.getTime());
-                }
-
-                viewHolder.setImages(model,getActivity());
-
-                if (model.getUserID()!=null){
-                    viewHolder.setUSerLayout(getActivity().getApplicationContext(),model.getUserID());
-                    viewHolder.setFollow(model.getUserID());
-                }
-                viewHolder.setRatingLayout(model.getRating());
-                viewHolder.setLikeButton(reviewKey,getActivity());
-                viewHolder.setLikeCommentLayout(reviewKey);
-
-                viewHolder.like.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mLikeReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                if (dataSnapshot.child(reviewKey).hasChild(uid)){
-                                    mLikeReference.child(reviewKey).child(uid).removeValue();
-                                    viewHolder.like.setTextColor(ContextCompat.getColor(getActivity(), R.color.colorSecondaryText));
-                                    viewHolder.like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up,0,0,0);
-                                }else {
-                                    mLikeReference.child(reviewKey).child(uid).setValue(user.getName());
-                                    viewHolder.like.setTextColor(ContextCompat.getColor(getActivity(), R.color.colorPrimary));
-                                    viewHolder.like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary,0,0,0);
-
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-                    }
-                });
-
-                viewHolder.follow.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mFollowingReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                if (dataSnapshot.child(uid).hasChild(model.getUserID())){
-                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                                    alertDialogBuilder.setMessage("Do you want to unfollow ?");
-                                    alertDialogBuilder.setPositiveButton("Yes",
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface arg0, int arg1) {
-                                                    mFollowingReference.child(uid).child(model.getUserID()).removeValue();
-                                                    mFollowerReference.child(model.getUserID()).child(uid).removeValue();
-                                                    viewHolder.follow.setImageResource(R.drawable.ic_person_add);
-                                                }
-                                            });
-
-                                    alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                        }
-                                    });
-
-                                    AlertDialog alertDialog = alertDialogBuilder.create();
-                                    alertDialogBuilder.show();
-                                }else {
-
-                                    mUserReference.child(model.getUserID()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            User reviewUser = dataSnapshot.getValue(User.class);
-                                            mFollowingReference.child(uid).child(model.getUserID()).setValue(reviewUser.getName());
-                                            mFollowerReference.child(model.getUserID()).child(uid).setValue(user.getName());
-                                            viewHolder.follow.setImageResource(R.drawable.ic_person_black_24dp);
-                                        }
-
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {
-
-                                        }
-                                    });
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-                    }
-                });
-
-
-            }
-        };
-
-        reviewRecyclerView.setAdapter(firebaseRecyclerAdapter);*/
 
         return view;
 
@@ -516,7 +396,7 @@ public class DashboarfFragment extends Fragment {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(activity,DetailedObjectActivity.class);
-                                    intent.putExtra("SchoolDetail",model);
+                                    intent.putExtra("SchoolDetail",model.getId());
                                     activity.startActivity(intent);
                                 }
                             });
@@ -642,3 +522,132 @@ public class DashboarfFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/*FirebaseRecyclerAdapter<Review,ReviewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Review, ReviewHolder>(
+                Review.class,
+                R.layout.feed_list_entry,
+                ReviewHolder.class,
+                mDatabaseReference.orderByChild(query2).equalTo(query1)
+        ) {
+            @Override
+            protected void populateViewHolder(final ReviewHolder viewHolder, final Review model, final int position) {
+                final String reviewKey = getRef(position).getKey();
+                if (model!=null){
+                    viewHolder.setHeader(reviewKey, getActivity(), model);
+                }
+
+                viewHolder.setReviewText(model);
+
+                if (model.getTime()!=null){
+                    viewHolder.setTime(model.getTime());
+                }
+
+                viewHolder.setImages(model,getActivity());
+
+                if (model.getUserID()!=null){
+                    viewHolder.setUSerLayout(getActivity().getApplicationContext(),model.getUserID());
+                    viewHolder.setFollow(model.getUserID());
+                }
+                viewHolder.setRatingLayout(model.getRating());
+                viewHolder.setLikeButton(reviewKey,getActivity());
+                viewHolder.setLikeCommentLayout(reviewKey);
+
+                viewHolder.like.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mLikeReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                if (dataSnapshot.child(reviewKey).hasChild(uid)){
+                                    mLikeReference.child(reviewKey).child(uid).removeValue();
+                                    viewHolder.like.setTextColor(ContextCompat.getColor(getActivity(), R.color.colorSecondaryText));
+                                    viewHolder.like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up,0,0,0);
+                                }else {
+                                    mLikeReference.child(reviewKey).child(uid).setValue(user.getName());
+                                    viewHolder.like.setTextColor(ContextCompat.getColor(getActivity(), R.color.colorPrimary));
+                                    viewHolder.like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary,0,0,0);
+
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                });
+
+                viewHolder.follow.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mFollowingReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                if (dataSnapshot.child(uid).hasChild(model.getUserID())){
+                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                                    alertDialogBuilder.setMessage("Do you want to unfollow ?");
+                                    alertDialogBuilder.setPositiveButton("Yes",
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface arg0, int arg1) {
+                                                    mFollowingReference.child(uid).child(model.getUserID()).removeValue();
+                                                    mFollowerReference.child(model.getUserID()).child(uid).removeValue();
+                                                    viewHolder.follow.setImageResource(R.drawable.ic_person_add);
+                                                }
+                                            });
+
+                                    alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    });
+
+                                    AlertDialog alertDialog = alertDialogBuilder.create();
+                                    alertDialogBuilder.show();
+                                }else {
+
+                                    mUserReference.child(model.getUserID()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            User reviewUser = dataSnapshot.getValue(User.class);
+                                            mFollowingReference.child(uid).child(model.getUserID()).setValue(reviewUser.getName());
+                                            mFollowerReference.child(model.getUserID()).child(uid).setValue(user.getName());
+                                            viewHolder.follow.setImageResource(R.drawable.ic_person_black_24dp);
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+
+                                        }
+                                    });
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                });
+
+
+            }
+        };
+
+        reviewRecyclerView.setAdapter(firebaseRecyclerAdapter);*/

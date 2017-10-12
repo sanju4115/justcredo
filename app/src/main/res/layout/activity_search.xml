@@ -18,31 +18,36 @@
             android:background="@color/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Currently Searching Near By"
-                    android:textSize="13sp"
-                    android:textColor="@color/colorIcons"
-                    />
-                <TextView
-                    android:layout_height="wrap_content"
-                    android:text="Current Location"
-                    android:textColor="@color/colorIcons"
-                    android:layout_width="140dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:gravity="center"
-                    android:id="@+id/current_location"
-                    android:drawableRight="@android:drawable/arrow_down_float"
-                    />
-            </LinearLayout>
+                    android:orientation="vertical">
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Currently Searching Near By"
+                        android:textSize="13sp"
+                        android:textColor="@color/colorIcons"
+                        />
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:text="Current Location"
+                        android:textColor="@color/colorIcons"
+                        android:layout_width="140dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:gravity="center"
+                        android:id="@+id/current_location"
+                        android:drawableRight="@android:drawable/arrow_down_float"
+                        />
+                </LinearLayout>
+
+            </RelativeLayout>
 
             </android.support.v7.widget.Toolbar>
 

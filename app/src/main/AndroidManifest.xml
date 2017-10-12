@@ -88,7 +88,8 @@
 
         <activity
             android:name=".SearchActivity"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".FilterActivity"
             android:theme="@style/AppTheme" />
@@ -122,7 +123,12 @@
         <activity
             android:name=".CategoryWiseActivity"
             android:label="@string/title_activity_category_wise"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".school.SchoolDetailActivity"
+            android:label="@string/title_activity_school_detail"
+            android:theme="@style/AppTheme" />
+        <activity android:name=".profile.UserActivity"></activity>
     </application>
 
 </manifest>

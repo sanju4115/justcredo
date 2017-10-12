@@ -16,22 +16,25 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.android.volley.Cache;
 import com.credolabs.justcredo.autocomplete.PickLocationActivity;
+import com.credolabs.justcredo.profile.ProfileBookmarksFragment;
+import com.credolabs.justcredo.profile.ProfileFollowerFragment;
+import com.credolabs.justcredo.profile.ProfileFollowingFragment;
+import com.credolabs.justcredo.profile.ProfileHomeFragment;
+import com.credolabs.justcredo.profile.ProfilePlaceFragment;
+import com.credolabs.justcredo.profile.ProfileReviewFragment;
 import com.credolabs.justcredo.utility.Constants;
-import com.credolabs.justcredo.utility.CustomToast;
-import com.firebase.client.Firebase;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Calendar;
 
-public class HomeActivity extends AppCompatActivity implements DashboarfFragment.OnFragmentInteractionListener,CategoryFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener, CategoryGridFragment.OnFragmentInteractionListener {
+public class HomeActivity extends AppCompatActivity implements DashboarfFragment.OnFragmentInteractionListener,CategoryFragment.OnFragmentInteractionListener,
+        ProfileFragment.OnFragmentInteractionListener, CategoryGridFragment.OnFragmentInteractionListener,
+        ProfileHomeFragment.OnFragmentInteractionListener,ProfileBookmarksFragment.OnFragmentInteractionListener,
+        ProfileReviewFragment.OnFragmentInteractionListener,ProfileFollowerFragment.OnFragmentInteractionListener,
+        ProfileFollowingFragment.OnFragmentInteractionListener, ProfilePlaceFragment.OnFragmentInteractionListener{
 
     private Fragment fragment;
     private FragmentManager fragmentManager;
@@ -88,8 +91,13 @@ public class HomeActivity extends AppCompatActivity implements DashboarfFragment
 
         sharedPreferences = getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
         if (sharedPreferences.contains(Constants.MAIN_TEXT)) {
-            String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
-            locationOutput.setText(location);
+            if (sharedPreferences.getString(Constants.MAIN_TEXT,"") != ""){
+                String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+                locationOutput.setText(location);
+            }else if(sharedPreferences.getString(Constants.SECONDARY_TEXT,"") != ""){
+                String location = sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+                locationOutput.setText(location);
+            }
         }
 
 
@@ -114,9 +122,15 @@ public class HomeActivity extends AppCompatActivity implements DashboarfFragment
         super.onResume();
         Log.i("Log", "On Resume Method");
         sharedPreferences = getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
-        String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
-        locationOutput.setText(location);
-
+        if (sharedPreferences.contains(Constants.MAIN_TEXT)) {
+            if (sharedPreferences.getString(Constants.MAIN_TEXT,"") != ""){
+                String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+                locationOutput.setText(location);
+            }else if(sharedPreferences.getString(Constants.SECONDARY_TEXT,"") != ""){
+                String location = sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+                locationOutput.setText(location);
+            }
+        }
     }
 
     @Override

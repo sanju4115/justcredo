@@ -4,10 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -26,18 +23,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.NetworkImageView;
 import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.model.Comment;
 import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.model.ZoomObject;
-import com.credolabs.justcredo.utility.CircularNetworkImageView;
 import com.credolabs.justcredo.utility.CustomRatingBar;
-import com.credolabs.justcredo.utility.CustomToast;
+import com.credolabs.justcredo.school.SchoolDetailActivity;
 import com.credolabs.justcredo.utility.Util;
-import com.firebase.ui.database.ChangeEventListener;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -123,8 +117,8 @@ public class ReviewDetailsActivity extends AppCompatActivity {
                         header.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent intent = new Intent(ReviewDetailsActivity.this,DetailedObjectActivity.class);
-                                intent.putExtra("SchoolDetail",model);
+                                Intent intent = new Intent(ReviewDetailsActivity.this,SchoolDetailActivity.class);
+                                intent.putExtra("SchoolDetail",model.getId());
                                 ReviewDetailsActivity.this.startActivity(intent);
                             }
                         });
@@ -508,8 +502,8 @@ public class ReviewDetailsActivity extends AppCompatActivity {
                     if (user[0].getProfilePic()!=null){
                         zoomObject.setLogo(user[0].getProfilePic());
                     }
-                    if (user[0].getLocation()!=null){
-                        zoomObject.setAddress(user[0].getLocation());
+                    if (user[0].getAddress()!=null){
+                        zoomObject.setAddress(Util.getAddress(user[0].getAddress()));
                     }
                     Util.loadCircularImageWithGlide(applicationContext,user[0].getProfilePic(),user_image);
                     TextView user_name = (TextView) findViewById(R.id.user_name);

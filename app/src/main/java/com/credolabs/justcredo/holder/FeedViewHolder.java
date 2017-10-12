@@ -3,7 +3,6 @@ package com.credolabs.justcredo.holder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatImageView;
@@ -12,16 +11,17 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.ReviewDetailsActivity;
 import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.utility.CustomRatingBar;
+import com.credolabs.justcredo.school.SchoolDetailActivity;
 import com.credolabs.justcredo.utility.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -47,6 +47,7 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
     AppCompatImageView follow;
     String uid;
     CardView comment_section;
+    RelativeLayout complete_profile_layout;
 
     public FeedViewHolder(View itemView) {
         super(itemView);
@@ -65,6 +66,7 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
         mAuth = FirebaseAuth.getInstance();
         uid = mAuth.getCurrentUser().getUid();
         comment_section = (CardView) mView.findViewById(R.id.comment_section);
+        complete_profile_layout = (RelativeLayout) mView.findViewById(R.id.complete_profile_layout);
     }
 
     public void setFollow(final String reviewUser){
@@ -262,8 +264,8 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
                         header.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent intent = new Intent(activity,DetailedObjectActivity.class);
-                                intent.putExtra("SchoolDetail",model);
+                                Intent intent = new Intent(activity,SchoolDetailActivity.class);
+                                intent.putExtra("SchoolDetail",model.getId());
                                 activity.startActivity(intent);
                             }
                         });

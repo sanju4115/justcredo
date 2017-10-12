@@ -7,19 +7,37 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.credolabs.justcredo.adapters.CategoryAdapter;
+import com.credolabs.justcredo.adapters.SearchAdapter;
 import com.credolabs.justcredo.autocomplete.PickLocationActivity;
+import com.credolabs.justcredo.model.CategoryModel;
+import com.credolabs.justcredo.model.ObjectModel;
+import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.Tag;
 import com.credolabs.justcredo.utility.Constants;
+import com.credolabs.justcredo.utility.Filtering;
+import com.credolabs.justcredo.utility.Util;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.yalantis.filter.adapter.FilterAdapter;
 import com.yalantis.filter.listener.FilterListener;
 import com.yalantis.filter.widget.Filter;
@@ -28,6 +46,7 @@ import com.yalantis.filter.widget.FilterItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class SearchActivity extends AppCompatActivity implements FilterListener<Tag> {
@@ -37,6 +56,7 @@ public class SearchActivity extends AppCompatActivity implements FilterListener<
     private int[] mColors;
     private String[] mTitles;
     private Filter<Tag> mFilter;
+    private ProgressBar progressBar;
 
 
     @Override
@@ -52,8 +72,13 @@ public class SearchActivity extends AppCompatActivity implements FilterListener<
         currentLocation = (TextView) findViewById(R.id.current_location);
         sharedPreferences = getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
         if (sharedPreferences.contains(Constants.MAIN_TEXT)) {
-            String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
-            currentLocation.setText(location);
+            if (sharedPreferences.getString(Constants.MAIN_TEXT,"") != ""){
+                String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+                currentLocation.setText(location);
+            }else if(sharedPreferences.getString(Constants.SECONDARY_TEXT,"") != ""){
+                String location = sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+                currentLocation.setText(location);
+            }
         }
 
         currentLocation.setOnClickListener(new View.OnClickListener() {
@@ -95,9 +120,78 @@ public class SearchActivity extends AppCompatActivity implements FilterListener<
         //the text to show when there's no selected items
         mFilter.setNoSelectedItemText(getString(R.string.str_all_selected));
         mFilter.build();
+        progressBar = (ProgressBar)findViewById(R.id.progress);
 
+        address = (EditText) findViewById(R.id.adressText);
+        final HashMap<String,String> addressHashMap = Util.getCurrentUSerAddress(this);
+        String addressCity="";
+        if (addressHashMap.get("addressCity")!=null){
+            if (addressHashMap.get("addressCity").trim().equalsIgnoreCase("Gurgaon")){
+                addressCity = "Gurugram";
+            }else{
+                addressCity = addressHashMap.get("addressCity").trim();
+            }
+        }
 
+        final RecyclerView searched_items = (RecyclerView) findViewById(R.id.searched_items);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
+        DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(searched_items.getContext(),
+                mLayoutManager.getOrientation());
+        searched_items.addItemDecoration(mDividerItemDecoration);
+        searched_items.setHasFixedSize(true);
+        searched_items.setLayoutManager(mLayoutManager);
+        final ArrayList<ObjectModel> modelArrayList = new ArrayList<>();
+        final SearchAdapter categoryAdapter = new SearchAdapter(getApplicationContext(), modelArrayList,"search");
+        searched_items.setAdapter(categoryAdapter);
+        progressBar.setVisibility(View.VISIBLE);
+        DatabaseReference schoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
+        schoolReference.orderByChild("address/addressCity").equalTo(addressCity).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                modelArrayList.clear();
+                for (DataSnapshot category: dataSnapshot.getChildren()) {
+                    School cat = category.getValue(School.class);
+                    modelArrayList.add(cat);
+                }
 
+                categoryAdapter.notifyDataSetChanged();
+                progressBar.setVisibility(View.GONE);
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        address.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (address.getText().length() == 0){
+                    searched_items.setAdapter(categoryAdapter);
+                    categoryAdapter.notifyDataSetChanged();
+                }
+                // optimised way is to start searching for laction after user has typed minimum 3 chars
+                if (address.getText().length() > 1) {
+                    ArrayList<ObjectModel> filteredModelArrayList = Filtering.filterByName(modelArrayList,address.getText().toString());
+                    SearchAdapter categoryAdapter = new SearchAdapter(getApplicationContext(), filteredModelArrayList,"search");
+                    searched_items.setAdapter(categoryAdapter);
+                    categoryAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+
+        });
 
 
 
@@ -121,9 +215,57 @@ public class SearchActivity extends AppCompatActivity implements FilterListener<
         super.onResume();
         sharedPreferences = getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
         if (sharedPreferences.contains(Constants.MAIN_TEXT)) {
-            String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
-            currentLocation.setText(location);
+            if (sharedPreferences.getString(Constants.MAIN_TEXT,"") != ""){
+                String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+                currentLocation.setText(location);
+            }else if(sharedPreferences.getString(Constants.SECONDARY_TEXT,"") != ""){
+                String location = sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
+                currentLocation.setText(location);
+            }
         }
+
+        final HashMap<String,String> addressHashMap = Util.getCurrentUSerAddress(this);
+        String addressCity="";
+        if (addressHashMap.get("addressCity")!=null){
+            if (addressHashMap.get("addressCity").trim().equalsIgnoreCase("Gurgaon")){
+                addressCity = "Gurugram";
+            }else{
+                addressCity = addressHashMap.get("addressCity").trim();
+            }
+        }
+
+        final RecyclerView searched_items = (RecyclerView) findViewById(R.id.searched_items);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
+        searched_items.setHasFixedSize(true);
+        DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(searched_items.getContext(),
+                mLayoutManager.getOrientation());
+        searched_items.addItemDecoration(mDividerItemDecoration);
+        searched_items.setLayoutManager(mLayoutManager);
+        final ArrayList<ObjectModel> modelArrayList = new ArrayList<>();
+        //final ArrayList<ObjectModel> filteredModelArrayList = new ArrayList<>();
+        final SearchAdapter categoryAdapter = new SearchAdapter(getApplicationContext(), modelArrayList,"search");
+        searched_items.setAdapter(categoryAdapter);
+        progressBar.setVisibility(View.VISIBLE);
+        DatabaseReference schoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
+        schoolReference.orderByChild("address/addressCity").equalTo(addressCity).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                modelArrayList.clear();
+                for (DataSnapshot category: dataSnapshot.getChildren()) {
+                    School cat = category.getValue(School.class);
+                    modelArrayList.add(cat);
+                }
+
+                categoryAdapter.notifyDataSetChanged();
+                progressBar.setVisibility(View.GONE);
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 

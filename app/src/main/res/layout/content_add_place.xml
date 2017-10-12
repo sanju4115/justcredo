@@ -40,7 +40,7 @@
                 android:hint="@string/place_name"
                 android:inputType="textPersonName"
                 android:nextFocusLeft="@id/EditTextName"
-                android:nextFocusUp="@id/EditTextName"></EditText>
+                android:nextFocusUp="@id/EditTextName"/>
 
             <EditText
                 android:id="@+id/EditTextEmail"

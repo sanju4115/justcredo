@@ -23,6 +23,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        multiDexEnabled true
 
         // We can define the variable here
         each { type ->
@@ -95,6 +96,7 @@ dependencies {
     compile 'com.firebaseui:firebase-ui:1.2.0'
     compile 'com.theartofdev.edmodo:android-image-cropper:2.4.+'
     compile 'com.github.aakira:expandable-layout:1.4.2@aar'
+    compile 'com.github.myinnos:AwesomeImagePicker:1.0.2'
     testCompile 'junit:junit:4.12'
 }
 
