@@ -45,9 +45,11 @@ public class TextViewAdapter extends BaseAdapter {
             TextView textView = (TextView) gridView
                     .findViewById(R.id.text);
             textView.setText(textViewValues.get(position));
-            ImageView icon = (ImageView) gridView.findViewById(R.id.icon);
+            //ImageView icon = (ImageView) gridView.findViewById(R.id.icon);
             if (parentCaller.equals(School.SPECIAL_FACILITIES)){
-                icon.setImageResource(R.drawable.ic_check);
+                //icon.setImageResource(R.drawable.ic_check);
+                textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_check,0,0,0);
+
             }
 
         } else {

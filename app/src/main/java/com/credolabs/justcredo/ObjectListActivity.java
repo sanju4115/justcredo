@@ -203,7 +203,7 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
                 item = menuItem;
                 break;
             case android.R.id.home:
-                if (frameContainer.getVisibility()==View.VISIBLE){
+                if (filterFragment !=null && frameContainer.getVisibility()==View.VISIBLE){
                     frameContainer.setVisibility(View.GONE);
                     list_layout.setVisibility(View.VISIBLE);
                     item.setVisible(true);

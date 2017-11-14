@@ -22,16 +22,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.credolabs.justcredo.AddPlaceActivity;
-import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.HorizontalListViewFragment;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.ReadReviewActivity;
@@ -45,7 +41,6 @@ import com.credolabs.justcredo.model.ZoomObject;
 import com.credolabs.justcredo.newplace.BoardsFragment;
 import com.credolabs.justcredo.newplace.PlaceTypes;
 import com.credolabs.justcredo.newplace.TypePlaceFragment;
-import com.credolabs.justcredo.sliderlayout.CirclePageIndicator;
 import com.credolabs.justcredo.sliderlayout.ImageSlideAdapter;
 import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.ExpandableHeightGridView;
@@ -57,9 +52,6 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
-import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
-import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -69,16 +61,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -288,18 +276,7 @@ public class SchoolHomeFragment extends Fragment {
             for (String value : model.getBoards().values()) {
                 final TextView htext =new TextView(getActivity());
                 htext.setText(value);
-                htext.getViewTreeObserver()
-                        .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                            @Override
-                            public void onGlobalLayout() {
-                                Drawable img = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_checked, null);
-                                if (img!=null) {
-                                    img.setBounds(0, 0, img.getIntrinsicWidth() * htext.getMeasuredHeight() / img.getIntrinsicHeight(), htext.getMeasuredHeight());
-                                }
-                                htext.setCompoundDrawables(img, null, null, null);
-                                htext.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                            }
-                        });
+                htext.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_checked_vector,0,0,0);
                 htext.setLayoutParams(new LinearLayoutCompat.LayoutParams(LinearLayoutCompat.LayoutParams.MATCH_PARENT , LinearLayoutCompat.LayoutParams.WRAP_CONTENT));
                 board_layout.addView(htext);
             }
