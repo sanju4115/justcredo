@@ -51,6 +51,10 @@ public class HorizontalViewHolder extends RecyclerView.ViewHolder implements Vie
 
     @Override
     public void onClick(View v) {
+        if (onClickListener != null) {
+            onClickListener.OnItemClick(v, getAdapterPosition());
+
+        }
 
     }
 

@@ -20,25 +20,31 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.bumptech.glide.Glide;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.Comment;
 import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.model.ZoomObject;
+import com.credolabs.justcredo.profile.UserActivity;
 import com.credolabs.justcredo.utility.CustomRatingBar;
 import com.credolabs.justcredo.school.SchoolDetailActivity;
+import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.Util;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 
@@ -58,8 +64,9 @@ public class ReviewDetailsActivity extends AppCompatActivity {
     private Intent myIntent ;
     private ZoomObject zoomObject = new ZoomObject();
     private Review review;
-
-
+    private User reviewUser;
+    private School school;
+    private FirebaseUser firebaseUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,18 +76,18 @@ public class ReviewDetailsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_action_close);
+        ConnectionUtil.checkConnection(findViewById(R.id.placeSnackBar));
+
         mProgressDialog = new ProgressDialog(this);
         myIntent = new Intent(this, FullZoomImageViewActivity.class);
 
         review = (Review) getIntent().getSerializableExtra("review");
-        //schoolName = getIntent().getStringExtra("school_name");
-        //schoolName = model.getName();
-        //id = getIntent().getStringExtra("school_id");
-        //id = model.getId();
-        //schoolAddress = Util.getAddress(model.getAddress());
-        //schoolAddress = getIntent().getStringExtra("school_address");
-        //schoolCoverImage = getIntent().getStringExtra("school_cover");
-        reviewKey = getIntent().getStringExtra("review_key");
+        //reviewKey = getIntent().getStringExtra("review_key");
+        reviewKey = review.getId();
+        if (review.getReview_type()!=null && review.getReview_type().equals("blogs")){
+            TextView name_review = (TextView) findViewById(R.id.name_review);
+            name_review.setText("Blog Details");
+        }
 
         final TextView remove_review = (TextView) findViewById(R.id.remove_review);
         reviewRecyclerView = (RecyclerView) findViewById(R.id.comments);
@@ -97,28 +104,29 @@ public class ReviewDetailsActivity extends AppCompatActivity {
         //school_address.setText(schoolAddress);
         final ImageView school_image = (ImageView) findViewById(R.id.school_image);
         final CardView header = (CardView)findViewById(R.id.header);
-
         //Util.loadImageWithGlide(Glide.with(getApplicationContext()),schoolCoverImage,school_image);
-
         final DatabaseReference mObjectReference = FirebaseDatabase.getInstance().getReference().child(review.getType()).child(review.getSchoolID());
         mObjectReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 try {
                     if (review.getType().equals("schools")){
-                        final School model = (School) dataSnapshot.getValue(Class.forName("com.credolabs.justcredo.model.School"));
-                        school_name.setText(model.getName());
-                        school_address.setText(Util.getAddress(model.getAddress()));
-                        Util.loadImageWithGlide(Glide.with(ReviewDetailsActivity.this),Util.getFirstImage(model.getImages()),school_image);
-                        setBookmark(model.getId());
-                        schoolName = model.getName();
-                        id = model.getId();
-                        schoolAddress = Util.getAddress(model.getAddress());
+                        school = (School) dataSnapshot.getValue(Class.forName("com.credolabs.justcredo.model.School"));
+                        school_name.setText(school.getName());
+                        zoomObject.setLogo(Util.getFirstImage(school.getImages()));
+                        zoomObject.setName(school.getName());
+                        zoomObject.setAddress(Util.getAddress(school.getAddress()));
+                        school_address.setText(Util.getAddress(school.getAddress()));
+                        Util.loadImageWithGlide(Glide.with(ReviewDetailsActivity.this),Util.getFirstImage(school.getImages()),school_image);
+                        setBookmark(school.getId());
+                        schoolName = school.getName();
+                        id = school.getId();
+                        schoolAddress = Util.getAddress(school.getAddress());
                         header.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 Intent intent = new Intent(ReviewDetailsActivity.this,SchoolDetailActivity.class);
-                                intent.putExtra("SchoolDetail",model.getId());
+                                intent.putExtra("SchoolDetail",school.getId());
                                 ReviewDetailsActivity.this.startActivity(intent);
                             }
                         });
@@ -143,9 +151,17 @@ public class ReviewDetailsActivity extends AppCompatActivity {
         final TextView like_count = (TextView) findViewById(R.id.like_count);
         final TextView comment_count = (TextView) findViewById(R.id.comment_count);
 
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("reviews");
-        mLikeReference = FirebaseDatabase.getInstance().getReference().child("likes");
-        mCommentReference = FirebaseDatabase.getInstance().getReference().child("comments").child(reviewKey);
+        // in case blogs
+        if (review.getReview_type()!=null && review.getReview_type().equals("blogs")){
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("blogs/school_blogs");
+            mLikeReference = FirebaseDatabase.getInstance().getReference().child("blogs/likes");
+            mCommentReference = FirebaseDatabase.getInstance().getReference().child("blogs/comments").child(reviewKey);
+        }else { //for reviews
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("reviews");
+            mLikeReference = FirebaseDatabase.getInstance().getReference().child("likes");
+            mCommentReference = FirebaseDatabase.getInstance().getReference().child("comments").child(reviewKey);
+        }
+
         mFollowerReference = FirebaseDatabase.getInstance().getReference().child("follower");
         mFollowingReference = FirebaseDatabase.getInstance().getReference().child("following");
         mUserReference = FirebaseDatabase.getInstance().getReference().child("users");
@@ -158,10 +174,23 @@ public class ReviewDetailsActivity extends AppCompatActivity {
         mBookmarkReference.keepSynced(true);
 
         mAuth = FirebaseAuth.getInstance();
-        uid = mAuth.getCurrentUser().getUid();
+        firebaseUser = mAuth.getCurrentUser();
+        uid = firebaseUser.getUid();
         mLikeReference.keepSynced(true);
         mDatabaseReference.keepSynced(true);
         mCommentReference.keepSynced(true);
+
+
+        //reading for blogs
+        final RelativeLayout complete_profile_layout= (RelativeLayout)findViewById(R.id.complete_profile_layout);
+        if (review.getReview_type()!=null && review.getReview_type().equals("blogs")){
+            complete_profile_layout.setVisibility(View.GONE);
+            TextView blog_heading_txt = (TextView) findViewById(R.id.blog_heading_txt);
+            blog_heading_txt.setVisibility(View.VISIBLE);
+            blog_heading_txt.setText(review.getHeading());
+        }
+
+
 
         remove_review.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -245,65 +274,47 @@ public class ReviewDetailsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final Review model = dataSnapshot.getValue(Review.class);
-                setReviewText(model.getReview());
+                if (model.getReview()!=null){
+                    setReviewText(model.getReview());
+                }else if (model.getDetail()!=null){
+                    setReviewText(model.getDetail());
+                }
                 setTime(model.getTime());
-                if (model.getImages()!= null && model.getImages().values()!=null) {
+                if (model.getImages()!= null ) {
                     zoomObject.setImages(new ArrayList<String>(model.getImages().values()));
                     setImages(new ArrayList<String>(model.getImages().values()));
-                }
-                if (model.getUserID()!=null){
-                    setUSerLayout(getApplicationContext(),model.getUserID());
                 }
 
                 if (model.getUserID()!=null && model.getUserID().equals(uid)){
                     remove_review.setVisibility(View.VISIBLE);
                 }
 
-                setRatingLayout(model.getRating());
-                setFollow(model.getUserID());
-                setBookmark(model.getSchoolID());
+                if (!uid.equals(model.getUserID())){
+                    complete_profile_layout.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(ReviewDetailsActivity.this,UserActivity.class);
+                            intent.putExtra("uid",model.getUserID());
+                            startActivity(intent);
+                        }
+                    });
+                }
+
+                if (review.getReview_type()!=null && review.getReview_type().equals("blogs")) {
+                }else {
+                    setRatingLayout(model.getRating());
+                    setFollow(model.getUserID());
+                    if (model.getUserID()!=null){
+                        setUSerLayout(getApplicationContext(),model.getUserID());
+                    }
+                }
+                //setBookmark(model.getSchoolID());
                 setLikeButton(reviewKey,ReviewDetailsActivity.this);
 
                 bookmark.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mBookmarkReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                if (dataSnapshot.child(uid).hasChild(model.getSchoolID())){
-                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ReviewDetailsActivity.this);
-                                    alertDialogBuilder.setMessage("Do you want to remove bookmark ?");
-                                    alertDialogBuilder.setPositiveButton("Yes",
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface arg0, int arg1) {
-                                                    mBookmarkReference.child(uid).child(model.getSchoolID()).removeValue();
-                                                    bookmark.setImageResource(R.drawable.ic_bookmark_secondary);
-                                                }
-                                            });
-
-                                    alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                        }
-                                    });
-
-                                    AlertDialog alertDialog = alertDialogBuilder.create();
-                                    alertDialogBuilder.show();
-                                }else {
-                                    mBookmarkReference.child(uid).child(model.getSchoolID()).setValue(schoolName);
-                                    bookmark.setImageResource(R.drawable.ic_bookmark_green_24dp);
-
-                                }
-
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
+                        School.onBookmark(school,firebaseUser,ReviewDetailsActivity.this,bookmark);
                     }
                 });
 
@@ -324,6 +335,7 @@ public class ReviewDetailsActivity extends AppCompatActivity {
                                                     mFollowingReference.child(uid).child(model.getUserID()).removeValue();
                                                     mFollowerReference.child(model.getUserID()).child(uid).removeValue();
                                                     follow.setImageResource(R.drawable.ic_person_add);
+                                                    FirebaseMessaging.getInstance().unsubscribeFromTopic(model.getUserID());
                                                 }
                                             });
 
@@ -345,6 +357,8 @@ public class ReviewDetailsActivity extends AppCompatActivity {
                                             mFollowingReference.child(uid).child(model.getUserID()).setValue(reviewUser.getName());
                                             mFollowerReference.child(model.getUserID()).child(uid).setValue(user.getName());
                                             follow.setImageResource(R.drawable.ic_person_black_24dp);
+                                            FirebaseMessaging.getInstance().subscribeToTopic(reviewUser.getUid());
+                                            User.prepareNotificationFollow(reviewUser,user);
                                         }
 
                                         @Override
@@ -378,6 +392,7 @@ public class ReviewDetailsActivity extends AppCompatActivity {
                                     mLikeReference.child(reviewKey).child(uid).setValue(user.getName());
                                     like.setTextColor(ContextCompat.getColor(ReviewDetailsActivity.this, R.color.colorPrimary));
                                     like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary,0,0,0);
+                                    Review.prepareNotificationLike(model,user);
 
                                 }
                             }
@@ -399,22 +414,30 @@ public class ReviewDetailsActivity extends AppCompatActivity {
 
 
         Button post_comment = (Button) findViewById(R.id.post_comment);
-        post_comment.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mProgressDialog.setMessage("Posting Comment");
-                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                mProgressDialog.setIndeterminate(true);
-                mProgressDialog.setCancelable(false);
-                mProgressDialog.show();
-                String commentText = comment_text.getText().toString().trim();
-                DatabaseReference newComment = mCommentReference.push();
-                newComment.child("comment").setValue(commentText);
-                newComment.child("uid").setValue(uid);
-                comment_text.setText(" ");
-                mProgressDialog.dismiss();
-            }
-        });
+            post_comment.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!comment_text.getText().toString().trim().equals("")) {
+                        mProgressDialog.setMessage("Posting Comment");
+                        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                        mProgressDialog.setIndeterminate(true);
+                        mProgressDialog.setCancelable(false);
+                        mProgressDialog.show();
+                        String commentText = comment_text.getText().toString().trim();
+                        DatabaseReference newComment = mCommentReference.push();
+                        newComment.child("comment").setValue(commentText);
+                        newComment.child("uid").setValue(uid);
+                        comment_text.setText(" ");
+                        FirebaseMessaging.getInstance().subscribeToTopic(reviewKey);
+                        Review.prepareNotificationComment(review, user, reviewUser, commentText);
+                        mProgressDialog.dismiss();
+                    }else {
+                     new CustomToast().Show_Toast(ReviewDetailsActivity.this,
+                            "Please write something to comment!");
+                    }
+
+                }
+            });
 
         TextView comment = (TextView) findViewById(R.id.comment);
         comment.setOnClickListener(new View.OnClickListener() {
@@ -451,21 +474,23 @@ public class ReviewDetailsActivity extends AppCompatActivity {
             follow.setVisibility(View.GONE);
         }else {
             follow.setVisibility(View.VISIBLE);
-            mFollowingReference.child(mAuth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.hasChild(reviewUser)){
-                        follow.setImageResource(R.drawable.ic_person_black_24dp);
-                    }else{
-                        follow.setImageResource(R.drawable.ic_person_add);
+            if (mAuth.getCurrentUser()!=null) {
+                mFollowingReference.child(mAuth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.hasChild(reviewUser)) {
+                            follow.setImageResource(R.drawable.ic_person_black_24dp);
+                        } else {
+                            follow.setImageResource(R.drawable.ic_person_add);
+                        }
                     }
-                }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
-                }
-            });
+                    }
+                });
+            }
         }
     }
 
@@ -473,9 +498,11 @@ public class ReviewDetailsActivity extends AppCompatActivity {
         mLikeReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.child(reviewKey).hasChild(mAuth.getCurrentUser().getUid())){
-                    like.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
-                    like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary,0,0,0);
+                if (mAuth.getCurrentUser()!=null) {
+                    if (dataSnapshot.child(reviewKey).hasChild(mAuth.getCurrentUser().getUid())) {
+                        like.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
+                        like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary, 0, 0, 0);
+                    }
                 }
             }
 
@@ -488,26 +515,29 @@ public class ReviewDetailsActivity extends AppCompatActivity {
     }
 
     public void setUSerLayout(final Context applicationContext, String UID){
-        final User[] user = new User[1];
+        //final User[] user = new User[1];
         DatabaseReference mReferenceUser  = FirebaseDatabase.getInstance().getReference().child("users").child(UID);
         mReferenceUser.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                user[0] = dataSnapshot.getValue(User.class);
-                if (user[0] !=null) {
+                reviewUser = dataSnapshot.getValue(User.class);
+                if (reviewUser !=null) {
                     ImageView user_image = (ImageView) findViewById(R.id.user_image);
-                    if (user[0].getName()!=null){
-                        zoomObject.setName(user[0].getName());
+                    if (reviewUser.getName()!=null){
+                        zoomObject.setName(reviewUser.getName());
                     }
-                    if (user[0].getProfilePic()!=null){
-                        zoomObject.setLogo(user[0].getProfilePic());
+                    if (reviewUser.getProfilePic()!=null){
+                        zoomObject.setLogo(reviewUser.getProfilePic());
                     }
-                    if (user[0].getAddress()!=null){
-                        zoomObject.setAddress(Util.getAddress(user[0].getAddress()));
+                    if (reviewUser.getAddress()!=null){
+                        zoomObject.setAddress(Util.getAddress(reviewUser.getAddress()));
                     }
-                    Util.loadCircularImageWithGlide(applicationContext,user[0].getProfilePic(),user_image);
+                    Util.loadCircularImageWithGlide(applicationContext,reviewUser.getProfilePic(),user_image);
                     TextView user_name = (TextView) findViewById(R.id.user_name);
-                    user_name.setText(user[0].getName());
+                    user_name.setText(reviewUser.getName());
+                    final TextView user_followers = (TextView) findViewById(R.id.user_followers);
+                    final TextView user_following = (TextView) findViewById(R.id.user_following);
+                    reviewUser.buildUser( user_followers,user_following,null);
                 }
             }
 
@@ -521,8 +551,10 @@ public class ReviewDetailsActivity extends AppCompatActivity {
 
     public void setRatingLayout(int rating){
         TextView user_rating = (TextView) findViewById(R.id.user_rating);
+        user_rating.setVisibility(View.VISIBLE);
         user_rating.setText(String.valueOf(rating));
         CustomRatingBar bar = (CustomRatingBar) findViewById(R.id.rating_bar);
+        bar.setVisibility(View.VISIBLE);
         bar.setScore(rating);
     }
 
@@ -666,4 +698,9 @@ public class ReviewDetailsActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(findViewById(R.id.placeSnackBar));
+    }
 }

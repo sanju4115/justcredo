@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginTop="10dp"
-    tools:context="com.credolabs.justcredo.utility.NearByFragment">
+    tools:context="com.credolabs.justcredo.NearByFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,14 +24,22 @@
             android:layout_marginStart="10dp"
             android:layout_height="wrap_content"
             android:textStyle="bold"
+            android:id="@+id/nearby_text"
             android:layout_marginBottom="10dp"
             android:text="Suggestions For Places Near By Your Location"/>
 
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:descendantFocusability="blocksDescendants">
+
         <android.support.v7.widget.RecyclerView
             android:id="@+id/searched_items"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content" />
+
+        </RelativeLayout>
 
     </LinearLayout>
 

@@ -5,9 +5,14 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.text.TextUtils;
@@ -15,23 +20,36 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.credolabs.justcredo.AddPlaceActivity;
 import com.credolabs.justcredo.DetailedObjectActivity;
+import com.credolabs.justcredo.HorizontalListViewFragment;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.ReadReviewActivity;
 import com.credolabs.justcredo.ReviewActivity;
+import com.credolabs.justcredo.adapters.TextViewAdapter;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
+import com.credolabs.justcredo.model.ZoomObject;
+import com.credolabs.justcredo.newplace.BoardsFragment;
+import com.credolabs.justcredo.newplace.PlaceTypes;
+import com.credolabs.justcredo.newplace.TypePlaceFragment;
+import com.credolabs.justcredo.sliderlayout.CirclePageIndicator;
+import com.credolabs.justcredo.sliderlayout.ImageSlideAdapter;
 import com.credolabs.justcredo.utility.CustomToast;
+import com.credolabs.justcredo.utility.ExpandableHeightGridView;
+import com.credolabs.justcredo.utility.NearByPlaces;
 import com.credolabs.justcredo.utility.Util;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -50,9 +68,16 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeMap;
 
 import static android.app.Activity.RESULT_CANCELED;
@@ -64,14 +89,10 @@ public class SchoolHomeFragment extends Fragment {
     private static final String ARG_PARAM2 = "param2";
     private School model;
     private String mParam2;
-    private LinearLayout addressLayout;
 
     private EditText editTextName, editTextEmail, editTextWebsite, descriptionText, addressLine1, addressLine2, addressCity, addressState, addressCountry, mobileNumber;
     private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
 
-    private RelativeLayout list_layout;
-    private RelativeLayout list_layout_description;
-    private RelativeLayout list_layout_review;
     private LinearLayout school_edit_home;
 
 
@@ -79,6 +100,11 @@ public class SchoolHomeFragment extends Fragment {
     private LatLng latLng;
     private Button save_school_home;
     private ProgressDialog mProgressDialog;
+    private LinearLayout bookmark;
+    private ImageView bookmarkImage;
+    private FirebaseUser user;
+    private LinearLayout fragment_container;
+    private Button edit_school_home,cancel_school_home;
 
     public SchoolHomeFragment() {
     }
@@ -99,24 +125,61 @@ public class SchoolHomeFragment extends Fragment {
             model = (School) getArguments().getSerializable(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+        Fragment top_rated = HorizontalListViewFragment.newInstance(PlaceTypes.PageTypes.DETAIL_PAGE.getValue(),model.getType(),model);
+        transaction.add(R.id.fragment_container, top_rated );
+        transaction.commit();
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_school_home, container, false);
-        TextView edit_button = (TextView) view.findViewById(R.id.edit_button);
-        list_layout = (RelativeLayout) view.findViewById(R.id.list_layout);
-        list_layout_description = (RelativeLayout) view.findViewById(R.id.list_layout_description);
-        list_layout_review = (RelativeLayout) view.findViewById(R.id.list_layout_review);
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+
+        final ViewPager mPager = (ViewPager) view.findViewById(R.id.view_pager);
+        final ArrayList<String> list = new ArrayList<String>(model.getImages().values());
+        String address = Util.getAddress(model.getAddress());
+        ZoomObject zoomObject = new ZoomObject();
+        zoomObject.setImages(list);
+        zoomObject.setName(model.getName());
+        zoomObject.setAddress(address);
+        zoomObject.setLogo(list.get(0));
+        mPager.setAdapter(new ImageSlideAdapter(getActivity(),list,zoomObject));
+        final int[] currentPage = {0};
+        // Auto start of viewpager
+        final Handler handler = new Handler();
+        final Runnable Update = new Runnable() {
+            public void run() {
+                if (currentPage[0] == list.size()) {
+                    currentPage[0] = 0;
+                }
+                mPager.setCurrentItem(currentPage[0]++, true);
+            }
+        };
+        Timer swipeTimer = new Timer();
+        swipeTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(Update);
+            }
+        }, 2500, 2500);
+
+        //TextView edit_button = (TextView) view.findViewById(R.id.edit_button);
+        fragment_container = (LinearLayout) view.findViewById(R.id.fragment_container);
         school_edit_home = (LinearLayout) view.findViewById(R.id.school_edit_home);
+        LinearLayout edit_school_home_section = (LinearLayout) view.findViewById(R.id.edit_school_home_section);
+        cancel_school_home = (Button) view.findViewById(R.id.cancel_school_home);
+        edit_school_home = (Button) view.findViewById(R.id.edit_school_home);
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser user = auth.getCurrentUser();
+        user = auth.getCurrentUser();
         editTextName    = (EditText) view.findViewById(R.id.EditTextName);
         editTextEmail   = (EditText) view.findViewById(R.id.EditTextEmail);
         editTextWebsite = (EditText) view.findViewById(R.id.EditTextWebsite);
         descriptionText = (EditText) view.findViewById(R.id.description_text);
-        addressLayout   = (LinearLayout) view.findViewById(R.id.addressLayout);
+        LinearLayout addressLayout = (LinearLayout) view.findViewById(R.id.addressLayout);
         addressLine1    = (EditText) view.findViewById(R.id.addressLine1);
         addressLine2    = (EditText) view.findViewById(R.id.addressLine2);
         addressCity     = (EditText) view.findViewById(R.id.addressCity);
@@ -124,22 +187,33 @@ public class SchoolHomeFragment extends Fragment {
         addressCountry  = (EditText) view.findViewById(R.id.addressCountry);
         mobileNumber    = (EditText) view.findViewById(R.id.mobileNumber);
         save_school_home = (Button) view.findViewById(R.id.save_school_home);
+        bookmark = (LinearLayout) view.findViewById(R.id.bookmark);
+        bookmarkImage = (ImageView) view.findViewById(R.id.bookmarkImage);
 
-        /*autocompleteFragment = (SupportPlaceAutocompleteFragment)
-                getChildFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);*/
-        if (model.getUserID().equals(user.getUid())){
-            edit_button.setVisibility(View.VISIBLE);
-            edit_button.setOnClickListener(new View.OnClickListener() {
+        setBookmark();
+
+        if (Util.checkSchoolAdmin(model)){
+            edit_school_home_section.setVisibility(View.VISIBLE);
+            edit_school_home.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    list_layout.setVisibility(View.GONE);
-                    list_layout_description.setVisibility(View.GONE);
-                    list_layout_review.setVisibility(View.GONE);
+                    fragment_container.setVisibility(View.GONE);
                     school_edit_home.setVisibility(View.VISIBLE);
-
+                    edit_school_home.setVisibility(View.GONE);
+                    cancel_school_home.setVisibility(View.VISIBLE);
                     buildEditSection(view);
 
 
+                }
+            });
+
+            cancel_school_home.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    fragment_container.setVisibility(View.VISIBLE);
+                    school_edit_home.setVisibility(View.GONE);
+                    edit_school_home.setVisibility(View.VISIBLE);
+                    cancel_school_home.setVisibility(View.GONE);
                 }
             });
         }
@@ -171,6 +245,9 @@ public class SchoolHomeFragment extends Fragment {
 
         // for school header details
         TextView schoolName = (TextView) view.findViewById(R.id.school_name);
+        if (model.getStatus()!=null && model.getStatus().equals(School.StatusType.VERIFIED.getValue())){
+            schoolName.setCompoundDrawablesWithIntrinsicBounds(0,0,R.drawable.ic_verified,0);
+        }
         schoolName.setText(model.getName());
         TextView schoolAddress = (TextView) view.findViewById(R.id.school_address);
         schoolAddress.setText(Util.getAddress(model.getAddress()));
@@ -179,16 +256,69 @@ public class SchoolHomeFragment extends Fragment {
             schoolReviewNo.setText(String.valueOf(model.getNoOfReview()));
         }
 
+        TextView school_bookmark_no = (TextView) view.findViewById(R.id.school_bookmark_no);
+        if (model.getNoOfBookmarks()!=null){
+            school_bookmark_no.setText(String.valueOf(model.getNoOfBookmarks()));
+        }
+
+        TextView distance = (TextView) view.findViewById(R.id.distance);
+        if (model.getLatitude()!=0 && model.getLongitude()!=0){
+            distance.setText(getResources().getString(R.string.km,NearByPlaces.distance(getActivity(),model.getLatitude(),model.getLongitude())));
+        }
 
         // for school description
         TextView schoolDescription = (TextView) view.findViewById(R.id.description);
         schoolDescription.setText(model.getDescription());
-        TextView schoolCategory = (TextView) view.findViewById(R.id.category);
-        TextView schoolMedium = (TextView) view.findViewById(R.id.medium);
-        TextView schoolGender = (TextView) view.findViewById(R.id.gender);
-        schoolCategory.setText(String.valueOf(model.getCategories().values()));
-        schoolMedium.setText("medium");
-        schoolGender.setText("gender");
+        LinearLayout schoolCategory = (LinearLayout) view.findViewById(R.id.category_layout);
+        LinearLayout board_layout = (LinearLayout) view.findViewById(R.id.board_layout);
+        LinearLayout schoolGender = (LinearLayout) view.findViewById(R.id.gender);
+        if (model.getCategories()!=null){
+            for (String value : model.getCategories().values()) {
+                TextView htext =new TextView(getActivity());
+                htext.setText(value);
+                htext.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_star,0,0,0);
+                htext.setLayoutParams(new LinearLayoutCompat.LayoutParams(LinearLayoutCompat.LayoutParams.MATCH_PARENT , LinearLayoutCompat.LayoutParams.WRAP_CONTENT));
+                schoolCategory.addView(htext);
+            }
+        }else {
+            schoolCategory.setVisibility(View.GONE);
+        }
+
+        if (model.getBoards()!=null){
+            for (String value : model.getBoards().values()) {
+                final TextView htext =new TextView(getActivity());
+                htext.setText(value);
+                htext.getViewTreeObserver()
+                        .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                            @Override
+                            public void onGlobalLayout() {
+                                Drawable img = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_checked, null);
+                                if (img!=null) {
+                                    img.setBounds(0, 0, img.getIntrinsicWidth() * htext.getMeasuredHeight() / img.getIntrinsicHeight(), htext.getMeasuredHeight());
+                                }
+                                htext.setCompoundDrawables(img, null, null, null);
+                                htext.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                            }
+                        });
+                htext.setLayoutParams(new LinearLayoutCompat.LayoutParams(LinearLayoutCompat.LayoutParams.MATCH_PARENT , LinearLayoutCompat.LayoutParams.WRAP_CONTENT));
+                board_layout.addView(htext);
+            }
+        }else {
+            board_layout.setVisibility(View.GONE);
+        }
+
+
+        if (model.getGender()!=null){
+            for (String value : model.getGender().values()) {
+                TextView htext =new TextView(getActivity());
+                htext.setText(value);
+                htext.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_star,0,0,0);
+                htext.setLayoutParams(new LinearLayoutCompat.LayoutParams(LinearLayoutCompat.LayoutParams.MATCH_PARENT , LinearLayoutCompat.LayoutParams.WRAP_CONTENT));
+                schoolGender.addView(htext);
+            }
+        }else {
+            schoolGender.setVisibility(View.GONE);
+        }
 
 
         // rating and review section
@@ -230,101 +360,113 @@ public class SchoolHomeFragment extends Fragment {
                         layoutReviewsNo.setVisibility(View.GONE);
                         profile1.setVisibility(View.VISIBLE);
                         DatabaseReference userReference = FirebaseDatabase.getInstance().getReference().child("users");
-                        userReference.orderByKey().equalTo(review.getUserID()).addChildEventListener(new ChildEventListener() {
-                            @Override
-                            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                                User user = dataSnapshot.getValue(User.class);
-                                //profile1.setImageUrl(user.getProfilePic(),imgLoader);
-                                Util.loadCircularImageWithGlide(getActivity(),user.getProfilePic(),profile1);
-                                reviewerName1.setText(user.getName());
-                            }
+                        if (review != null) {
+                            userReference.orderByKey().equalTo(review.getUserID()).addChildEventListener(new ChildEventListener() {
+                                @Override
+                                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                    User user = dataSnapshot.getValue(User.class);
+                                    //profile1.setImageUrl(user.getProfilePic(),imgLoader);
+                                    if (user != null) {
+                                        Util.loadCircularImageWithGlide(getActivity(),user.getProfilePic(),profile1);
+                                    }
+                                    reviewerName1.setText(user.getName());
+                                }
 
-                            @Override
-                            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                                @Override
+                                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                                @Override
+                                public void onChildRemoved(DataSnapshot dataSnapshot) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                                @Override
+                                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
 
-                            }
-                        });
+                                }
+                            });
+                        }
                         break;
                     case 2:
                         profile2.setVisibility(View.VISIBLE);
                         DatabaseReference userReference2 = FirebaseDatabase.getInstance().getReference().child("users");
-                        userReference2.orderByKey().equalTo(review.getUserID()).addChildEventListener(new ChildEventListener() {
-                            @Override
-                            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                                User user = dataSnapshot.getValue(User.class);
-                                //profile2.setImageUrl(user.getProfilePic(),imgLoader);
-                                Util.loadCircularImageWithGlide(getActivity(),user.getProfilePic(),profile2);
+                        if (review != null) {
+                            userReference2.orderByKey().equalTo(review.getUserID()).addChildEventListener(new ChildEventListener() {
+                                @Override
+                                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                    User user = dataSnapshot.getValue(User.class);
+                                    //profile2.setImageUrl(user.getProfilePic(),imgLoader);
+                                    if (user != null) {
+                                        Util.loadCircularImageWithGlide(getActivity(),user.getProfilePic(),profile2);
+                                    }
 
-                            }
+                                }
 
-                            @Override
-                            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                                @Override
+                                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                                @Override
+                                public void onChildRemoved(DataSnapshot dataSnapshot) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                                @Override
+                                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
 
-                            }
-                        });
+                                }
+                            });
+                        }
                         break;
                     case 3:
                         profile3.setVisibility(View.VISIBLE);
                         DatabaseReference userReference3 = FirebaseDatabase.getInstance().getReference().child("users");
-                        userReference3.orderByKey().equalTo(review.getUserID()).addChildEventListener(new ChildEventListener() {
-                            @Override
-                            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                                User user = dataSnapshot.getValue(User.class);
-                                //profile3.setImageUrl(user.getProfilePic(),imgLoader);
-                                Util.loadCircularImageWithGlide(getActivity(),user.getProfilePic(),profile3);
+                        if (review != null) {
+                            userReference3.orderByKey().equalTo(review.getUserID()).addChildEventListener(new ChildEventListener() {
+                                @Override
+                                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                    User user = dataSnapshot.getValue(User.class);
+                                    //profile3.setImageUrl(user.getProfilePic(),imgLoader);
+                                    if (user != null) {
+                                        Util.loadCircularImageWithGlide(getActivity(),user.getProfilePic(),profile3);
+                                    }
 
-                            }
+                                }
 
-                            @Override
-                            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                                @Override
+                                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                                @Override
+                                public void onChildRemoved(DataSnapshot dataSnapshot) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                                @Override
+                                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
 
-                            }
-                        });
+                                }
+                            });
+                        }
                         break;
                 }
 
@@ -350,7 +492,216 @@ public class SchoolHomeFragment extends Fragment {
 
             }
         });
+
+        LinearLayout layout_classes = (LinearLayout) view.findViewById(R.id.layout_classes);
+        ExpandableHeightGridView expandableHeightGridView = (ExpandableHeightGridView) view.findViewById(R.id.checked);
+        if (model.getClasses()!=null){
+            ArrayList<String> classList = new ArrayList<>(model.getClasses().values());
+            Collections.sort(classList);
+            expandableHeightGridView.setAdapter(new TextViewAdapter(getActivity(),classList,""));
+        }else{
+            layout_classes.setVisibility(View.GONE);
+        }
+
+
+        // Section for editing place by admin
+        ImageView btn_edit_classes = (ImageView) view.findViewById(R.id.btn_edit_classes);
+        ImageView btn_edit_type = (ImageView) view.findViewById(R.id.btn_edit_type);
+        if (Util.checkSchoolAdmin(model)) {
+            final BoardsFragment boardsFragment = BoardsFragment.newInstance(PlaceTypes.Action.EDIT_BACKUP.getValue(), model);
+            final LinearLayout edit_boards_section = (LinearLayout) view.findViewById(R.id.edit_boards_section);
+            final LinearLayout edit_type_section = (LinearLayout) view.findViewById(R.id.edit_type_section);
+            final LinearLayout content = (LinearLayout) view.findViewById(R.id.content);
+            Button save_boards = (Button) view.findViewById(R.id.save_boards);
+            Button cancel_boards = (Button) view.findViewById(R.id.cancel_boards);
+            final LinearLayout fragContainer = (LinearLayout) view.findViewById(R.id.container);
+            fragContainer.setVisibility(View.GONE);
+            final ProgressBar progress = (ProgressBar) view.findViewById(R.id.progress);
+            btn_edit_classes.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    progress.setVisibility(View.VISIBLE);
+                    FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+                    transaction.replace(R.id.container, boardsFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                    edit_boards_section.setVisibility(View.VISIBLE);
+                    edit_type_section.setVisibility(View.GONE);
+                    content.setVisibility(View.GONE);
+                    fragContainer.setVisibility(View.VISIBLE);
+                    progress.setVisibility(View.GONE);
+                }
+            });
+
+            cancel_boards.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    edit_boards_section.setVisibility(View.GONE);
+                    fragContainer.setVisibility(View.GONE);
+                    content.setVisibility(View.VISIBLE);
+                }
+            });
+
+            save_boards.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                    alertDialogBuilder.setMessage("Do you want to update?");
+                    alertDialogBuilder.setPositiveButton("Yes",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface arg0, int arg1) {
+                                    progress.setVisibility(View.VISIBLE);
+                                    HashMap<String, HashMap<String, String>> map = boardsFragment.getFragmentState();
+                                    DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
+
+                                    mDatabaseReference.child(model.getId()).child(School.BOARDS).setValue(map.get(School.BOARDS));
+                                    mDatabaseReference.child(model.getId()).child(School.CLASSES).setValue(map.get(School.CLASSES));
+                                    fragContainer.setVisibility(View.GONE);
+                                    content.setVisibility(View.VISIBLE);
+                                    edit_boards_section.setVisibility(View.GONE);
+                                    progress.setVisibility(View.GONE);
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(
+                                            getActivity());
+                                    builder.setCancelable(true);
+                                    builder.setMessage("Congrats, place updated successfully ! You can write blog and upload photos so that users" +
+                                            " can know about this.");
+                                    builder.setPositiveButton("Ok",
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog,
+                                                                    int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            });
+                                    AlertDialog alert = builder.create();
+                                    alert.show();
+                                }
+                            });
+
+                    alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    alertDialogBuilder.create();
+                    alertDialogBuilder.show();
+                }
+            });
+
+            final TypePlaceFragment typePlaceFragment = TypePlaceFragment.newInstance(PlaceTypes.Action.EDIT_BACKUP.getValue(), model);
+            Button save_type = (Button) view.findViewById(R.id.save_type);
+            Button cancel_type = (Button) view.findViewById(R.id.cancel_type);
+            btn_edit_type.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    progress.setVisibility(View.VISIBLE);
+                    FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+                    transaction.replace(R.id.container, typePlaceFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                    edit_type_section.setVisibility(View.VISIBLE);
+                    edit_boards_section.setVisibility(View.GONE);
+                    content.setVisibility(View.GONE);
+                    fragContainer.setVisibility(View.VISIBLE);
+                    progress.setVisibility(View.GONE);
+                }
+            });
+
+            cancel_type.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    edit_type_section.setVisibility(View.GONE);
+                    fragContainer.setVisibility(View.GONE);
+                    content.setVisibility(View.VISIBLE);
+                }
+            });
+
+            save_type.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                    alertDialogBuilder.setMessage("Do you want to update?");
+                    alertDialogBuilder.setPositiveButton("Yes",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface arg0, int arg1) {
+                                    progress.setVisibility(View.VISIBLE);
+                                    HashMap<String, HashMap<String, String>> map = typePlaceFragment.getFragmentState();
+                                    DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
+
+                                    mDatabaseReference.child(model.getId()).child(School.CATEGORIES).setValue(map.get(School.CATEGORIES));
+                                    mDatabaseReference.child(model.getId()).child(School.GENDER).setValue(map.get(School.GENDER));
+                                    fragContainer.setVisibility(View.GONE);
+                                    content.setVisibility(View.VISIBLE);
+                                    edit_type_section.setVisibility(View.GONE);
+                                    progress.setVisibility(View.GONE);
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(
+                                            getActivity());
+                                    builder.setCancelable(true);
+                                    builder.setMessage("Congrats, place updated successfully ! You can write blog and upload photos so that users" +
+                                            " can know about this.");
+                                    builder.setPositiveButton("Ok",
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog,
+                                                                    int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            });
+                                    AlertDialog alert = builder.create();
+                                    alert.show();
+                                }
+                            });
+
+                    alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    alertDialogBuilder.create();
+                    alertDialogBuilder.show();
+                }
+            });
+        }else {
+            btn_edit_classes.setVisibility(View.GONE);
+            btn_edit_type.setVisibility(View.GONE);
+        }
         return view;
+
+    }
+
+    private void setBookmark() {
+
+        final DatabaseReference mBookmarkReference = FirebaseDatabase.getInstance().getReference().child("bookmarks");
+
+        mBookmarkReference.child(user.getUid()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChild(model.getId())){
+                    bookmarkImage.setImageResource(R.drawable.ic_bookmark_green_24dp);
+                }else{
+                    bookmarkImage.setImageResource(R.drawable.ic_bookmark_secondary);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        bookmark.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                School.onBookmark(model,user,getActivity(),bookmarkImage);
+
+            }
+        });
 
     }
 
@@ -592,9 +943,7 @@ public class SchoolHomeFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog,
                                         int which) {
-                        list_layout.setVisibility(View.VISIBLE);
-                        list_layout_description.setVisibility(View.VISIBLE);
-                        list_layout_review.setVisibility(View.VISIBLE);
+                        fragment_container.setVisibility(View.VISIBLE);
                         school_edit_home.setVisibility(View.GONE);
                         dialog.dismiss();
                     }
@@ -655,6 +1004,7 @@ public class SchoolHomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
     @Override
     public void onDestroyView() {

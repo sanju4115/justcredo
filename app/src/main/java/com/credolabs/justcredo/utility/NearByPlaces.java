@@ -63,9 +63,9 @@ public class NearByPlaces {
         MyApplication.volleyQueueInstance.addToRequestQueue(req);
     }
 
-    public static ArrayList<Review> filterByCities(Context activity, ArrayList<Review> reviewArrayList){
+    public static ArrayList<Review> filterByCities(Context activity, ArrayList<Review> reviewArrayList, ArrayList<Review> newList){
         ArrayList<String> cities = getNearByCities(activity);
-        ArrayList<Review> newList = new ArrayList<>();
+        newList.clear();
         if (cities!=null){
             for (Review review : reviewArrayList){
                 if (cities.contains(review.getAddressCity())){
@@ -92,7 +92,7 @@ public class NearByPlaces {
         editor.apply();
     }
 
-    public static ArrayList<String> getNearByCities(Context context) {
+    private static ArrayList<String> getNearByCities(Context context) {
         SharedPreferences sharedPreferences;
         List<String> favorites;
 

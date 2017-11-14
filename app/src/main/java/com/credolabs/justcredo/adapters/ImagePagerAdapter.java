@@ -35,7 +35,6 @@ import java.util.ArrayList;
 
 public class ImagePagerAdapter extends PagerAdapter {
     private Context ctx;
-    private LayoutInflater inflater;
     private ArrayList<String> images;
     private School model;
     private ImageFragment fragment;
@@ -59,7 +58,7 @@ public class ImagePagerAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, final int position) {
-        inflater = (LayoutInflater)ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         ArrayList<String> imagesList = new ArrayList<String>(model.getImages().values());
         String address = Util.getAddress(model.getAddress());
         final ZoomObject zoomObject = new ZoomObject();
@@ -67,35 +66,39 @@ public class ImagePagerAdapter extends PagerAdapter {
         zoomObject.setName(model.getName());
         zoomObject.setAddress(address);
         zoomObject.setLogo(imagesList.get(0));
-        View v = inflater.inflate(R.layout.swipe,container,false);
-        final ImageView img = (ImageView) v.findViewById(R.id.school_image);
-        TextView tv  = (TextView)v.findViewById(R.id.textView);
-        ProgressBar progressBar = (ProgressBar) v.findViewById(R.id.image_progress);
-        //img.setImageUrl(images.get(position),imgLoader);
-        Util.loadImageWithGlideProgress(Glide.with(fragment),images.get(position),img,progressBar);
-        tv.setText(position+1+"/"+images.size());
-        container.addView(v);
-        v.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent myIntent = new Intent(ctx, FullZoomImageViewActivity.class);
-                myIntent.putExtra("ImagePosition", position);
-                myIntent.putExtra("zoom_object",zoomObject);
-                //myIntent.putExtra("SchoolDetail",model);
-                //ctx.startActivity(myIntent);
+        View v = null;
+        if (inflater != null) {
+            v = inflater.inflate(R.layout.swipe,container,false);
+            final ImageView img = (ImageView) v.findViewById(R.id.school_image);
+            TextView tv  = (TextView)v.findViewById(R.id.textView);
+            ProgressBar progressBar = (ProgressBar) v.findViewById(R.id.image_progress);
+            //img.setImageUrl(images.get(position),imgLoader);
+            Util.loadImageWithGlideProgress(Glide.with(fragment),images.get(position),img,progressBar);
+            tv.setText(position+1+"/"+images.size());
+            container.addView(v);
+            v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent myIntent = new Intent(ctx, FullZoomImageViewActivity.class);
+                    myIntent.putExtra("ImagePosition", position);
+                    myIntent.putExtra("zoom_object",zoomObject);
+                    //myIntent.putExtra("SchoolDetail",model);
+                    //ctx.startActivity(myIntent);
 
 
-                String transitionName = ctx.getString(R.string.image_trans);
+                    String transitionName = ctx.getString(R.string.image_trans);
 
-                ActivityOptions transitionActivityOptions = null;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    transitionActivityOptions = ActivityOptions.makeSceneTransitionAnimation((Activity) ctx, (View)img, transitionName);
-                    ctx.startActivity(myIntent, transitionActivityOptions.toBundle());
+                    ActivityOptions transitionActivityOptions = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                        transitionActivityOptions = ActivityOptions.makeSceneTransitionAnimation((Activity) ctx, (View)img, transitionName);
+                        ctx.startActivity(myIntent, transitionActivityOptions.toBundle());
+                    }
+
+
                 }
+            });
+        }
 
-
-            }
-        });
         return v;
     }
 

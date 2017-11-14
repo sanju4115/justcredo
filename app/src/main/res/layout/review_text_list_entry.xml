@@ -18,6 +18,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="4.0"
+                android:visibility="gone"
                 android:id="@+id/user_rating"/>
 
             <com.credolabs.justcredo.utility.CustomRatingBar
@@ -25,6 +26,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:id="@+id/rating_bar"
+                android:visibility="gone"
                 android:paddingStart="10dp"/>
 
         </LinearLayout>
@@ -33,10 +35,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/complete_profile_layout"
             android:layout_alignParentRight="true"
             android:padding="10dp"
-            android:text="16, Sep"
+            android:text=""
             android:id="@+id/time"
             />
 
@@ -45,6 +46,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/rating_layout"
+            android:id="@+id/blog_heading_txt"
+            android:layout_marginBottom="10dp"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:visibility="gone"
+            android:textColor="@color/black"
+            />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/blog_heading_txt"
             android:id="@+id/review_text"
             />
 

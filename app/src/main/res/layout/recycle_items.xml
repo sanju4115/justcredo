@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="300dp"
+    android:layout_width="150dp"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="5dp"
+    android:orientation="vertical"
     android:id="@+id/listLayout"
-    android:layout_margin="5dp"
     android:background="@drawable/border">
 
     <FrameLayout
@@ -19,16 +17,16 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:id="@+id/image_progress"
-            style="@android:style/Widget.ProgressBar.Small"
+            style="?android:attr/progressBarStyleSmall"
             />
 
         <ImageView
             android:id="@+id/coverImageView"
             android:layout_width="150dp"
-            android:padding="5dp"
+            android:layout_height="100dp"
+            android:contentDescription="@string/cover_image"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_nocover"
-            android:layout_height="150dp"/>
+            />
 
     </FrameLayout>
 
@@ -45,9 +43,9 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="School Name"
+            android:textStyle="bold"
             android:textColor="@color/colorPrimaryText"
-            android:textSize="9sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/grid_address"
@@ -55,19 +53,19 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="School Address"
-            android:textSize="9sp" />
+            android:textSize="12sp" />
 
         <LinearLayout
             android:id="@+id/mobileNumberLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:visibility="gone"
             android:orientation="horizontal">
 
             <android.support.v7.widget.AppCompatImageView
-                android:layout_width="10dp"
-                android:layout_height="10dp"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
                 android:layout_marginEnd="@dimen/dimen_2dp"
                 android:layout_marginTop="@dimen/dimen_2dp"
                 app:srcCompat="@drawable/ic_local_phone_green_24dp" />
@@ -76,7 +74,7 @@
                 android:id="@+id/mobileNumber"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="9sp" />
+                android:textSize="12sp" />
 
 
         </LinearLayout>
@@ -85,13 +83,14 @@
             android:id="@+id/websiteLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:orientation="horizontal">
 
             <android.support.v7.widget.AppCompatImageView
-                android:layout_width="10dp"
-                android:layout_height="10dp"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
                 android:layout_marginEnd="@dimen/dimen_2dp"
-                android:layout_marginTop="@dimen/dimen_2dp"
+                android:layout_marginTop="@dimen/dimen_4dp"
                 app:srcCompat="@drawable/ic_web" />
 
             <TextView
@@ -99,13 +98,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Secondary School"
-                android:textSize="9sp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
 
         <com.credolabs.justcredo.utility.CustomRatingBar
             android:id="@+id/rating"
             android:layout_width="60dp"
+            android:visibility="gone"
             android:layout_height="wrap_content"
             android:layout_marginEnd="5dp"
             android:layout_marginTop="@dimen/dimen_4dp"
@@ -126,13 +126,13 @@
                 android:layout_height="wrap_content"
                 android:paddingRight="2dp"
                 android:text="0"
-                android:textSize="10dp" />
+                android:textSize="12sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Reviews"
-                android:textSize="10dp" />
+                android:textSize="12sp" />
 
             <android.support.v7.widget.AppCompatImageView
                 android:layout_width="12dp"
@@ -145,7 +145,7 @@
                 android:id="@+id/distance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="10dp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
 

@@ -1,20 +1,38 @@
 package com.credolabs.justcredo.school;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.adapters.FacilitiesAdapter;
+import com.credolabs.justcredo.adapters.TextViewAdapter;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.newplace.PlaceExtraFragment;
+import com.credolabs.justcredo.newplace.PlaceFacilitiesFragment;
+import com.credolabs.justcredo.newplace.PlaceTypes;
+import com.credolabs.justcredo.utility.ExpandableHeightGridView;
+import com.credolabs.justcredo.utility.Util;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 
 
 public class SchoolFacilitiesFragment extends Fragment {
@@ -25,7 +43,17 @@ public class SchoolFacilitiesFragment extends Fragment {
     private School model;
     private String mParam2;
 
+    private LinearLayout fragContainer;
+    private LinearLayout edit_facilities_section,edit_extra_section;
+    private Button edit_facilities;
+    private LinearLayout specialFacilities_section,facilities_section,curricular_section,save_cancel_facilities;
+
+    private Button edit_extra;
+    private LinearLayout save_cancel_extra;
+
+
     private OnFragmentInteractionListener mListener;
+    private ProgressBar progress;
 
     public SchoolFacilitiesFragment() {
     }
@@ -49,58 +77,235 @@ public class SchoolFacilitiesFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_school_facilities, container, false);
 
+        final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
+        final TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
+        final TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
+
+        not_found_text1.setText("No facility added yet !");
+        not_found_text2.setVisibility(View.GONE);
+
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+
         // Facilites section
-        int adapterCount;
-        if (model.getFacilities()!=null){
-            ArrayList<String> facilities = new ArrayList<String>(model.getFacilities().values());
-            FacilitiesAdapter facilitiesAdapter = new FacilitiesAdapter(getActivity(),facilities);
-            LinearLayout facilitiesLinearLayout = (LinearLayout) view.findViewById(R.id.linear_layout_facilities);
-            adapterCount = facilitiesAdapter.getCount();
-            if (facilities.size()>0) {
-                for (int i = 0; i < adapterCount; i++) {
-                    View item = facilitiesAdapter.getView(i, null, null);
-                    facilitiesLinearLayout.addView(item);
-                }
-            }
-        }else {
-            LinearLayout facilitiesSection = (LinearLayout) view.findViewById(R.id.facilities_section);
-            facilitiesSection.setVisibility(View.GONE);
-        }
-        if (model.getExtracurricular()!=null){
-            ArrayList<String> curriculumn = new ArrayList<String>(model.getExtracurricular().values());
-            FacilitiesAdapter curriculumnAdapter = new FacilitiesAdapter(getActivity(),curriculumn);
-            LinearLayout curriculumnLinearLayout = (LinearLayout) view.findViewById(R.id.linear_layout_curriculumn);
-            if (curriculumn.size()>0) {
-                adapterCount = curriculumnAdapter.getCount();
-                for (int i = 0; i < adapterCount; i++) {
-                    View item = curriculumnAdapter.getView(i, null, null);
-                    curriculumnLinearLayout.addView(item);
-                }
-            }
-        }else {
-            LinearLayout curricularSection = (LinearLayout) view.findViewById(R.id.curricular_section);
-            curricularSection.setVisibility(View.GONE);
-        }
-        if (model.getSports()!=null){
-            ArrayList<String> sports = new ArrayList<String>(model.getSports().values());
-            FacilitiesAdapter sportsAdapter = new FacilitiesAdapter(getActivity(),sports);
-            LinearLayout sportsLinearLayout = (LinearLayout) view.findViewById(R.id.linear_layout_sports);
-            if (sports.size()>0) {
-                adapterCount = sportsAdapter.getCount();
-                for (int i = 0; i < adapterCount; i++) {
-                    View item = sportsAdapter.getView(i, null, null);
-                    sportsLinearLayout.addView(item);
-                }
-            }
-        }else {
-            LinearLayout sportsSection = (LinearLayout) view.findViewById(R.id.sports_section);
-            sportsSection.setVisibility(View.GONE);
+        progress = (ProgressBar)view.findViewById(R.id.progress);
+
+        specialFacilities_section = (LinearLayout) view.findViewById(R.id.specialFacilities_section);
+        ExpandableHeightGridView linear_layout_specialFacilities = (ExpandableHeightGridView) view.findViewById(R.id.linear_layout_specialFacilities);
+        if (model.getSpecialFacilities()!=null){
+            not_found.setVisibility(View.GONE);
+            ArrayList<String> classList = new ArrayList<>(model.getSpecialFacilities().values());
+            Collections.sort(classList);
+            linear_layout_specialFacilities.setAdapter(new TextViewAdapter(getActivity(),classList,School.SPECIAL_FACILITIES));
+        }else{
+            specialFacilities_section.setVisibility(View.GONE);
         }
 
+        facilities_section = (LinearLayout) view.findViewById(R.id.facilities_section);
+        ExpandableHeightGridView expandableHeightGridView = (ExpandableHeightGridView) view.findViewById(R.id.linear_layout_facilities);
+        if (model.getFacilities()!=null){
+            not_found.setVisibility(View.GONE);
+            ArrayList<String> classList = new ArrayList<>(model.getFacilities().values());
+            Collections.sort(classList);
+            expandableHeightGridView.setAdapter(new TextViewAdapter(getActivity(),classList,""));
+        }else{
+            facilities_section.setVisibility(View.GONE);
+        }
+
+        curricular_section = (LinearLayout) view.findViewById(R.id.curricular_section);
+        ExpandableHeightGridView linear_layout_curriculumn = (ExpandableHeightGridView) view.findViewById(R.id.linear_layout_curriculumn);
+        if (model.getExtracurricular()!=null){
+            not_found.setVisibility(View.GONE);
+            ArrayList<String> classList = new ArrayList<>(model.getExtracurricular().values());
+            Collections.sort(classList);
+            linear_layout_curriculumn.setAdapter(new TextViewAdapter(getActivity(),classList,""));
+        }else{
+            curricular_section.setVisibility(View.GONE);
+        }
+
+        if (Util.checkSchoolAdmin(model)) { // edit section only for admin
+            fragContainer = (LinearLayout) view.findViewById(R.id.container);
+
+            save_cancel_facilities = (LinearLayout) view.findViewById(R.id.save_cancel);
+            edit_facilities_section = (LinearLayout) view.findViewById(R.id.edit_facilities_section);
+            Button cancel_facilities = (Button) view.findViewById(R.id.cancel_facilities);
+            edit_facilities = (Button) view.findViewById(R.id.edit_facilities);
+            Button save_facilities = (Button) view.findViewById(R.id.save_facilities);
+
+            save_cancel_extra = (LinearLayout) view.findViewById(R.id.save_cancel_extra);
+            edit_extra_section = (LinearLayout) view.findViewById(R.id.edit_extra_section);
+            Button cancel_extra = (Button) view.findViewById(R.id.cancel_extra);
+            edit_extra = (Button) view.findViewById(R.id.edit_extra);
+            Button save_extra = (Button) view.findViewById(R.id.save_extra);
+            edit_facilities_section.setVisibility(View.VISIBLE);
+            edit_extra_section.setVisibility(View.VISIBLE);
+            final PlaceFacilitiesFragment placeFacilitiesFragment = PlaceFacilitiesFragment.newInstance(
+                    PlaceTypes.Action.EDIT.getValue(), model);
+            edit_facilities.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    progress.setVisibility(View.VISIBLE);
+                    not_found.setVisibility(View.GONE);
+                    FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+                    transaction.replace(R.id.container, placeFacilitiesFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                    hideContent();
+                    fragContainer.setVisibility(View.VISIBLE);
+                    edit_facilities.setVisibility(View.GONE);
+                    save_cancel_facilities.setVisibility(View.VISIBLE);
+                    edit_extra_section.setVisibility(View.GONE);
+                    progress.setVisibility(View.GONE);
+                }
+            });
+
+            cancel_facilities.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    fragContainer.setVisibility(View.GONE);
+                    edit_facilities.setVisibility(View.VISIBLE);
+                    save_cancel_facilities.setVisibility(View.GONE);
+                    edit_extra_section.setVisibility(View.VISIBLE);
+                    visibleContent();
+                }
+            });
+
+            save_facilities.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                    alertDialogBuilder.setMessage("Do you want to update facilities ?");
+                    alertDialogBuilder.setPositiveButton("Yes",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface arg0, int arg1) {
+                                    progress.setVisibility(View.VISIBLE);
+                                    HashMap<String, HashMap<String, String>> map = placeFacilitiesFragment.getFragmentState();
+                                    DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
+
+                                    mDatabaseReference.child(model.getId()).child(School.FACILITIES).setValue(map.get(School.FACILITIES));
+                                    mDatabaseReference.child(model.getId()).child(School.SPECIAL_FACILITIES).setValue(map.get(School.SPECIAL_FACILITIES));
+                                    fragContainer.setVisibility(View.GONE);
+                                    edit_facilities.setVisibility(View.VISIBLE);
+                                    save_cancel_facilities.setVisibility(View.GONE);
+                                    edit_extra_section.setVisibility(View.VISIBLE);
+                                    visibleContent();
+                                    progress.setVisibility(View.GONE);
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(
+                                            getActivity());
+                                    builder.setCancelable(true);
+                                    builder.setMessage("Congrats, facilities updated successfully ! You can write blog and upload photos so that users" +
+                                            " can know about this.");
+                                    builder.setPositiveButton("Ok",
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog,
+                                                                    int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            });
+                                    AlertDialog alert = builder.create();
+                                    alert.show();
+                                }
+                            });
+
+                    alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    alertDialogBuilder.create();
+                    alertDialogBuilder.show();
+
+                }
+            });
+
+            final PlaceExtraFragment placeExtraFragment = PlaceExtraFragment.newInstance(PlaceTypes.Action.EDIT.getValue(), model);
+            edit_extra.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    progress.setVisibility(View.VISIBLE);
+                    not_found.setVisibility(View.GONE);
+                    FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+                    transaction.replace(R.id.container, placeExtraFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                    hideContent();
+                    fragContainer.setVisibility(View.VISIBLE);
+                    edit_extra.setVisibility(View.GONE);
+                    save_cancel_extra.setVisibility(View.VISIBLE);
+                    edit_facilities_section.setVisibility(View.GONE);
+                    progress.setVisibility(View.GONE);
+                }
+            });
+
+            cancel_extra.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    fragContainer.setVisibility(View.GONE);
+                    edit_extra.setVisibility(View.VISIBLE);
+                    save_cancel_extra.setVisibility(View.GONE);
+                    edit_facilities_section.setVisibility(View.VISIBLE);
+                    visibleContent();
+                }
+            });
+
+            save_extra.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                    alertDialogBuilder.setMessage("Do you want to update facilities ?");
+                    alertDialogBuilder.setPositiveButton("Yes",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface arg0, int arg1) {
+                                    progress.setVisibility(View.VISIBLE);
+                                    HashMap<String, String> map = placeExtraFragment.getFragmentState();
+                                    DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
+
+                                    mDatabaseReference.child(model.getId()).child(School.EXTRACURRICULAR).setValue(map);
+                                    fragContainer.setVisibility(View.GONE);
+                                    edit_extra.setVisibility(View.VISIBLE);
+                                    save_cancel_extra.setVisibility(View.GONE);
+                                    edit_facilities_section.setVisibility(View.VISIBLE);
+                                    visibleContent();
+                                    progress.setVisibility(View.GONE);
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(
+                                            getActivity());
+                                    builder.setCancelable(true);
+                                    builder.setMessage("Congrats, extracurricular activities updated successfully ! You can write blog and upload photos so that users" +
+                                            " can know about this.");
+                                    builder.setPositiveButton("Ok",
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog,
+                                                                    int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            });
+                                    AlertDialog alert = builder.create();
+                                    alert.show();
+                                }
+                            });
+
+                    alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    alertDialogBuilder.create();
+                    alertDialogBuilder.show();
+
+                }
+            });
+        }
 
         return view;
     }
@@ -131,5 +336,29 @@ public class SchoolFacilitiesFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+    }
+
+    private void hideContent(){
+        specialFacilities_section.setVisibility(View.GONE);
+        facilities_section.setVisibility(View.GONE);
+        curricular_section.setVisibility(View.GONE);
+    }
+
+    private void visibleContent(){
+        if (model.getSpecialFacilities()!=null) {
+            specialFacilities_section.setVisibility(View.VISIBLE);
+        }
+        if (model.getFacilities()!=null) {
+            facilities_section.setVisibility(View.VISIBLE);
+        }
+        if (model.getExtracurricular()!=null){
+            curricular_section.setVisibility(View.VISIBLE);
+        }
     }
 }

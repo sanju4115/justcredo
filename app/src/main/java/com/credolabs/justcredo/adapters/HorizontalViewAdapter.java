@@ -30,7 +30,7 @@ public class HorizontalViewAdapter extends RecyclerView.Adapter<HorizontalViewHo
     private ArrayList<School> list;
     private RequestManager glide;
     private Context context;
-    public HorizontalViewAdapter(Context context, ArrayList<School> Data, RequestManager glide) {
+    public HorizontalViewAdapter(String page, Context context, ArrayList<School> Data, RequestManager glide) {
         list = Data;
         this.glide = glide;
         this.context=context;
@@ -40,8 +40,7 @@ public class HorizontalViewAdapter extends RecyclerView.Adapter<HorizontalViewHo
         // create a new view
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.recycle_items, parent, false);
-        HorizontalViewHolder holder = new HorizontalViewHolder(view);
-        return holder;
+        return new HorizontalViewHolder(view);
     }
     @Override
     public void onBindViewHolder(final HorizontalViewHolder holder, int position) {

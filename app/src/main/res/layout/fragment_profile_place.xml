@@ -24,6 +24,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/your_place"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimaryDark"
             android:background="@drawable/card"
             />
 

@@ -3,6 +3,9 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
 
+    <string name="facebook_application_id">354697031610850</string>
+    <string name="fb_login_protocol_scheme">fb354697031610850</string>
+
     <!-- TODO: Remove or change this placeholder text -->
 
     <string name="app_name">Credo</string>
@@ -33,7 +36,7 @@
     <string name="title_activity_detailed_object">DetailedObjectActivity</string>
     <string name="action_settings">Settings</string>
     <string name="school_description">Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci. Mauris lacinia sapien quis libero.</string>
-    <string name="website">www.dpspublic.com</string>
+    <string name="website">Website</string>
     <string name="rating_credability">weighted average based on user creadability on Credo</string>
     <string name="title_activity_image">ImageActivity</string>
     <string name="title_activity_view_pager_example">ViewPagerExampleActivity</string>
@@ -42,7 +45,6 @@
     <string name="title_profile">Profile</string>
     <string name="tag_line">Learning Begins Here</string>
 
-    <string name="facebook_app_id">259294184531130</string>
     <string name="header_name">Name</string>
     <string name="header_email">Email</string>
     <string name="tag_line_home">Showing a selection of sponsored content and recomendations for you</string>
@@ -60,7 +62,7 @@
     <string name="delete">DELETE</string>
 
     //Account Setup
-    <string name="email">Email Id</string>
+    <string name="email">Email*</string>
     <string name="passowrd">Password</string>
     <string name="login">LOGIN</string>
     <string name="show_pwd">Show Password</string>
@@ -104,6 +106,9 @@
         <item>facilities</item>
         <item>sports</item>
         <item>extraCurricular</item>
+        <item>genres</item>
+        <item>subjects</item>
+        <item>classes</item>
     </string-array>
 
     <string-array name="category">
@@ -244,26 +249,207 @@
     <string name="add_place_description">Fill all the details regarding the place.</string>
     <string name="place_name">Name*</string>
     <string name="place_type">Choose Place Type</string>
-    <string name="category">Choose Categories</string>
+    <string name="choose_category">Choose Categories</string>
     <string name="facilities_offered">Choose Facilities Offered</string>
     <string name="title_activity_category_wise">CategoryWiseActivity</string>
     <string name="choose_categories">Choose Categories Below</string>
-    <string name="top_results">Showing top Schools In Your Area (Sponsored)</string>
+    <string name="top_results">Top Schools</string>
     <string name="not_found_main_text">Sorry we couldn\'t find any matches</string>
     <string name="not_found_secondary_text">Maybe your search was too specific, please try searching with another term.</string>
-    <string name="places_bookmarked">Places Bookmarked By You</string>
-    <string name="place_reviewed">Experiences Shared By You</string>
-    <string name="your_followers">Your Followers</string>
-    <string name="your_following">People You Are Following</string>
-    <string name="your_place">Manage Your Place Here</string>
+    <string name="places_bookmarked">Bookmarked Places</string>
+    <string name="place_reviewed">Experiences Shared</string>
+    <string name="your_followers">Followers</string>
+    <string name="your_following">Following</string>
+    <string name="your_place">Places Managed</string>
     <string name="title_activity_school_detail">SchoolDetailActivity</string>
     <string name="custom_gallery">Choose Photos</string>
-    <string name="edit_home_text">You can edit name and description here.</string>
+    <string name="edit_home_text">Click to edit name and description here.</string>
     <string name="gender">Gender</string>
+    <string name="call">Call</string>
+    <string name="place_reviewed_school">Reviews By People</string>
     <string-array name="gender_cat">
         <item>Male</item>
         <item>Female</item>
         <item>Not Specified</item>
     </string-array>
+    <string name="title_activity_scrolling">ScrollingActivity</string>
+    <string name="large_text">
+        "Material is the metaphor.\n\n"
+
+        "A material metaphor is the unifying theory of a rationalized space and a system of motion."
+        "The material is grounded in tactile reality, inspired by the study of paper and ink, yet "
+        "technologically advanced and open to imagination and magic.\n"
+        "Surfaces and edges of the material provide visual cues that are grounded in reality. The "
+        "use of familiar tactile attributes helps users quickly understand affordances. Yet the "
+        "flexibility of the material creates new affordances that supercede those in the physical "
+        "world, without breaking the rules of physics.\n"
+        "The fundamentals of light, surface, and movement are key to conveying how objects move, "
+        "interact, and exist in space and in relation to each other. Realistic lighting shows "
+        "seams, divides space, and indicates moving parts.\n\n"
+
+        "Bold, graphic, intentional.\n\n"
+
+        "The foundational elements of print based design typography, grids, space, scale, color, "
+        "and use of imagery guide visual treatments. These elements do far more than please the "
+        "eye. They create hierarchy, meaning, and focus. Deliberate color choices, edge to edge "
+        "imagery, large scale typography, and intentional white space create a bold and graphic "
+        "interface that immerse the user in the experience.\n"
+        "An emphasis on user actions makes core functionality immediately apparent and provides "
+        "waypoints for the user.\n\n"
+
+        "Motion provides meaning.\n\n"
+
+        "Motion respects and reinforces the user as the prime mover. Primary user actions are "
+        "inflection points that initiate motion, transforming the whole design.\n"
+        "All action takes place in a single environment. Objects are presented to the user without "
+        "breaking the continuity of experience even as they transform and reorganize.\n"
+        "Motion is meaningful and appropriate, serving to focus attention and maintain continuity. "
+        "Feedback is subtle yet clear. Transitions are efﬁcient yet coherent.\n\n"
+
+        "3D world.\n\n"
+
+        "The material environment is a 3D space, which means all objects have x, y, and z "
+        "dimensions. The z-axis is perpendicularly aligned to the plane of the display, with the "
+        "positive z-axis extending towards the viewer. Every sheet of material occupies a single "
+        "position along the z-axis and has a standard 1dp thickness.\n"
+        "On the web, the z-axis is used for layering and not for perspective. The 3D world is "
+        "emulated by manipulating the y-axis.\n\n"
+
+        "Light and shadow.\n\n"
+
+        "Within the material environment, virtual lights illuminate the scene. Key lights create "
+        "directional shadows, while ambient light creates soft shadows from all angles.\n"
+        "Shadows in the material environment are cast by these two light sources. In Android "
+        "development, shadows occur when light sources are blocked by sheets of material at "
+        "various positions along the z-axis. On the web, shadows are depicted by manipulating the "
+        "y-axis only. The following example shows the card with a height of 6dp.\n\n"
+
+        "Resting elevation.\n\n"
+
+        "All material objects, regardless of size, have a resting elevation, or default elevation "
+        "that does not change. If an object changes elevation, it should return to its resting "
+        "elevation as soon as possible.\n\n"
+
+        "Component elevations.\n\n"
+
+        "The resting elevation for a component type is consistent across apps (e.g., FAB elevation "
+        "does not vary from 6dp in one app to 16dp in another app).\n"
+        "Components may have different resting elevations across platforms, depending on the depth "
+        "of the environment (e.g., TV has a greater depth than mobile or desktop).\n\n"
+
+        "Responsive elevation and dynamic elevation offsets.\n\n"
+
+        "Some component types have responsive elevation, meaning they change elevation in response "
+        "to user input (e.g., normal, focused, and pressed) or system events. These elevation "
+        "changes are consistently implemented using dynamic elevation offsets.\n"
+        "Dynamic elevation offsets are the goal elevation that a component moves towards, relative "
+        "to the component’s resting state. They ensure that elevation changes are consistent "
+        "across actions and component types. For example, all components that lift on press have "
+        "the same elevation change relative to their resting elevation.\n"
+        "Once the input event is completed or cancelled, the component will return to its resting "
+        "elevation.\n\n"
+
+        "Avoiding elevation interference.\n\n"
+
+        "Components with responsive elevations may encounter other components as they move between "
+        "their resting elevations and dynamic elevation offsets. Because material cannot pass "
+        "through other material, components avoid interfering with one another any number of ways, "
+        "whether on a per component basis or using the entire app layout.\n"
+        "On a component level, components can move or be removed before they cause interference. "
+        "For example, a floating action button (FAB) can disappear or move off screen before a "
+        "user picks up a card, or it can move if a snackbar appears.\n"
+        "On the layout level, design your app layout to minimize opportunities for interference. "
+        "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
+        "when a user tries to pick up one of cards.\n\n"
+    </string>
+    <string name="txt_image_slider">Image Slideshow</string>
+    <string name="title_activity_tab">TabActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="title_activity_new_place">NewPlace</string>
+    <string name="read_instructions">Read Instructions Here</string>
+    <string name="mobile">Mobile*</string>
+    <string name="describe_your_place">Describe your place</string>
+    <string name="country">Country*</string>
+    <string name="state">State*</string>
+    <string name="address_line_2">Address Line 2</string>
+    <string name="city">City*</string>
+    <string name="address_line_1">Address Line 1</string>
+    <string name="choose_location_guide">Please tap to select address for your place. Its always better to use google location service instead of typing.</string>
+    <string name="name">Name*</string>
+    <string name="choose_name_guide">Please provide name of this place.</string>
+    <string name="add_more_pics_guide">You can add more pics here !</string>
+    <string name="add_cover_photo">Add Cover Photo</string>
+    <string name="adding_cover_pic_guide">Adding photos to the place is helpful in attracting audience. Cover pic is mandatory !</string>
+    <string name="add_photo">Add Photo</string>
+    <string name="clear">Clear</string>
+    <string name="cover_image">Cover Image</string>
+    <string name="classes_availabe_here">Classes Available Here</string>
+    <string name="reviews">Reviews</string>
+    <string name="zero">0</string>
+    <string name="bookmarks">Bookmarks</string>
+    <string name="not_found">Not Found</string>
+    <string name="category">Category</string>
+    <string name="board">Board</string>
+    <string name="type">Type</string>
+    <string name="facilities">Facilities Provided Here</string>
+    <string name="extracurricular">Extracurricular Activities Done Here</string>
+    <string name="key_features">Key Features</string>
+    <string name="checked">checked item</string>
+    <string name="km"> %1$d km</string>
+    <string name="edit">Edit</string>
+    <string name="cancel">Cancel</string>
+    <string name="edit_facilities_text">Click to edit facilities here.</string>
+    <string name="edit_extra_text">Click to edit extracurricular activities here.</string>
+    <string name="save">Save</string>
+    <string name="add_photos">Add Photos</string>
+    <string name="give_heading">Give Heading*</string>
+    <string name="heading">Heading</string>
+    <string name="describe">Describe</string>
+    <string name="write_blog_here">Write Blog Here</string>
+    <string name="add_your_school">Add Your School Here</string>
+    <string name="add_your_music_place">Add Your Music Place</string>
+    <string name="add_your_music_place_here">Add Your Music Place Here!</string>
+    <string name="choose_location">Choose Location</string>
+    <string name="choose_singing_genres">Choose Singing Genres</string>
+    <string name="choose_dancing_genres">Choose Dancing Genres</string>
+    <string name="choose_instruments">Choose Instruments</string>
+    <string name="search">Search</string>
+    <string name="choose_facilities">Choose facilities from options available below.</string>
+    <string name="check_special_facilites">Check if these facilities are available in your school.</string>
+    <string name="add_own_facilities">Add your own facilities by clicking on the plus icon.</string>
+    <string name="choose_extracurricular_activities">Choose extracurricular activities from options available below.</string>
+    <string name="add_your_own_extracurricular_activities">Add your own extracurricular activities by clicking on the plus icon(can be clicked multiple times).</string>
+    <string name="add_own_genres">Add your own genres if it is not available here by clicking on the plus icon(can be clicked multiple times).</string>
+    <string name="dancing_genres">Dance Genres</string>
+    <string name="edit_genres">Click To Edit Genres</string>
+    <string name="singing_genres">Singing Genres</string>
+    <string name="instruments_genres">Instruments Genres</string>
+    <string name="search_not_found">Search Not Found</string>
+    <string name="other_genres">Other Genres</string>
+    <string name="write_blog">Write Blog</string>
+    <string name="sorry_nearby_text">Sorry ! We do not have anything to show at this location. 😞</string>
+    <string name="logo">Logo</string>
+    <string name="app_tag_line">Find And Advertise Educational Places Here</string>
+    <string name="loging_background">Loging Background</string>
+    <string name="add_your_coaching">Add Your Coaching Here</string>
+    <string name="add_your_sports">Add Your Sports Center Here</string>
+    <string name="add_your_art">Add Your Art Classes Here</string>
+    <string name="add_tutors">Add Private/Home Tutors Here</string>
+    <string name="add_own_types">Add your own types if it is not available here by clicking on the plus icon(can be clicked multiple times).</string>
+    <string name="choose_types">Choose Types Of Classes Available Here</string>
+    <string name="choose_type">Choose Type</string>
+    <string name="choose_gender">Choose Gender</string>
+    <string name="classes_type">Types of Classes Available Here</string>
+    <string name="edit_classes_type">Edit Types of Classes</string>
+    <string name="type_description_image">Type Description Image</string>
+    <string name="listActivity_not_found_text2">Please try searching in another location.</string>
+    <string name="edit_your_profile">Edit Your Profile</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="posts">Posts</string>
+    <string name="following">Following</string>
+    <string name="followers">Followers</string>
+    <string name="profile_pic">Profile Pic</string>
+    <string name="filter_by">Filter By</string>
+    <string name="apply">Apply</string>
 
 </resources>

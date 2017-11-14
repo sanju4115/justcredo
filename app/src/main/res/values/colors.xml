@@ -7,7 +7,15 @@
     <color name="colorPrimaryText">#212121</color>
     <color name="colorSecondaryText">#757575</color>
     <color name="colorIcons">#FFFFFF</color>
-    <color name="colorDivider">#f7f8f9</color>
+    <color name="colorDivider">#eaeef2</color>
+    <!--<color name="colorPrimary">#607D8B</color>
+    <color name="colorPrimaryDark">#455A64</color>
+    <color name="colorPrimaryLight">#CFD8DC</color>
+    <color name="colorAccent">#FF5252</color>
+    <color name="colorPrimaryText">#212121</color>
+    <color name="colorSecondaryText">#757575</color>
+    <color name="colorIcons">#FFFFFF</color>
+    <color name="colorDivider">#BDBDBD</color>-->
     <color name="tagColor">#cfd0d1</color>
 
 
@@ -52,6 +60,10 @@
 
     <color name="pressed_color">@color/colorAccent</color>
     <color name="default_color">@color/colorIcons</color>
+
+    <color name="holo_blue_dark">#ff0099cc</color>
+    <color name="view_divider_color">#BABABA</color>
+    <color name="view_divider_color_2">#DADADA</color>
 
 </resources>
 

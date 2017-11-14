@@ -17,8 +17,7 @@ import com.credolabs.justcredo.utility.CustomRatingBar;
  * Created by Sanjay kumar on 4/1/2017.
  */
 
-public class ObjectListViewHolder extends RecyclerView.ViewHolder implements
-        View.OnClickListener {
+public class ObjectListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
     // View holder for list recycler view as we used in listview
     public TextView school_name, school_address, school_review, distance, phone, website;
     public CustomRatingBar rating;
@@ -65,8 +64,7 @@ public class ObjectListViewHolder extends RecyclerView.ViewHolder implements
     }
 
     // Setter for listener
-    public void setClickListener(
-            RecyclerViewOnClickListener.OnClickListener onClickListener) {
+    public void setClickListener(RecyclerViewOnClickListener.OnClickListener onClickListener) {
         this.onClickListener = onClickListener;
     }
 

@@ -151,12 +151,6 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
                 // for school description
                 TextView schoolDescription = (TextView) findViewById(R.id.description);
                 schoolDescription.setText(model.getDescription());
-                TextView schoolCategory = (TextView) findViewById(R.id.category);
-                TextView schoolMedium = (TextView) findViewById(R.id.medium);
-                TextView schoolGender = (TextView) findViewById(R.id.gender);
-                schoolCategory.setText(String.valueOf(model.getCategories().values()));
-                schoolMedium.setText("medium");
-                schoolGender.setText("gender");
 
 
                 // rating and review section
@@ -355,17 +349,17 @@ public class DetailedObjectActivity extends AppCompatActivity implements ImageFr
                 if (model.getSports()!=null){
                     ArrayList<String> sports = new ArrayList<String>(model.getSports().values());
                     FacilitiesAdapter sportsAdapter = new FacilitiesAdapter(DetailedObjectActivity.this,sports);
-                    LinearLayout sportsLinearLayout = (LinearLayout) findViewById(R.id.linear_layout_sports);
+                    //LinearLayout sportsLinearLayout = (LinearLayout) findViewById(R.id.linear_layout_sports);
                     if (sports.size()>0) {
                         adapterCount = sportsAdapter.getCount();
                         for (int i = 0; i < adapterCount; i++) {
                             View item = sportsAdapter.getView(i, null, null);
-                            sportsLinearLayout.addView(item);
+                           // sportsLinearLayout.addView(item);
                         }
                     }
                 }else {
-                    LinearLayout sportsSection = (LinearLayout) findViewById(R.id.sports_section);
-                    sportsSection.setVisibility(View.GONE);
+                    ////LinearLayout sportsSection = (LinearLayout) findViewById(R.id.sports_section);
+                    //sportsSection.setVisibility(View.GONE);
                 }
 
 

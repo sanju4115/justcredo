@@ -12,9 +12,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,74 +21,72 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.Cache;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
+import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.adapters.CategoryAdapter;
-import com.credolabs.justcredo.adapters.TransformerAdapter;
+import com.credolabs.justcredo.adapters.HorizontalViewAdapter;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.CategoryModel;
+import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.newplace.PlaceTypes;
+import com.credolabs.justcredo.sliderlayout.CirclePageIndicator;
+import com.credolabs.justcredo.sliderlayout.ImageSlideAdapter;
+import com.credolabs.justcredo.sliderlayout.SponsoredAdapter;
 import com.credolabs.justcredo.utility.Constants;
-import com.credolabs.justcredo.utility.UserLocation;
+import com.credolabs.justcredo.utility.ExpandableHeightGridView;
 import com.credolabs.justcredo.utility.Util;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
-import com.credolabs.justcredo.utility.VolleySingleton;
-import com.daimajia.slider.library.Animations.DescriptionAnimation;
-import com.daimajia.slider.library.SliderLayout;
-import com.daimajia.slider.library.SliderTypes.BaseSliderView;
-import com.daimajia.slider.library.SliderTypes.TextSliderView;
-import com.daimajia.slider.library.Tricks.ViewPagerEx;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.gson.Gson;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicReference;
 
 
-
-public class CategoryFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener,BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener {
-    private GoogleApiClient mGoogleApiClient;
+public class CategoryFragment extends Fragment {
     private String GETCATEGORYHIT = "categories_hit";
     private VolleyJSONRequest request;
     private Handler handler;
     private ArrayList<CategoryModel> categories;
     private SharedPreferences sharedPreferences;
-    private ProgressBar progressBar;
     private TextView locationView;
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private CategoryModel[] data;
     private static final String URL_FEED = "0:"+Constants.CATEGORY_URL;
-    private SliderLayout mDemoSlider;
-    private DatabaseReference mReferenceCategories;
+    private static int currentPage = 0;
+    private static int sponsoredCurrentPage =0;
+    private SponsoredAdapter horizontalViewAdapter;
+    private ViewPager sponsored_view_pager;
+    private CirclePageIndicator sponsored_indicator;
 
-    // TODO: Rename and change types of parameters
+
     private String mParam1;
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+    private ArrayList<School> schoolsList;
+    private Handler handler2;
+    private Runnable Update2;
+    private Timer swipeTimer2;
 
     public CategoryFragment() {
-        // Required empty public constructor
     }
 
 
@@ -116,18 +113,53 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+        final View view = inflater.inflate(R.layout.fragment_category, container, false);
+        ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.progress);
+        progressBar.setVisibility(View.VISIBLE);
 
-        //setContentView(R.layout.activity_category);
-        View view = inflater.inflate(R.layout.fragment_category, container, false);
-        progressBar = (ProgressBar)view.findViewById(R.id.progress);
-        mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories");
-        mReferenceCategories.addValueEventListener(new ValueEventListener() {
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+
+        final LinearLayout searchLayout = (LinearLayout) view.findViewById(R.id.search_bar_view);
+        EditText editText = (EditText) view.findViewById(R.id.adressText);
+        editText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), SearchActivity.class);
+                ActivityOptionsCompat options = ActivityOptionsCompat.
+                        makeSceneTransitionAnimation(getActivity(), (View)searchLayout, "search_bar");
+                startActivity(intent, options.toBundle());
+            }
+        });
+
+
+        // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
+        MobileAds.initialize(getActivity(), "ca-app-pub-3940256099942544~3347511713");
+        AdView mAdView = (AdView) view.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().addTestDevice("79824E5B159FF8F9CEE8BBF2FFEF89AC").build();
+        mAdView.loadAd(adRequest);
+        final ProgressBar progress_ad = (ProgressBar) view.findViewById(R.id.progress_ad);
+        mAdView.setAdListener(new AdListener(){
+            @Override
+            public void onAdLoaded() {
+                progress_ad.setVisibility(View.GONE);
+            }
+        });
+
+        final ArrayList<CategoryModel> categoryModelArrayList = new ArrayList<>();
+
+        final ExpandableHeightGridView categoryListView = (ExpandableHeightGridView) view.findViewById(R.id.category_list);
+        DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories").child("schools");
+        mReferenceCategories.keepSynced(true);
+        mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                categoryModelArrayList.clear();
                 for (DataSnapshot category: dataSnapshot.getChildren()) {
-
+                    CategoryModel cat = category.getValue(CategoryModel.class);
+                    categoryModelArrayList.add(cat);
                 }
+                CategoryAdapter categoryAdapter = new CategoryAdapter(getActivity().getApplicationContext(), categoryModelArrayList);
+                categoryListView.setAdapter(categoryAdapter);
             }
 
             @Override
@@ -136,89 +168,53 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
             }
         });
 
-        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
-
-        final LinearLayout searchLayout = (LinearLayout) view.findViewById(R.id.search_bar_view);
-        EditText editText = (EditText) view.findViewById(R.id.adressText);
-        editText.setOnClickListener(new View.OnClickListener() {
+        categoryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), SearchActivity.class);
-                // Pass data object in the bundle and populate details activity.
-                //intent.putExtra(getActivity().EXTRA_CONTACT, contact);
-                ActivityOptionsCompat options = ActivityOptionsCompat.
-                        makeSceneTransitionAnimation(getActivity(), (View)searchLayout, "search_bar");
-                startActivity(intent, options.toBundle());
-            }
-        });
-
-
-        //for banner slider
-        mDemoSlider = (SliderLayout) view.findViewById(R.id.slider);
-
-        final HashMap<String,String> url_maps = new HashMap<String, String>();
-        url_maps.put("Vidya Mandir", "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/Photos%2F152843-2017-10-01+13%3A34%3A10.271?alt=media&token=31f151fc-c7f1-47ba-8962-780690f0b186");
-        url_maps.put("Gyananda Public School", "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/Photos%2F152844-2017-10-01+13%3A34%3A10.324?alt=media&token=aba81a74-1af6-4194-8238-6b2a4158dade");
-        url_maps.put("kv khargone", "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/Photos%2F152846-2017-10-01+13%3A34%3A10.377?alt=media&token=260b39b0-9a30-4984-9efe-73f374abf486");
-        url_maps.put("GEMS Public School", "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/Photos%2F152845-2017-10-01+13%3A34%3A10.349?alt=media&token=03ef2ca8-3ed4-4478-955f-39280f4e6365");
-
-        for(String name : url_maps.keySet()){
-            TextSliderView textSliderView = new TextSliderView(getActivity());
-            // initialize a SliderLayout
-            textSliderView
-                    .description(name)
-                    .image(url_maps.get(name))
-                    .setScaleType(BaseSliderView.ScaleType.Fit)
-                    .setOnSliderClickListener(this);
-
-            //add your extra information
-            textSliderView.bundle(new Bundle());
-            textSliderView.getBundle()
-                    .putString("extra",name);
-
-            mDemoSlider.addSlider(textSliderView);
-        }
-        mDemoSlider.setPresetTransformer(SliderLayout.Transformer.Default);
-        mDemoSlider.setPresetIndicator(SliderLayout.PresetIndicators.Center_Bottom);
-        mDemoSlider.setCustomAnimation(new DescriptionAnimation());
-        mDemoSlider.setDuration(4000);
-        mDemoSlider.addOnPageChangeListener(this);
-        TextView visit = (TextView) view.findViewById(R.id.visit);
-
-        // to visit sponsored contents
-        visit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int i = mDemoSlider.getCurrentPosition();
-                List<String> list = new ArrayList<>(url_maps.keySet());
-                Toast.makeText(getActivity(), url_maps.get(list.get(i)), Toast.LENGTH_SHORT).show();
-
-            }
-        });
-
-
-        Button getSchoolsCategoriesBtn = (Button) view.findViewById(R.id.getSchoolsCategories);
-        getSchoolsCategoriesBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(),CategoryWiseActivity.class);
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getActivity(),ObjectListActivity.class);
+                intent.putExtra("category",categoryModelArrayList.get(position).getName());
                 startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
             }
         });
 
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-        Fragment school = CategoryGridFragment.newInstance("schools","Learning Begins Here"," ");
-        transaction.add(R.id.fragment_container, school );
+        //Fragment school = CategoryGridFragment.newInstance("schools","Learning Begins Here"," ");
+        Fragment top_rated_school = HorizontalListViewFragment.newInstance("Top Schools", PlaceTypes.SCHOOLS.getValue());
+        Fragment top_rated_music = HorizontalListViewFragment.newInstance("Top Music Classes",PlaceTypes.MUSIC.getValue());
+        Fragment top_rated_sports = HorizontalListViewFragment.newInstance("Top Sports Classes",PlaceTypes.SPORTS.getValue());
+        Fragment top_rated_painting = HorizontalListViewFragment.newInstance("Top Art Classes",PlaceTypes.ART.getValue());
+        Fragment top_rated_coaching = HorizontalListViewFragment.newInstance("Top Coachings",PlaceTypes.COACHING.getValue());
+        Fragment top_rated_private_tutors = HorizontalListViewFragment.newInstance("Top Home Tutors",PlaceTypes.PrivateTutors.getValue());
+        transaction.add(R.id.fragment_container, top_rated_school );
+        transaction.add(R.id.fragment_container, top_rated_music );
+        transaction.add(R.id.fragment_container, top_rated_sports );
+        transaction.add(R.id.fragment_container, top_rated_painting );
+        transaction.add(R.id.fragment_container, top_rated_coaching );
+        transaction.add(R.id.fragment_container, top_rated_private_tutors );
+        transaction.add(R.id.fragment_container, new NearByFragment());
+        //transaction.add(R.id.fragment_container, school );
         transaction.commit();
 
+        /*sponsored_indicator = (CirclePageIndicator) view.findViewById(R.id.sponsored_indicator);
+        sponsored_view_pager = (ViewPager) view.findViewById(R.id.sponsored_view_pager);
+        handler2 = new Handler();
+        sponsoredCurrentPage =0;
+        Update2 = new Runnable() {
+            public void run() {
+                if (sponsoredCurrentPage == schoolsList.size()) {
+                    sponsoredCurrentPage = 0;
+                }
+                sponsored_view_pager.setCurrentItem(sponsoredCurrentPage++, true);
+            }
+        };
+        swipeTimer2 = new Timer();
+        buildSponsoredSection();*/
+        progressBar.setVisibility(View.GONE);
 
         return view;
     }
+
 
 
     //for building gridview for the categories list
@@ -234,8 +230,6 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
 
 
 
-
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -259,100 +253,13 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
         mListener = null;
     }
 
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
-
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    public void onSliderClick(BaseSliderView slider) {
-
-    }
-
-    /**
-     * This method will be invoked when the current page is scrolled, either as part
-     * of a programmatically initiated smooth scroll or a user initiated touch scroll.
-     *
-     * @param position             Position index of the first page currently being displayed.
-     *                             Page position+1 will be visible if positionOffset is nonzero.
-     * @param positionOffset       Value from [0, 1) indicating the offset from the page at position.
-     * @param positionOffsetPixels Value in pixels indicating the offset from position.
-     */
-    @Override
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-    }
-
-    /**
-     * This method will be invoked when a new page becomes selected. Animation is not
-     * necessarily complete.
-     *
-     * @param position Position index of the new selected page.
-     */
-    @Override
-    public void onPageSelected(int position) {
-    }
-
-    /**
-     * Called when the scroll state changes. Useful for discovering when the user
-     * begins dragging, when the pager is automatically settling to the current page,
-     * or when it is fully stopped/idle.
-     *
-     * @param state The new scroll state.
-     * @see ViewPagerEx#SCROLL_STATE_IDLE
-     * @see ViewPagerEx#SCROLL_STATE_DRAGGING
-     * @see ViewPagerEx#SCROLL_STATE_SETTLING
-     */
-    @Override
-    public void onPageScrollStateChanged(int state) {
-
-    }
-
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
-
     }
 
     @Override
@@ -362,8 +269,73 @@ public class CategoryFragment extends Fragment implements GoogleApiClient.Connec
 
     @Override
     public void onStop() {
-        mDemoSlider.stopAutoCycle();
         super.onStop();
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        //buildSponsoredSection();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+/*
+    private void buildSponsoredSection() {
+        DatabaseReference mDatabaseSchoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
+        mDatabaseSchoolReference.keepSynced(true);
+
+        schoolsList = new ArrayList<>();
+        horizontalViewAdapter = new SponsoredAdapter(getActivity(),schoolsList, Glide.with(getActivity()));
+
+        sponsored_view_pager.setAdapter(horizontalViewAdapter);
+        sponsored_indicator.setViewPager(sponsored_view_pager);
+        sponsored_indicator.setRadius(0.0f);
+        sponsored_view_pager.setVisibility(View.GONE);
+        String addressCity="";
+        final HashMap<String,String> addressHashMap = Util.getCurrentUSerAddress(getActivity());
+        if (addressHashMap.get("addressCity")!=null){
+            if (addressHashMap.get("addressCity").trim().equalsIgnoreCase("Gurgaon")){
+                addressCity = "Gurugram";
+            }else{
+                addressCity = addressHashMap.get("addressCity").trim();
+            }
+        }
+
+        schoolsList.clear();
+        mDatabaseSchoolReference.orderByChild("address/addressCity").equalTo(addressCity).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                schoolsList.clear();
+                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
+                    School place = noteDataSnapshot.getValue(School.class);
+                    schoolsList.add(place);
+                }
+
+                if (schoolsList.size() > 0 ) {
+                    sponsored_view_pager.setVisibility(View.VISIBLE);
+                    horizontalViewAdapter.notifyDataSetChanged();
+                    swipeTimer2.scheduleAtFixedRate(new TimerTask() {
+                        @Override
+                        public void run() {
+                            handler2.post(Update2);
+                        }
+                    }, 4000, 4000);
+                }
+
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+*/
 
 }

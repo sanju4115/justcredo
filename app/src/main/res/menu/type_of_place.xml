@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/school"
+        android:title="@string/add_your_school" />
+    <item android:id="@+id/coaching"
+        android:title="@string/add_your_coaching" />
+    <item android:id="@+id/music"
+        android:title="@string/add_your_music_place" />
+    <item android:id="@+id/sports"
+        android:title="@string/add_your_sports" />
+    <item android:id="@+id/arts"
+        android:title="@string/add_your_art" />
+    <item android:id="@+id/tutors"
+        android:title="@string/add_tutors" />
+</menu>

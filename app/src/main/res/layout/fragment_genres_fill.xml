@@ -1,0 +1,90 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context="com.credolabs.justcredo.newplace.NewPlace">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card"
+            android:id="@+id/add"
+            android:text="@string/add_own_genres"
+            android:drawableEnd="@drawable/ic_library_add_green_24dp"
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/extra_genres"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card"
+            android:text="@string/choose_singing_genres"
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold" />
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:id="@+id/singing_genres"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:numColumns="2" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card"
+            android:text="@string/choose_dancing_genres"
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold" />
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:id="@+id/dances_genres"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:numColumns="2" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card"
+            android:text="@string/choose_instruments"
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold" />
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:id="@+id/instruments_genres"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="50dp"
+            android:numColumns="2" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card"
+            android:text="@string/other_genres"
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold" />
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:id="@+id/other_genres_gridview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:numColumns="2" />
+
+    </LinearLayout>
+
+
+</ScrollView >

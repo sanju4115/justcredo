@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.R;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.utility.Util;
 import com.credolabs.justcredo.utility.WorkaroundMapFragment;
@@ -71,6 +72,7 @@ public class SchoolAddressFragment extends Fragment implements OnMapReadyCallbac
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_school_address, container, false);
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
         //Address section
         TextView schoolAddressSecton = (TextView) view.findViewById(R.id.school_address_locality);
         schoolAddressSecton.setText(Util.getAddress(model.getAddress()));
@@ -159,9 +161,13 @@ public class SchoolAddressFragment extends Fragment implements OnMapReadyCallbac
     public void onResume() {
         super.onResume();
         mMapView.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+
     }
     @Override
     public void onDestroyView() {
         super.onDestroyView();
     }
+
+
 }

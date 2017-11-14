@@ -1,99 +1,202 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/colorIcons"
-    android:padding="10dp"
-    android:layout_marginBottom="5dp"
-    >
+    android:layout_height="wrap_content"
+    android:id="@+id/content">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:layout_gravity="end"
+        android:visibility="gone"
+        android:id="@+id/edit_facilities_section">
+
+        <Button
+            android:id="@+id/edit_facilities"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="true"
+            android:textSize="12sp"
+            android:text="@string/edit_facilities_text"
+            />
 
         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:id="@+id/save_cancel">
+
+            <Button
+                android:id="@+id/save_facilities"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="true"
+                android:textSize="12sp"
+                android:text="@string/save"
+                />
+
+            <Button
+                android:id="@+id/cancel_facilities"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="true"
+                android:textSize="12sp"
+                android:text="@string/cancel"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@+id/edit_facilities_section"
+        android:background="@color/colorIcons"
+        android:layout_marginBottom="5dp"
+        android:padding="10dp"
+        android:id="@+id/specialFacilities_section">
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@string/key_features"
+            android:textColor="@color/colorPrimaryText" />
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:id="@+id/linear_layout_specialFacilities"
+            android:numColumns="auto_fit"
+            android:gravity="center"
+            android:layout_marginBottom="50dp"
+            android:stretchMode="columnWidth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+    </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginRight="5dp"
+            android:layout_below="@+id/specialFacilities_section"
+            android:background="@color/colorIcons"
+            android:layout_marginBottom="5dp"
+            android:padding="10dp"
             android:id="@+id/facilities_section">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Facilities"
-                android:textColor="@color/colorPrimaryText"
-                />
+                android:textStyle="bold"
+                android:text="@string/facilities"
+                android:textColor="@color/colorPrimaryText" />
 
-            <!--<ListView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/facilities"/>-->
+            <com.credolabs.justcredo.utility.ExpandableHeightGridView
+                android:id="@+id/linear_layout_facilities"
+                android:numColumns="auto_fit"
+                android:gravity="center"
+                android:layout_marginBottom="50dp"
+                android:stretchMode="columnWidth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginRight="5dp"
-                android:id="@+id/linear_layout_facilities">
-
-            </LinearLayout>
 
         </LinearLayout>
 
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="end"
+        android:visibility="gone"
+        android:layout_below="@+id/facilities_section"
+        android:id="@+id/edit_extra_section">
+
+        <Button
+            android:id="@+id/edit_extra"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="true"
+            android:textSize="12sp"
+            android:text="@string/edit_extra_text"
+            />
+
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:id="@+id/save_cancel_extra">
+
+            <Button
+                android:id="@+id/save_extra"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="true"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:text="@string/save"
+                />
+
+            <Button
+                android:id="@+id/cancel_extra"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="true"
+                android:textSize="12sp"
+                android:layout_weight="1"
+                android:visibility="visible"
+                android:text="@string/cancel"
+                />
+
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginRight="5dp"
+            android:layout_marginBottom="5dp"
+            android:padding="10dp"
+            android:background="@color/colorIcons"
+            android:layout_below="@+id/edit_extra_section"
             android:id="@+id/curricular_section"
             >
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Extracurricular"
+                android:text="@string/extracurricular"
+                android:textStyle="bold"
                 android:textColor="@color/colorPrimaryText"
                 />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginRight="5dp"
-                android:id="@+id/linear_layout_curriculumn">
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:id="@+id/sports_section"
-            >
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sports"
-                android:textColor="@color/colorPrimaryText"
-                />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginRight="5dp"
-                android:id="@+id/linear_layout_sports">
-
-            </LinearLayout>
+            <com.credolabs.justcredo.utility.ExpandableHeightGridView
+                android:id="@+id/linear_layout_curriculumn"
+                android:numColumns="auto_fit"
+                android:gravity="center"
+                android:layout_marginBottom="50dp"
+                android:stretchMode="columnWidth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
         </LinearLayout>
-    </LinearLayout>
 </RelativeLayout>

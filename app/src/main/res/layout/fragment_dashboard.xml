@@ -2,23 +2,33 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.credolabs.justcredo.DashboarfFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.credolabs.justcredo.dashboard.DashboardFragment">
 
-    <android.support.v7.widget.RecyclerView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/review_list"
-        android:background="@color/tagColor"/>
-
-    <ProgressBar
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progress"
-        android:layout_gravity="center"
-        android:indeterminate="true"
-        style="?android:attr/progressBarStyleLarge"
-        />
+        android:orientation="vertical">
 
-    <include layout="@layout/search_not_found" />
+        <android.support.design.widget.TabLayout
+            style="Widget.Design.TabLayout"
+            android:background="@color/colorPrimary"
+            app:tabMode="scrollable"
+            android:id="@+id/profile_tablayout"
+            app:tabIndicatorColor="@color/colorIcons"
+            android:gravity="bottom"
+            app:tabTextColor="#a8a8a8"
+            app:tabIndicatorHeight="5dp"
+            app:tabSelectedTextColor="@color/colorIcons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/profile_viewPager"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
 
 </FrameLayout>

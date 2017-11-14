@@ -24,8 +24,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.credolabs.justcredo.R;
+import com.credolabs.justcredo.internet.ConnectionUtil;
+import com.credolabs.justcredo.utility.CustomToast;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -91,9 +95,25 @@ public class SchoolGalleryFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_school_gallery, container, false);
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+
+        final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
+        final TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
+        final TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
+
+        not_found_text1.setText("No Photos For this place!");
+        not_found_text2.setVisibility(View.GONE);
 
         recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         recycler_view_new = (RecyclerView) view.findViewById(R.id.recycler_view_new);
+        if (images.size()==0){
+            not_found.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        }else {
+            not_found.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+        }
+
 
         mAdapter = new GalleryAdapter(getActivity(), images);
 
@@ -104,6 +124,7 @@ public class SchoolGalleryFragment extends Fragment {
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
+
 
         RecyclerView.LayoutManager mLayoutManagerNew = new GridLayoutManager(getActivity(), 3);
         recycler_view_new.setLayoutManager(mLayoutManagerNew);
@@ -117,7 +138,7 @@ public class SchoolGalleryFragment extends Fragment {
         linearLayoutEdit = (LinearLayout) view.findViewById(R.id.linearLayoutEdit);
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
-        if (user.getUid().equals(uid)){
+        if (user != null && user.getUid().equals(uid)){
             linearLayoutEdit.setVisibility(View.VISIBLE);
             Button add_photos_school = (Button) view.findViewById(R.id.add_photos_school);
             add_photos_school.setOnClickListener(new View.OnClickListener() {
@@ -142,44 +163,49 @@ public class SchoolGalleryFragment extends Fragment {
             btnSaveImages.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mProgressDialog.setMessage("Uploading Photos");
-                    mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                    mProgressDialog.setIndeterminate(true);
-                    mProgressDialog.setCancelable(false);
-                    mProgressDialog.show();
-                    final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("schools").child(schoolId);
-                    StorageReference mStorageReference = FirebaseStorage.getInstance().getReference().child("school_photos");
-                    StorageReference filepath;
-                    for (final Map.Entry entry : hmap.entrySet()) {
-                        Uri uri = (Uri) entry.getValue();
-                        filepath = mStorageReference.child(schoolId).child(uri.getLastPathSegment()+"-"+new Timestamp(System.currentTimeMillis()));
-                        filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                @SuppressWarnings("VisibleForTests") Uri downloadURI = taskSnapshot.getDownloadUrl();
-                                databaseReference.child("images").push().setValue(downloadURI.toString());
+                    if (hmap.size()>0) {
+                        mProgressDialog.setMessage("Uploading Photos");
+                        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                        mProgressDialog.setIndeterminate(true);
+                        mProgressDialog.setCancelable(false);
+                        mProgressDialog.show();
+                        final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("schools").child(schoolId);
+                        StorageReference mStorageReference = FirebaseStorage.getInstance().getReference().child("school_photos");
+                        StorageReference filepath;
+                        for (final Map.Entry entry : hmap.entrySet()) {
+                            Uri uri = (Uri) entry.getValue();
+                            filepath = mStorageReference.child(schoolId).child(uri.getLastPathSegment() + "-" + new Timestamp(System.currentTimeMillis()));
+                            filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                    @SuppressWarnings("VisibleForTests") Uri downloadURI = taskSnapshot.getDownloadUrl();
+                                    databaseReference.child("images").push().setValue(downloadURI.toString());
 
-                                if (entry.equals(hmap.lastEntry())) {
-                                    mProgressDialog.dismiss();
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(
-                                            getActivity());
-                                    builder.setCancelable(true);
-                                    builder.setMessage("Congrats, your photos posted successfully ! Once we review it we will post it live.");
-                                    builder.setPositiveButton("Ok",
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog,
-                                                                    int which) {
-                                                    imagesNew.clear();
-                                                    mAdapterNew.notifyDataSetChanged();
-                                                   dialog.dismiss();
-                                                }
-                                            });
-                                    AlertDialog alert = builder.create();
-                                    alert.show();
+                                    if (entry.equals(hmap.lastEntry())) {
+                                        mProgressDialog.dismiss();
+                                        AlertDialog.Builder builder = new AlertDialog.Builder(
+                                                getActivity());
+                                        builder.setCancelable(true);
+                                        builder.setMessage("Congrats, your photos posted successfully ! Once we review it we will post it live.");
+                                        builder.setPositiveButton("Ok",
+                                                new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog,
+                                                                        int which) {
+                                                        imagesNew.clear();
+                                                        mAdapterNew.notifyDataSetChanged();
+                                                        dialog.dismiss();
+                                                    }
+                                                });
+                                        AlertDialog alert = builder.create();
+                                        alert.show();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                    }else {
+                        new CustomToast().Show_Toast(getActivity(),
+                                "Please add atleast one photo to save.");
                     }
                 }
             });
@@ -233,5 +259,11 @@ public class SchoolGalleryFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 }

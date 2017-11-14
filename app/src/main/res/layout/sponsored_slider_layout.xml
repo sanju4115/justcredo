@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="5dp"
+    android:id="@+id/listLayout"
+    android:layout_margin="5dp"
+    android:background="@drawable/border">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageFrame">
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:id="@+id/image_progress"
+                style="?android:attr/progressBarStyleSmall"
+                />
+
+            <ImageView
+                android:id="@+id/coverImageView"
+                android:layout_width="match_parent"
+                android:scaleType="centerCrop"
+                android:layout_height="250dp"/>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="@drawable/shape_scrim"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_alignParentStart="true"
+                        android:padding="3dp">
+
+                        <TextView
+                            android:id="@+id/titleTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:maxEms="10"
+                            android:maxLines="1"
+                            android:textStyle="bold"
+                            android:textColor="@color/colorIcons"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/grid_address"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:maxEms="10"
+                            android:textColor="@color/colorIcons"
+                            android:maxLines="1"
+                            android:textSize="12sp" />
+
+                        <LinearLayout
+                            android:id="@+id/mobileNumberLayout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <android.support.v7.widget.AppCompatImageView
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:tint="@color/colorIcons"
+                                android:layout_marginEnd="@dimen/dimen_2dp"
+                                android:layout_marginTop="@dimen/dimen_2dp"
+                                app:srcCompat="@drawable/ic_local_phone_green_24dp" />
+
+                            <TextView
+                                android:id="@+id/mobileNumber"
+                                android:textColor="@color/colorIcons"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="9sp" />
+
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_alignParentEnd="true"
+                        android:padding="3dp">
+
+                    <LinearLayout
+                        android:id="@+id/websiteLayout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <android.support.v7.widget.AppCompatImageView
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:tint="@color/colorIcons"
+                            android:layout_marginEnd="@dimen/dimen_2dp"
+                            android:layout_marginTop="@dimen/dimen_4dp"
+                            app:srcCompat="@drawable/ic_web" />
+
+                        <TextView
+                            android:id="@+id/website"
+                            android:textColor="@color/colorIcons"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:maxLines="1"
+                            android:maxEms="10"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dimen_4dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/school_review"
+                            android:textColor="@color/colorIcons"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingRight="2dp"
+                            android:text="0"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:maxLines="1"
+                            android:maxEms="10"
+                            android:text="Reviews,"
+                            android:textColor="@color/colorIcons"
+                            android:textSize="12sp" />
+
+                        <android.support.v7.widget.AppCompatImageView
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_gravity="center"
+                            android:layout_margin="2dp"
+                            android:tint="@color/colorIcons"
+                            app:srcCompat="@drawable/ic_location_on_green" />
+
+                        <TextView
+                            android:id="@+id/distance"
+                            android:textColor="@color/colorIcons"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+                        <LinearLayout
+                            android:id="@+id/latest_news"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <android.support.v7.widget.AppCompatImageView
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:tint="@color/red"
+                                android:layout_marginEnd="@dimen/dimen_2dp"
+                                android:layout_marginTop="@dimen/dimen_2dp"
+                                app:srcCompat="@drawable/ic_notification" />
+
+                            <TextView
+                                android:id="@+id/text_news"
+                                android:textColor="@color/red"
+                                android:textStyle="bold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Admission Open"
+                                android:textSize="12sp" />
+
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </RelativeLayout>
+            </FrameLayout>
+        </FrameLayout>
+        <TextView
+            android:text="3.5"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:textSize="12sp"
+            android:padding="2dp"
+            android:gravity="center"
+            android:background="@color/colorAccent"
+            android:textColor="@color/colorIcons"
+            android:id="@+id/rating"/>
+
+
+
+    </RelativeLayout>
+
+
+
+
+
+</LinearLayout>

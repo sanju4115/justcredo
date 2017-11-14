@@ -22,7 +22,10 @@ import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.target.Target;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
+import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,6 +34,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormatSymbols;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -108,6 +113,18 @@ public class Util {
 
     public static void loadImageWithGlide(RequestManager glide, String internetUrl, ImageView targetImageView){
         glide.load(internetUrl)
+                .listener(new RequestListener<String, GlideDrawable>() {
+                    @Override
+                    public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
+                        return false; // important to return false so the error placeholder can be placed
+                    }
+
+                    @Override
+                    public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                        return false;
+                    }
+
+                })
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .error(R.drawable.ic_nocover).into(targetImageView);
     }
@@ -144,20 +161,33 @@ public class Util {
     }
 
     public static String getAddress(HashMap<String,String> address){
-        String subLocality="", locality= "",city = "",state="";
-        if (address.get("addressLine2")!= null){
-            locality = address.get("addressLine2");
+        String subLocality = address.get("addressLine1"),
+                locality = address.get("addressLine2"),
+                city = address.get("addressCity"),
+                state = address.get("addressState");
+        String addressString = "";
+        if (locality!= null && !locality.equals("")){
+            addressString = addressString.concat(locality);
         }
-        if (address.get("addressLine1")!= null){
-            subLocality = address.get("addressLine1");
+        if (subLocality!= null && !subLocality.equals("")){
+            if (!addressString.equals("")){
+                addressString = addressString.concat(", ");
+            }
+            addressString = addressString.concat(subLocality);
         }
-        if (address.get("addressCity")!= null){
-            city = address.get("addressCity");
+        if (city!= null && !city.equals("")){
+            if (!addressString.equals("")){
+                addressString = addressString.concat(", ");
+            }
+            addressString = addressString.concat(city);
         }
-        if (address.get("addressState")!= null){
-            state = address.get("addressState");
+        if (state!= null && !state.equals("")){
+            if (!addressString.equals("")){
+                addressString = addressString.concat(", ");
+            }
+            addressString = addressString.concat(state);
         }
-        return (locality + ", "+subLocality+", "+ city + ", "+ state);
+        return addressString;
     }
 
     public static String getFirstImage(HashMap<String, String> images){
@@ -219,5 +249,63 @@ public class Util {
             j++;
         }
         return currentAddress;
+    }
+
+    public static String timeDifference(String dateStart, String time){
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
+        String dateStop = format.format(new java.util.Date());
+
+        Date d1 = null;
+        Date d2 = null;
+
+        try {
+            d1 = format.parse(dateStart);
+            d2 = format.parse(dateStop);
+            //in milliseconds
+            long diff = d2.getTime() - d1.getTime();
+
+            int diffSeconds = (int) (diff / 1000 % 60);
+            int diffMinutes = (int) (diff / (60 * 1000) % 60);
+            int diffHours = (int) (diff / (60 * 60 * 1000) % 24);
+            int diffDays = (int) (diff / (24 * 60 * 60 * 1000));
+
+            System.out.print(diffDays + " days, ");
+            System.out.print(diffHours + " hours, ");
+            System.out.print(diffMinutes + " minutes, ");
+            System.out.print(diffSeconds + " seconds.");
+            if (diffDays > 7){
+                return "on "+ time;
+            }else if (diffDays <= 7 && diffDays >1){
+                return diffDays + " days ago";
+            }else if (diffDays == 1){
+                return diffDays + " day ago";
+            }else if (diffHours > 1){
+                return diffHours + " hrs ago";
+            }else if (diffHours == 1){
+                return diffHours + " hr ago";//
+            }else if (diffMinutes > 1){
+                return diffMinutes + " mins ago";
+            }else if (diffMinutes == 1){
+                return diffMinutes + " min ago";
+            }else if (diffSeconds > 1){
+                return diffSeconds + " secs ago";
+            }else if (diffSeconds == 1){
+                return diffSeconds + " sec ago";
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "now";
+    }
+
+    public static boolean checkSchoolAdmin(School school) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (school.getUserID().equals(user.getUid())){
+            return true;
+        }
+
+        return false;
     }
 }

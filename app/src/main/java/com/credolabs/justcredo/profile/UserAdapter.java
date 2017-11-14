@@ -2,6 +2,7 @@ package com.credolabs.justcredo.profile;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.RecyclerView;
@@ -12,12 +13,15 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.R;
+import com.credolabs.justcredo.adapters.RecyclerViewOnClickListener;
 import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.model.User;
+import com.credolabs.justcredo.school.SchoolDetailActivity;
 import com.credolabs.justcredo.utility.NearByPlaces;
 import com.credolabs.justcredo.utility.Util;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,6 +30,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 
@@ -59,8 +64,21 @@ public class UserAdapter extends RecyclerView.Adapter<UserViewHolder> {
         model.buildUser( holder.user_followers,holder.user_following,null);
         Util.loadCircularImageWithGlide(context,model.getProfilePic(),holder.user_image);
         final FirebaseAuth auth = FirebaseAuth.getInstance();
-        holder.follow.setVisibility(View.VISIBLE);
         final String uid = auth.getCurrentUser().getUid();
+        if (model.getUid().equals(uid)){
+            holder.follow.setVisibility(View.GONE);
+        }else {
+            holder.follow.setVisibility(View.VISIBLE);
+            holder.setClickListener(new RecyclerViewOnClickListener.OnClickListener() {
+                @Override
+                public void OnItemClick(View view, int position) {
+                    Intent intent = new Intent(context,UserActivity.class);
+                    intent.putExtra("uid",modelArrayList.get(position).getUid());
+                    context.startActivity(intent);
+                    //context.overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+                }
+            });
+        }
         final DatabaseReference mFollowingReference = FirebaseDatabase.getInstance().getReference().child("following");
         mFollowingReference.child(uid).addValueEventListener(new ValueEventListener() {
             @Override
@@ -97,6 +115,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserViewHolder> {
                                             mFollowingReference.child(uid).child(model.getUid()).removeValue();
                                             mFollowerReference.child(model.getUid()).child(uid).removeValue();
                                             holder.follow.setImageResource(R.drawable.ic_person_add);
+                                            FirebaseMessaging.getInstance().unsubscribeFromTopic(model.getUid());
                                         }
                                     });
 
@@ -118,7 +137,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserViewHolder> {
                                     mFollowingReference.child(uid).child(model.getUid()).setValue(model.getName());
                                     mFollowerReference.child(model.getUid()).child(uid).setValue(user.getName());
                                     holder.follow.setImageResource(R.drawable.ic_person_black_24dp);
-
+                                    FirebaseMessaging.getInstance().subscribeToTopic(model.getUid());
+                                    User.prepareNotificationFollow(model,user);
                                 }
 
                                 @Override
@@ -137,6 +157,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserViewHolder> {
             }
         });
 
+
+
+
     }
     @Override
     public int getItemCount() {
@@ -147,12 +170,16 @@ public class UserAdapter extends RecyclerView.Adapter<UserViewHolder> {
 
 
 
-class UserViewHolder extends RecyclerView.ViewHolder {
+class UserViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
     public TextView user_name,user_followers,user_following;
     public ImageView user_image;
     public AppCompatImageView follow;
     public View profile_divider;
+    public RelativeLayout listLayout;
+
+    private RecyclerViewOnClickListener.OnClickListener onClickListener;
+
 
 
     public UserViewHolder(View convertView) {
@@ -163,6 +190,27 @@ class UserViewHolder extends RecyclerView.ViewHolder {
         user_image = (ImageView) convertView.findViewById(R.id.user_image);
         follow = (AppCompatImageView) convertView.findViewById(R.id.follow);
         profile_divider = convertView.findViewById(R.id.profile_divider);
+        this.listLayout = (RelativeLayout) convertView.findViewById(R.id.complete_profile_layout);
+
+        // Implement click listener over views that we need
+
+        this.listLayout.setOnClickListener(this);
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (onClickListener != null) {
+            onClickListener.OnItemClick(v, getAdapterPosition());
+
+        }
+
+    }
+
+    // Setter for listener
+    public void setClickListener(
+            RecyclerViewOnClickListener.OnClickListener onClickListener) {
+        this.onClickListener = onClickListener;
     }
 }
 

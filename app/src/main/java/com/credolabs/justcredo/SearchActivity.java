@@ -1,6 +1,5 @@
 package com.credolabs.justcredo;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
@@ -17,19 +16,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.credolabs.justcredo.adapters.CategoryAdapter;
 import com.credolabs.justcredo.adapters.SearchAdapter;
 import com.credolabs.justcredo.autocomplete.PickLocationActivity;
-import com.credolabs.justcredo.model.CategoryModel;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.Tag;
 import com.credolabs.justcredo.utility.Constants;
-import com.credolabs.justcredo.utility.Filtering;
+import com.credolabs.justcredo.search.Filtering;
 import com.credolabs.justcredo.utility.Util;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
@@ -68,6 +65,8 @@ public class SearchActivity extends AppCompatActivity implements FilterListener<
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_action_close);
+        ConnectionUtil.checkConnection(findViewById(R.id.placeSnackBar));
+
         getSupportActionBar().setTitle("");
         currentLocation = (TextView) findViewById(R.id.current_location);
         sharedPreferences = getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
@@ -213,6 +212,7 @@ public class SearchActivity extends AppCompatActivity implements FilterListener<
     @Override
     protected void onResume() {
         super.onResume();
+        ConnectionUtil.checkConnection(findViewById(R.id.placeSnackBar));
         sharedPreferences = getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
         if (sharedPreferences.contains(Constants.MAIN_TEXT)) {
             if (sharedPreferences.getString(Constants.MAIN_TEXT,"") != ""){

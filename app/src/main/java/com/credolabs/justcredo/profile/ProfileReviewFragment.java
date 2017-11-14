@@ -14,9 +14,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.credolabs.justcredo.R;
-import com.credolabs.justcredo.holder.FeedListViewRecyclerAdapter;
+import com.credolabs.justcredo.dashboard.FeedListViewRecyclerAdapter;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.Review;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,13 +30,13 @@ import java.util.Comparator;
 public class ProfileReviewFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
 
-    private String mParam1;
-    private String mParam2;
+    private String parent;
+    private String userName;
 
     private RecyclerView reviewRecyclerView;
     private FeedListViewRecyclerAdapter adapter;
-    private FirebaseAuth mAuth;
     private String uid;
 
     private OnFragmentInteractionListener mListener;
@@ -45,11 +45,12 @@ public class ProfileReviewFragment extends Fragment {
 
     }
 
-    public static ProfileReviewFragment newInstance(String param1, String param2) {
+    public static ProfileReviewFragment newInstance(String uid, String parent, String userName) {
         ProfileReviewFragment fragment = new ProfileReviewFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM1, uid);
+        args.putString(ARG_PARAM2, parent);
+        args.putString(ARG_PARAM3, userName);
         fragment.setArguments(args);
         return fragment;
     }
@@ -58,8 +59,9 @@ public class ProfileReviewFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            uid = getArguments().getString(ARG_PARAM1);
+            parent = getArguments().getString(ARG_PARAM2);
+            userName = getArguments().getString(ARG_PARAM3);
         }
     }
 
@@ -68,19 +70,26 @@ public class ProfileReviewFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View view =  inflater.inflate(R.layout.fragment_profile_review, container, false);
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+
         final ProgressBar progress = (ProgressBar) view.findViewById(R.id.progress);
         final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
         final TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
-        not_found_text1.setText("No Rating/Review By You !");
         final TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
-        not_found_text2.setText("Please explore places and share your experieces with them.");
+        if (parent.equals("other_user")){
+            not_found_text1.setText(userName + " has not written any rating/review yet!");
+            not_found_text2.setVisibility(View.GONE);
+        }else {
+            not_found_text1.setText("No Rating/Review By You !");
+            not_found_text2.setText("Please explore places and share your experieces with them.");
+        }
+
+
         not_found.setVisibility(View.GONE);
         reviewRecyclerView = (RecyclerView) view.findViewById(R.id.review_list);
         reviewRecyclerView.setHasFixedSize(true);
         reviewRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-
-        mAuth = FirebaseAuth.getInstance();
-        uid = mAuth.getCurrentUser().getUid();
+        reviewRecyclerView.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         final ArrayList<Review> reviewArrayList = new ArrayList<>();
         adapter = new FeedListViewRecyclerAdapter(getActivity(), reviewArrayList,"own_profile");
@@ -101,6 +110,7 @@ public class ProfileReviewFragment extends Fragment {
                 });
 
                 if (reviewArrayList.size() > 0 & reviewRecyclerView != null) {
+                    reviewRecyclerView.setVisibility(View.VISIBLE);
                     progress.setVisibility(View.GONE);
                     adapter.notifyDataSetChanged();
                 }else{
@@ -146,5 +156,11 @@ public class ProfileReviewFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 }

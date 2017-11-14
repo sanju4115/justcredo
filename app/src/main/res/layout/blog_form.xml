@@ -1,0 +1,131 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/blog_layout"
+    android:visibility="gone">
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:id="@+id/tag_line"
+                android:background="@drawable/card"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:text="@string/write_blog_here"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                android:id="@+id/linearLayoutEdit">
+
+                <Button
+                    android:id="@+id/add_photos_blog"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:textSize="12sp"
+                    android:text="@string/add_photos"
+                    />
+
+
+                <Button
+                    android:id="@+id/btnSaveBlog"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:textSize="12sp"
+                    android:text="@string/save"/>
+
+                <Button
+                    android:id="@+id/btnClearBlog"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:textSize="12sp"
+                    android:text="@string/clear"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:background="@drawable/card"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:text="@string/give_heading"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:id="@+id/blog_heading"
+                android:layout_margin="5dp"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:paddingTop="12dp"
+                android:gravity="top|start"
+                android:maxEms="10"
+                android:paddingBottom="12dp"
+                android:hint="@string/heading"
+                android:textSize="13sp"
+                android:textColorHint="@color/tagColor"
+                android:inputType="none"
+                android:background="@drawable/bg_edittext_icon"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:background="@drawable/card"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:text="@string/describe"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:id="@+id/blog_detail"
+                android:layout_margin="5dp"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:paddingTop="12dp"
+                android:gravity="top|start"
+                android:maxEms="10"
+                android:paddingBottom="12dp"
+                android:hint="@string/describe"
+                android:textSize="13sp"
+                android:textColorHint="@color/tagColor"
+                android:inputType="none"
+                android:background="@drawable/bg_edittext_icon"/>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_blog_images"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="vertical" />
+
+
+        </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
+
+
+
+</LinearLayout>

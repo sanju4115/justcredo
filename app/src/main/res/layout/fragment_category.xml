@@ -5,6 +5,14 @@
     tools:context="com.credolabs.justcredo.CategoryFragment">
 
     <include layout="@layout/content_category" />
-
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progress"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone"
+        style="?android:attr/progressBarStyleLarge"
+        />
 
 </FrameLayout>

@@ -17,6 +17,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
+import com.credolabs.justcredo.internet.ConnectivityReceiver;
 import com.credolabs.justcredo.utility.VolleySingleton;
 import com.facebook.FacebookSdk;
 import com.firebase.client.Firebase;
@@ -49,12 +50,16 @@ public class MyApplication extends MultiDexApplication{
         instantiateVolleyQueue();
         mImageLoader= VolleySingleton.getInstance(mInstance).getImageLoader();
         printHashKey();
-        FacebookSdk.sdkInitialize(getApplicationContext());
+        //FacebookSdk.sdkInitialize(getApplicationContext());
 
         if (!FirebaseApp.getApps(this).isEmpty()){
             FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         }
 
+    }
+
+    public void setConnectivityListener(ConnectivityReceiver.ConnectivityReceiverListener listener) {
+        ConnectivityReceiver.connectivityReceiverListener = listener;
     }
 
     public void instantiateVolleyQueue() {

@@ -3,7 +3,7 @@
     android:id="@+id/list_layout_description"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="5dp"
+    android:layout_marginBottom="20dp"
     android:padding="10dp"
     android:background="@color/colorIcons">
 
@@ -15,90 +15,14 @@
         android:id="@+id/text_description"
         android:textColor="@color/colorPrimaryText"/>
 
-    <ImageView
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_alignParentRight="true"
-        android:src="@mipmap/ic_description"/>
-
-    <TextView
+    <com.credolabs.justcredo.utility.ExpandableTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:layout_below="@+id/text_description"
         android:text="@string/school_description"
         android:id="@+id/description"
-        android:textColor="@color/colorSecondaryText"/>
-
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_below="@+id/description"
-        android:layout_marginTop="10dp"
-        android:id="@+id/category_layout"
-        >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_category"
-            android:text="Category :"
-            android:textColor="@color/colorPrimaryText"
-            android:layout_marginRight="10dp"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pre School"
-            android:id="@+id/category"/>
-
-    </LinearLayout>
-
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        android:layout_below="@+id/category_layout"
-        android:id="@+id/medium_layout">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Medium : "
-            android:textColor="@color/colorPrimaryText"
-            android:layout_marginRight="12dp"
-            />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/medium"
-            android:text="English"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        android:layout_below="@+id/medium_layout">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Type : "
-            android:textColor="@color/colorPrimaryText"
-            android:layout_marginRight="32dp"
-            />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/gender"
-            android:text="CoEd"/>
-    </LinearLayout>
-
-
+        android:layout_below="@+id/text_description"
+        android:textColor="@color/colorSecondaryText"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

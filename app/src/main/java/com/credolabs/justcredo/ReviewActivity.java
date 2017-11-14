@@ -54,6 +54,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -291,6 +292,7 @@ public class ReviewActivity extends AppCompatActivity implements View.OnClickLis
                                 mProgressDialog.show();
                                 StorageReference filepath;
                                 final DatabaseReference newReview = mDatabaseReference.push();
+                                FirebaseMessaging.getInstance().subscribeToTopic(newReview.getKey());
                                 for (final Map.Entry entry : images.entrySet()) {
                                     Uri uri = (Uri) entry.getValue();
                                     filepath = mStorageReference.child("Photos").child(uri.getLastPathSegment()+"-"+new Timestamp(System.currentTimeMillis()));
@@ -298,7 +300,9 @@ public class ReviewActivity extends AppCompatActivity implements View.OnClickLis
                                         @Override
                                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                                             @SuppressWarnings("VisibleForTests") Uri downloadURI = taskSnapshot.getDownloadUrl();
-                                            newReview.child("images").push().setValue(downloadURI.toString());
+                                            if (downloadURI!=null){
+                                                newReview.child("images").push().setValue(downloadURI.toString());
+                                            }
 
                                             if (entry.equals(images.lastEntry())) {
                                                 mProgressDialog.dismiss();
@@ -322,22 +326,21 @@ public class ReviewActivity extends AppCompatActivity implements View.OnClickLis
                                 }
                                 Calendar now = Calendar.getInstance();
                                 int year = now.get(Calendar.YEAR);
-                                int month = now.get(Calendar.MONTH) + 1; // Note: zero based!
+                                int month = now.get(Calendar.MONTH);
                                 int day = now.get(Calendar.DAY_OF_MONTH);
                                 String monthName = Util.getMonthForInt(month);
                                 FirebaseAuth auth = FirebaseAuth.getInstance();
                                 FirebaseUser user = auth.getCurrentUser();
-                                String uid = user.getUid();
+                                if (user!=null){
+                                    String uid = user.getUid();
+                                    newReview.child("userID").setValue(uid);
+                                }
                                 String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date());
                                 newReview.child("timestamp").setValue(timeStamp);
                                 newReview.child("id").setValue(newReview.getKey());
                                 newReview.child("type").setValue(type);
                                 newReview.child("addressState").setValue(addressState);
-                                if (addressCity.trim().equalsIgnoreCase("gurugram")){
-                                    addressCity = "Gurgaon";
-                                }
                                 newReview.child("addressCity").setValue(addressCity);
-                                newReview.child("userID").setValue(uid);
                                 newReview.child("schoolID").setValue(id);
                                 newReview.child("rating").setValue(ratingLabel);
                                 newReview.child("time").setValue(day + ", " + monthName + ", " + year);
@@ -387,6 +390,7 @@ public class ReviewActivity extends AppCompatActivity implements View.OnClickLis
                 mProgressDialog.show();
                 StorageReference filepath;
                 final DatabaseReference newReview = mDatabaseReference.push();
+                FirebaseMessaging.getInstance().subscribeToTopic(newReview.getKey());
                 for (final Map.Entry entry : images.entrySet()) {
                     Uri uri = (Uri) entry.getValue();
                     filepath = mStorageReference.child("Photos").child(uri.getLastPathSegment()+"-"+new Timestamp(System.currentTimeMillis()));
@@ -394,7 +398,9 @@ public class ReviewActivity extends AppCompatActivity implements View.OnClickLis
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                             @SuppressWarnings("VisibleForTests") Uri downloadURI = taskSnapshot.getDownloadUrl();
-                            newReview.child("images").push().setValue(downloadURI.toString());
+                            if (downloadURI!=null){
+                                newReview.child("images").push().setValue(downloadURI.toString());
+                            }
 
                             if (entry.equals(images.lastEntry())) {
                                 mProgressDialog.dismiss();
@@ -430,9 +436,6 @@ public class ReviewActivity extends AppCompatActivity implements View.OnClickLis
                 newReview.child("id").setValue(newReview.getKey());
                 newReview.child("type").setValue(type);
                 newReview.child("addressState").setValue(addressState);
-                if (addressCity.trim().equalsIgnoreCase("gurugram")){
-                    addressCity = "Gurgaon";
-                }
                 newReview.child("addressCity").setValue(addressCity);
                 newReview.child("userID").setValue(uid);
                 newReview.child("schoolID").setValue(id);

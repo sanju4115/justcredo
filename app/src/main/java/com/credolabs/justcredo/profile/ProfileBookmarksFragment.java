@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.adapters.ObjectListViewRecyclerAdapter;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.School;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -32,9 +33,12 @@ public class ProfileBookmarksFragment extends Fragment {
 
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
 
-    private String mParam1;
-    private String mParam2;
+    private String parent;
+    private String userName;
+    private String uid;
+
 
     private  RecyclerView listRecyclerView;
     private  ObjectListViewRecyclerAdapter adapter;
@@ -47,11 +51,12 @@ public class ProfileBookmarksFragment extends Fragment {
     public ProfileBookmarksFragment() {
     }
 
-    public static ProfileBookmarksFragment newInstance(String param1, String param2) {
+    public static ProfileBookmarksFragment newInstance(String uid, String parent, String userName) {
         ProfileBookmarksFragment fragment = new ProfileBookmarksFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM1, uid);
+        args.putString(ARG_PARAM2, parent);
+        args.putString(ARG_PARAM3, userName);
         fragment.setArguments(args);
         return fragment;
     }
@@ -60,8 +65,9 @@ public class ProfileBookmarksFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            uid = getArguments().getString(ARG_PARAM1);
+            parent = getArguments().getString(ARG_PARAM2);
+            userName = getArguments().getString(ARG_PARAM3);
         }
     }
 
@@ -69,13 +75,19 @@ public class ProfileBookmarksFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_bookmarks, container, false);
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+
         DatabaseReference mBookmarksReference = FirebaseDatabase.getInstance().getReference().child("bookmarks");
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser user = auth.getCurrentUser();
         TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
-        not_found_text1.setText("You have not bookmarked any place yet.");
         TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
-        not_found_text2.setText("Explore places to bookmark places..");
+
+        if (parent.equals("other_user")){
+            not_found_text1.setText(userName + " has not bookmarked any place yet.");
+            not_found_text2.setVisibility(View.GONE);
+        }else {
+            not_found_text1.setText("You have not bookmarked any place yet.");
+            not_found_text2.setText("Explore places to bookmark places..");
+        }
         progressBar = (ProgressBar)view.findViewById(R.id.progress);
         final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
         mLayoutManager = new LinearLayoutManager(getActivity());
@@ -85,8 +97,8 @@ public class ProfileBookmarksFragment extends Fragment {
         final ArrayList<School> schoolsList = new ArrayList<>();
         adapter = new ObjectListViewRecyclerAdapter(getActivity(), schoolsList);
         listRecyclerView.setAdapter(adapter);
-
-        mBookmarksReference.child(user.getUid()).addChildEventListener(new ChildEventListener() {
+        listRecyclerView.setVisibility(View.GONE);
+        mBookmarksReference.child(uid).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String key = dataSnapshot.getKey();
@@ -98,6 +110,7 @@ public class ProfileBookmarksFragment extends Fragment {
                         schoolsList.add(school);
                         if (schoolsList.size() > 0 & listRecyclerView != null) {
                             not_found.setVisibility(View.GONE);
+                            listRecyclerView.setVisibility(View.VISIBLE);
                             adapter.notifyDataSetChanged();
                         }
                     }
@@ -160,5 +173,11 @@ public class ProfileBookmarksFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 }

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="5dp"
+    android:padding="10dp"
+    android:id="@+id/layout_classes"
+    android:background="@color/colorIcons">
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="end"
+        android:padding="10dp"
+        android:id="@+id/btn_edit_classes"
+        app:srcCompat="@drawable/ic_edit"
+        android:contentDescription="@string/edit" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="5dp"
+        android:visibility="visible"
+        android:id="@+id/board_layout">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/board"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"
+            android:textColor="@color/colorPrimaryText"
+            android:layout_marginEnd="12dp"
+            />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Classes Available Here"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp"
+        android:id="@+id/text_description"
+        android:textColor="@color/colorPrimaryText"/>
+
+
+    <com.credolabs.justcredo.utility.ExpandableHeightGridView
+        android:id="@+id/checked"
+        android:numColumns="auto_fit"
+        android:gravity="center"
+        android:stretchMode="columnWidth"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

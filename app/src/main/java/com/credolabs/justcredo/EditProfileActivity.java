@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -33,9 +34,14 @@ import android.widget.Toast;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.credolabs.justcredo.internet.ConnectionUtil;
+import com.credolabs.justcredo.internet.ConnectivityReceiver;
+import com.credolabs.justcredo.model.HistorySearchedModel;
 import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.utility.CircularNetworkImageView;
+import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.CustomToast;
+import com.credolabs.justcredo.utility.NearByPlaces;
 import com.credolabs.justcredo.utility.Util;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -43,6 +49,8 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -99,6 +107,7 @@ public class EditProfileActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             hasPermissions();
         }
+        ConnectionUtil.checkConnection(findViewById(R.id.placeSnackBar));
         hmap = new TreeMap<>();
         mProgressDialog = new ProgressDialog(this);
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -186,13 +195,18 @@ public class EditProfileActivity extends AppCompatActivity {
             public void onClick(View v) {
                 boolean validationPassed = validate();
                 if (validationPassed) {
-                    saveProfile();
+                    if (ConnectivityReceiver.isConnected()){
+                        saveProfile();
+                    }else {
+                        new CustomToast().Show_Toast(EditProfileActivity.this,
+                                "Please check your network connection!");
+                    }
                 }
 
             }
         });
 
-        EditText adressText = (EditText) findViewById(R.id.adressText);
+        /*EditText adressText = (EditText) findViewById(R.id.adressText);
         adressText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -209,6 +223,54 @@ public class EditProfileActivity extends AppCompatActivity {
                 } catch (GooglePlayServicesRepairableException e) {
                 } catch (GooglePlayServicesNotAvailableException e) {
                 }
+            }
+        });*/
+
+
+        final AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
+                .setCountry("IN")
+                .setTypeFilter(AutocompleteFilter.TYPE_FILTER_REGIONS)
+                .build();
+
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
+        autocompleteFragment.setFilter(typeFilter);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                String address = String.valueOf(place.getAddress());
+                latLng = place.getLatLng();
+                String[] str = address.split(",");
+                int j = 1;
+                addressLayout.setVisibility(View.VISIBLE);
+                addressLine1.setText("");
+                addressLine2.setText("");
+                addressCity.setText("");
+                addressState.setText("");
+                addressCountry.setText("");
+
+                for (int i = str.length - 1; i >= 0; i--) {
+                    if (j == 1) {
+                        addressCountry.setText(str[i]);
+                    } else if (j == 2) {
+                        addressState.setText(str[i]);
+                    } else if (j == 3) {
+                        addressCity.setText(str[i]);
+                    } else if (j == 4) {
+                        addressLine2.setText(str[i]);
+                    } else if (j == 5) {
+                        addressLine1.setText(str[i]);
+                    } else {
+                        addressLine1.setText(addressLine1.getText().toString().concat(" " + str[i]));
+                    }
+                    j++;
+                }
+            }
+
+            @Override
+            public void onError(Status status) {
+
             }
         });
 
@@ -303,6 +365,9 @@ public class EditProfileActivity extends AppCompatActivity {
                                     @Override
                                     public void onClick(DialogInterface dialog,
                                                         int which) {
+                                        /*Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
+                                        intent.putExtra("notification","profile");
+                                        startActivity(intent);*/
                                         EditProfileActivity.this.finish();
                                     }
                                 });
@@ -357,7 +422,11 @@ public class EditProfileActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog,
                                             int which) {
+                            /*Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
+                            intent.putExtra("notification","profile");
+                            startActivity(intent);*/
                             EditProfileActivity.this.finish();
+
                         }
                     });
             AlertDialog alert = builder.create();
@@ -390,7 +459,7 @@ public class EditProfileActivity extends AppCompatActivity {
             }
         }
 
-        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
+        /*if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
                 String address = String.valueOf(place.getAddress());
@@ -428,7 +497,7 @@ public class EditProfileActivity extends AppCompatActivity {
             } else if (resultCode == RESULT_CANCELED) {
                 // The user canceled the operation.
             }
-        }
+        }*/
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -534,4 +603,9 @@ public class EditProfileActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(menuItem);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(findViewById(R.id.placeSnackBar));
+    }
 }

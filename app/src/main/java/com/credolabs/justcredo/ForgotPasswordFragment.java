@@ -12,6 +12,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.credolabs.justcredo.internet.ConnectionUtil;
+import com.credolabs.justcredo.internet.ConnectivityReceiver;
+import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.CustomeToastFragment;
 import com.credolabs.justcredo.utility.Util;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -44,6 +47,8 @@ public class ForgotPasswordFragment extends Fragment implements View.OnClickList
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_forgot_password, container, false);
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+
         mAuth = FirebaseAuth.getInstance();
         mDialog = new ProgressDialog(getActivity());
         initViews();
@@ -75,9 +80,13 @@ public class ForgotPasswordFragment extends Fragment implements View.OnClickList
                 break;
 
             case R.id.forgot_button:
-
+                if (ConnectivityReceiver.isConnected()) {
                 // Call Submit button task
                 submitButtonTask();
+                }else{
+                    new CustomToast().Show_Toast(getActivity(),
+                            "Please check your network connection!");
+                }
                 break;
 
         }
@@ -128,4 +137,9 @@ public class ForgotPasswordFragment extends Fragment implements View.OnClickList
 
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+    }
 }

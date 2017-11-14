@@ -1,24 +1,17 @@
 package com.credolabs.justcredo.autocomplete;
 
-import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -27,102 +20,67 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.credolabs.justcredo.BuildConfig;
 import com.credolabs.justcredo.HomeActivity;
-import com.credolabs.justcredo.LoginActivity;
-import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
-import com.credolabs.justcredo.adapters.AutoCompleteAdapter;
 import com.credolabs.justcredo.adapters.HistorySearchedAdapter;
 import com.credolabs.justcredo.location.LocationResolver;
 import com.credolabs.justcredo.model.HistorySearchedModel;
-import com.credolabs.justcredo.model.PlacePredictions;
 import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.NearByPlaces;
 import com.credolabs.justcredo.utility.UserLocation;
-import com.credolabs.justcredo.utility.Util;
-import com.credolabs.justcredo.utility.VolleyJSONRequest;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.theartofdev.edmodo.cropper.CropImage;
-import com.theartofdev.edmodo.cropper.CropImageView;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-public class PickLocationActivity extends AppCompatActivity implements  Response.Listener<String>,
-        Response.ErrorListener,  GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+import static android.content.ContentValues.TAG;
+
+public class PickLocationActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
                                                                                            LocationListener{
     double latitude;
     double longitude;
-    private ListView mAutoCompleteList;
-    private EditText address;
-    private String GETPLACESHIT = "places_hit";
-    private PlacePredictions predictions;
-    private Location mLastLocation;
-    private AutoCompleteAdapter mAutoCompleteAdapter;
-    private int CUSTOM_AUTOCOMPLETE_REQUEST_CODE = 20;
-    private static final int MY_PERMISSIONS_REQUEST_LOC = 30;
-    private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
-    private static final int PERMISSION_REQUEST_FINE_LOCATION = 101;
-    //private ImageView searchBtn;
     private ProgressBar progressBar;
-    private FragmentManager fragmentManager;
-    private String preFilledText;
-    private Handler handler;
-    private VolleyJSONRequest request;
     private SharedPreferences sharedPreference;
-    private Button locationBtn;
-
-    private boolean permissionGranted = true;
     private GoogleApiClient mGoogleApiClient;
+    private Animation slideUpAnimation, slideDownAnimation;
+    private ListView listViewHistorySearched;
+    private final int ACCESS_FINE_LOCATION = 1;
+    private LinearLayout not_found;
     private LocationRequest mLocationRequest;
-    private UserLocation mUserLocation;
-    Animation slideUpAnimation, slideDownAnimation;
-    ListView listViewHistorySearched;
-    Boolean isViewUP = false;
-    Boolean isViewDown = true;
-    private final String GOOGLE_LOCATION_API_KEY = BuildConfig.GoogleLocationAPIKey;
-
-
+    private Location mLastLocation;
+    private static final int REQUEST_CHECK_SETTINGS = 2;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
-        //this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
-
         sharedPreference = getSharedPreferences(Constants.MYPREFERENCES, Context.MODE_PRIVATE);
         setContentView(R.layout.activity_pick_location);
         slideUpAnimation = AnimationUtils.loadAnimation(getApplicationContext(),
                 R.anim.slide_up_animation);
-
         slideDownAnimation = AnimationUtils.loadAnimation(getApplicationContext(),
                 R.anim.slide_down_animation);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -130,193 +88,112 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        if (getIntent().hasExtra("Search Text")) {
-            preFilledText = getIntent().getStringExtra("Search Text");
-        }
+        final AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
+                .setCountry("IN")
+                .setTypeFilter(AutocompleteFilter.TYPE_FILTER_REGIONS)
+                .build();
 
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
-        //fragmentManager = getSupportFragmentManager();
-
-        address = (EditText) findViewById(R.id.adressText);
-
-        address.setOnClickListener(new View.OnClickListener() {
+        autocompleteFragment.setFilter(typeFilter);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
-            public void onClick(View v) {
-                try {
-                    AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
-                            .setCountry("IN")
-                            .setTypeFilter(AutocompleteFilter.TYPE_FILTER_REGIONS)
-                            .build();
-                    Intent intent =
-                            new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
-                                    .setFilter(typeFilter)
-                                    .build(PickLocationActivity.this);
-                    startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
-                } catch (GooglePlayServicesRepairableException e) {
-                    // TODO: Handle the error.
-                } catch (GooglePlayServicesNotAvailableException e) {
-                    // TODO: Handle the error.
+            public void onPlaceSelected(Place place) {
+                String address = String.valueOf(place.getAddress());
+                LatLng latLng = place.getLatLng();
+                String[] str= address.split(",");
+                int j = 1;
+                String addressLine1="";
+                String addressLine2="";
+                String addressCity="";
+                String addressState="";
+                String addressCountry="";
+                for(int i=str.length-1; i >=0 ; i--){
+                    if(j==1){
+                        addressCountry = str[i].trim();
+                    }else if (j==2){
+                        addressState = str[i].trim();
+                    }else if (j==3){
+                        addressCity = str[i].trim();
+                    }else if (j==4){
+                        addressLine2 = str[i].trim();
+                    }else if (j==5){
+                        addressLine1 = str[i].trim();
+                    }else {
+                        addressLine1 = addressLine1.concat(" "+str[i].trim());
+                    }
+                    j++;
                 }
+
+                String main_text="";
+                if (!addressLine1.equals("")){
+                    main_text = addressLine1;
+                }
+                if (!addressLine2.equals("") && addressLine1.equals("")){
+                    main_text = addressLine2;
+                }else if(!addressLine2.equals("") && !addressLine1.equals("")){
+                    main_text = main_text + ", "+addressLine2;
+                }
+
+                String secondary_text = addressCity+", "+addressState+", "+addressCountry ;
+                SharedPreferences.Editor editor = sharedPreference.edit();
+                editor.putString(Constants.MAIN_TEXT,main_text);
+                editor.putString(Constants.SECONDARY_TEXT,secondary_text);
+                editor.putString(Constants.LATITUDE, Double.toString(latLng.latitude));
+                editor.putString(Constants.LONGIITUDE,Double.toString(latLng.longitude));
+                editor.putString(Constants.ADDRESS,main_text+", "+secondary_text);
+                editor.putString(Constants.CITY,addressCity);
+                editor.putString(Constants.COUNTRY,addressCountry);
+                editor.putString(Constants.POSTAL_CODE,"");
+                editor.putString(Constants.STATE,addressState);
+                editor.putString(Constants.KNOWN_NAME,"");
+                editor.apply();
+                //new CustomToast().Show_Toast(this, Double.toString(latitude));
+                //NearByPlaces.getNearByCities(getApplicationContext(), addressCity);
+                HistorySearchedModel model = new HistorySearchedModel(main_text, secondary_text, Double.toString(latLng.latitude), Double.toString(latLng.longitude), addressLine1, addressLine2, addressCity, addressState, addressCountry);
+                saveObject(model);
+                Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+                startActivity(intent1);
+                finish();
+            }
+
+            @Override
+            public void onError(Status status) {
+
             }
         });
 
-
-
-        mAutoCompleteList = (ListView) findViewById(R.id.searchResultLV);
-        //searchBtn = (ImageView) findViewById(R.id.search);
         progressBar = (ProgressBar)findViewById(R.id.progress);
-
-
-        //get permission for Android M
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            fetchLocation();
-        } else {
-
-            // Here, thisActivity is the current activity
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-
-                // No explanation needed, we can request the permission.
-
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_REQUEST_LOC);
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            } else {
-                fetchLocation();
-
-            }
-        }
-
-         listViewHistorySearched = (ListView) findViewById(R.id.last_seaarched_locations);
+        not_found = (LinearLayout) findViewById(R.id.not_found);
+        not_found.setVisibility(View.GONE);
+        final TextView not_found_text1 = (TextView)findViewById(R.id.not_found_text1);
+        not_found_text1.setText("You have not selected your location yet.");
+        final TextView not_found_text2 = (TextView) findViewById(R.id.not_found_text2);
+        not_found_text2.setText("Please choose location above.");
+        listViewHistorySearched = (ListView) findViewById(R.id.last_seaarched_locations);
          startSlideDownAnimation(listViewHistorySearched);
 
-
-        //Add a text change listener to implement autocomplete functionality
-        address.addTextChangedListener(new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (address.getText().length() == 0){
-                listViewHistorySearched.setVisibility(View.VISIBLE);
-                isViewDown=true;
-               if(isViewUP) {
-                   startSlideDownAnimation(listViewHistorySearched);
-                   isViewDown=true;
-                   isViewUP=false;
-               }
-                mAutoCompleteList.setVisibility(View.GONE);
-            }
-
-
-            // optimised way is to start searching for laction after user has typed minimum 3 chars
-            if (address.getText().length() > 3) {
-                mAutoCompleteList.setVisibility(View.GONE);
-                if(isViewDown){
-                    isViewUP=true;
-                    isViewDown=false;
-                    startSlideUpAnimation(listViewHistorySearched);
-                }
-
-                listViewHistorySearched.setVisibility(View.GONE);
-                //searchBtn.setVisibility(View.GONE);
-                progressBar.setVisibility(View.VISIBLE);
-
-                Runnable run = new Runnable() {
-
-
-                    @Override
-                    public void run() {
-
-                        // cancel all the previous requests in the queue to optimise your network calls during autocomplete search
-                        MyApplication.volleyQueueInstance.cancelRequestInQueue(GETPLACESHIT);
-
-                        //build Get url of Place Autocomplete and hit the url to fetch result.
-                        request = new VolleyJSONRequest(Request.Method.GET, getPlaceAutoCompleteUrl(address.getText().toString()), null, null, PickLocationActivity.this, PickLocationActivity.this);
-
-                        //Give a tag to your request so that you can use this tag to cancle request later.
-                        request.setTag(GETPLACESHIT);
-
-                        MyApplication.volleyQueueInstance.addToRequestQueue(request);
-
-                    }
-
-                };
-
-                // only canceling the network calls will not help, you need to remove all callbacks as well
-                // otherwise the pending callbacks and messages will again invoke the handler and will send the request
-                if (handler != null) {
-                    handler.removeCallbacksAndMessages(null);
-                } else {
-                    handler = new Handler();
-                }
-                handler.postDelayed(run, 1000);
-
-            }
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-
-        }
-
-    });
-
-        address.setText(preFilledText);
-        address.setSelection(address.getText().length());
-
-        mAutoCompleteList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            // pass the result to the calling activity
-            Intent intent = new Intent();
-            //intent.putExtra("Location Address", predictions.getPlaces().get(position).getPlaceDesc());
-            //setResult(CUSTOM_AUTOCOMPLETE_REQUEST_CODE, intent);
-            SharedPreferences.Editor editor = sharedPreference.edit();
-            LinkedTreeMap<String,String> structured_formatting = new LinkedTreeMap<>();
-            structured_formatting = (LinkedTreeMap<String, String>)
-                                     predictions.getPlaces()
-                                                .get(position)
-                                                 .getStructured_formatting();
-            editor.putString(Constants.MAIN_TEXT,structured_formatting.get("main_text"));
-            editor.putString(Constants.SECONDARY_TEXT,structured_formatting.get("secondary_text"));
-            editor.putString(Constants.LATITUDE,structured_formatting.get(""));
-            editor.putString(Constants.LONGIITUDE,structured_formatting.get(""));
-            editor.putString(Constants.ADDRESS,"");
-            editor.putString(Constants.CITY,"");
-            editor.putString(Constants.COUNTRY,"");
-            editor.putString(Constants.POSTAL_CODE,"");
-            editor.putString(Constants.STATE,"");
-            editor.putString(Constants.KNOWN_NAME,"");
-            editor.apply();
-            //new CustomToast().Show_Toast(PickLocationActivity.this, Util.getCurrentUSerAddress(sharedPreference).get("addressCity"));
-            NearByPlaces.getNearByCities(getApplicationContext(), Util.getCurrentUSerAddress(sharedPreference).get("addressCity"));
-            //HistorySearchedModel model = new HistorySearchedModel(structured_formatting.get("main_text"),structured_formatting.get("secondary_text"));
-            //saveObject(model);
-            Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-            startActivity(intent1);
-            finish();
-        }
-    });
-
-
-        //ArrayList lastLocationsSearched = getListData();
         HistorySearchedModel[] locations = getObject();
         if (locations != null) {
             ArrayList<HistorySearchedModel> list = new ArrayList<HistorySearchedModel>(Arrays.asList(locations));
             listViewHistorySearched.setAdapter(new HistorySearchedAdapter(this, list));
+        }else {
+            LinearLayout current_location = (LinearLayout) findViewById(R.id.current_location);
+            current_location.setVisibility(View.VISIBLE);
+            current_location.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (LocationResolver.checkPlayServices(PickLocationActivity.this)) {
+                        askPermission(android.Manifest.permission.ACCESS_FINE_LOCATION, ACCESS_FINE_LOCATION);
+                    }
+                }
+            });
         }
         LayoutInflater inflater = getLayoutInflater();
         ViewGroup header = (ViewGroup) inflater.inflate(R.layout.current_location, listViewHistorySearched,
                 false);
+        header.findViewById(R.id.current_location).setVisibility(View.VISIBLE);
         listViewHistorySearched.addHeaderView(header, null, false);
         listViewHistorySearched.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -337,9 +214,9 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
                 editor.putString(Constants.KNOWN_NAME,"");
                 editor.apply();
                 //new CustomToast().Show_Toast(PickLocationActivity.this, locations.getLatitude());
-                NearByPlaces.getNearByCities(getApplicationContext(), locations.getAddressCity());
-                //Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-                //startActivity(intent1);
+                //NearByPlaces.getNearByCities(getApplicationContext(), locations.getAddressCity());
+                Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+                startActivity(intent1);
                 finish();
             }
         });
@@ -347,7 +224,11 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
         header.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fetchCurrentLocation();
+                if (LocationResolver.checkPlayServices(PickLocationActivity.this)) {
+                    askPermission(android.Manifest.permission.ACCESS_FINE_LOCATION, ACCESS_FINE_LOCATION);
+                    //new CustomToast().Show_Toast(PickLocationActivity.this, "click");
+                }
+
             }
         });
     }
@@ -365,217 +246,186 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
 
     @Override
     public void onBackPressed(){
-        //Intent intent = new Intent(this, HomeActivity.class);
-        //startActivity(intent);
+        Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+        startActivity(intent1);
         finish();
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == android.R.id.home) {
-            //Intent intent = new Intent(this, CategoryActivity.class);
-            //startActivity(intent);
+            Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+            startActivity(intent1);
             overridePendingTransition(R.anim.enter_from_left, R.anim.exit_on_right);
             this.finish();
         }
         return super.onOptionsItemSelected(menuItem);
     }
 
-    /*
-        * Create a get url to fetch results from google place autocomplete api.
-        * Append the input received from autocomplete edittext
-        * Append your current location
-        * Append radius you want to search results within
-        * Choose a language you want to fetch data in
-        * Append your google API Browser key
-     */
-    public String getPlaceAutoCompleteUrl(String input) {
-        StringBuilder urlString = new StringBuilder();
-        urlString.append("https://maps.googleapis.com/maps/api/place/autocomplete/json");
-        urlString.append("?input=");
-        try {
-            urlString.append(URLEncoder.encode(input, "utf8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        urlString.append("&types=(cities)");
-        urlString.append("&components=country:in");
-        urlString.append("&location=");
-        urlString.append(latitude + "," + longitude); // append lat long of current location to show nearby results.
-        urlString.append("&radius=500&language=en");
-        urlString.append("&key=" + GOOGLE_LOCATION_API_KEY);
-
-        Log.d("FINAL URL:::   ", urlString.toString());
-        return urlString.toString();
-    }
-
-    @Override
-    public void onErrorResponse(VolleyError error) {
-
-        //searchBtn.setVisibility(View.VISIBLE);
+    private void buildNotFound(){
         progressBar.setVisibility(View.GONE);
-
-    }
-
-    @Override
-    public void onResponse(String response) {
-
-        //searchBtn.setVisibility(View.VISIBLE);
-        progressBar.setVisibility(View.GONE);
-        mAutoCompleteList.setVisibility(View.VISIBLE);
-        Log.d("PLACES RESULT:::", response);
-        Gson gson = new Gson();
-        predictions = gson.fromJson(response, PlacePredictions.class);
-
-        if (mAutoCompleteAdapter == null) {
-            mAutoCompleteAdapter = new AutoCompleteAdapter(this, predictions.getPlaces(), PickLocationActivity.this);
-            mAutoCompleteList.setAdapter(mAutoCompleteAdapter);
-        } else {
-            mAutoCompleteAdapter.clear();
-            mAutoCompleteAdapter.addAll(predictions.getPlaces());
-            mAutoCompleteAdapter.notifyDataSetChanged();
-            mAutoCompleteList.invalidate();
-        }
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
+        not_found.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLocationRequest = LocationRequest.create();
+        // Once connected with google api, get the location
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(500);
+        mLocationRequest.setFastestInterval(500 / 2);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(1000);
 
-        Log.i("Log", "onConnected");
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
 
-        requestLocationUpdate();
-        try {
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                    mGoogleApiClient);
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(@NonNull LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        Log.i(TAG, "All location settings are satisfied.");
+                        requestLastLocation();
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        Log.i(TAG, "Location settings are not satisfied. Show the user a dialog to upgrade location settings ");
 
-            if (mLastLocation != null) {
-                latitude = mLastLocation.getLatitude();
-                longitude = mLastLocation.getLongitude();
-                mUserLocation = LocationResolver.getLocation(mLastLocation,this);
-
+                        try {
+                            // Show the dialog by calling startResolutionForResult(), and check the result
+                            // in onActivityResult().
+                            status.startResolutionForResult(PickLocationActivity.this, REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException e) {
+                            Log.i(TAG, "PendingIntent unable to execute request.");
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        Log.i(TAG, "Location settings are inadequate, and cannot be fixed here. Dialog not created.");
+                        new CustomToast().Show_Toast(PickLocationActivity.this, "Please choose location in order to enjoy the service.");
+                        buildNotFound();
+                        break;
+                }
             }
-
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void fetchLocation(){
-        //Build google API client to use fused location
-        buildGoogleApiClient();
-
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.connect();
-        }
+        });
     }
 
     @Override
     public void onConnectionSuspended(int i) {
+        new CustomToast().Show_Toast(this, "Connection Suspended");
+        buildNotFound();
 
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(this, 90000);
+            } catch (IntentSender.SendIntentException e) {
+                e.printStackTrace();
+            }
+        } else {
 
+            Log.i("Current Location", "Location services connection failed with code " + connectionResult.getErrorCode());
+            new CustomToast().Show_Toast(this, "Please choose location in order to enjoy the service.");
+            progressBar.setVisibility(View.GONE);
+            not_found.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_LOC: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission granted!
+            case ACCESS_FINE_LOCATION:
+                if (grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
                     fetchLocation();
 
-                } else {
-                    // permission denied!
-                    Toast.makeText(this, "Please grant permission for using this app!", Toast.LENGTH_LONG).show();
+                }else {
+                    not_found.setVisibility(View.VISIBLE);
+                    boolean showRationale = ActivityCompat.shouldShowRequestPermissionRationale( this,permissions[0] );
+                    if (! showRationale) {
+                        // user also CHECKED "never ask again"
+                        // you can either enable some fall back,
+                        // disable features of your app
+                        // or open another dialog explaining
+                        // again the permission and directing to
+                        // the app setting
+                        /*Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivityForResult(intent, REQUEST_PERMISSION_SETTING);*/
+                        Toast.makeText(this, "Go to settings and enable permissions", Toast.LENGTH_LONG).show();
+                    }else {
+                        // user did NOT check "never ask again"
+                        // this is a good place to explain the user
+                        // why you need the permission and ask if he wants
+                        // to accept it (the rationale)
+                    }
                 }
-                return;
-            }
         }
     }
 
+    public void fetchLocation(){
+        if (LocationResolver.checkPlayServices(this)) {
+            //new CustomToast().Show_Toast(PickLocationActivity.this, "fetch locatcion");
+            progressBar.setVisibility(View.VISIBLE);
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API).build();
 
-    public void requestLocationUpdate(){
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.i("Log", "Permission Failed");
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},PERMISSION_REQUEST_FINE_LOCATION);
-            }
-            return;
+            mGoogleApiClient.connect();
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-
     }
 
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-
-    private void fetchCurrentLocation(){
-
-        requestLocationUpdate();
+    private void requestLastLocation(){
         try {
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                     mGoogleApiClient);
 
             if (mLastLocation != null) {
+                Log.i(TAG, "Last Location Not Null");
                 latitude = mLastLocation.getLatitude();
                 longitude = mLastLocation.getLongitude();
-                mUserLocation = LocationResolver.getLocation(mLastLocation,this);
+                UserLocation mUserLocation = LocationResolver.getLocation(mLastLocation, this);
+                saveLocation(mUserLocation);
+            }else {
+                /*if there is no last known location. Which means the device has no data for the loction currently.
+                * So we will get the current location.
+                * For this we'll implement Location Listener and override onLocationChanged*/
+                Log.i("Current Location", "No data for location found");
 
+                if (!mGoogleApiClient.isConnected())
+                    mGoogleApiClient.connect();
+
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             }
 
         } catch (SecurityException e) {
+            buildNotFound();
+            new CustomToast().Show_Toast(PickLocationActivity.this, "Security Exception");
             e.printStackTrace();
         }
-
-        if (mUserLocation != null) {
-            SharedPreferences.Editor editor = sharedPreference.edit();
-            editor.putString(Constants.LATITUDE,Double.toString(latitude));
-            editor.putString(Constants.LONGIITUDE,Double.toString(longitude));
-            editor.putString(Constants.ADDRESS,mUserLocation.getAddress());
-            editor.putString(Constants.CITY,mUserLocation.getCity());
-            editor.putString(Constants.COUNTRY,mUserLocation.getCountry());
-            editor.putString(Constants.POSTAL_CODE,mUserLocation.getPostalCode());
-            editor.putString(Constants.STATE,mUserLocation.getState());
-            editor.putString(Constants.KNOWN_NAME,mUserLocation.getKnownName());
-            editor.putString(Constants.MAIN_TEXT,mUserLocation.getAddress());
-            editor.putString(Constants.SECONDARY_TEXT,mUserLocation.getCity()+ ", "+
-                    mUserLocation.getState()+ ", "+
-                    mUserLocation.getCountry());
-
-            //new CustomToast().Show_Toast(this, Double.toString(latitude));
-            NearByPlaces.getNearByCities(getApplicationContext(),mUserLocation.getCity());
-
-            editor.apply();
-            //Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-            //startActivity(intent1);
-            finish();
-
-        }
-
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+        if (mLastLocation==null){
+            mLastLocation = location;
+            requestLastLocation();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient!=null){
+            mGoogleApiClient.disconnect();
+        }
+    }
     public HistorySearchedModel[] getObject(){
         Gson gson = new Gson();
         String json = sharedPreference.getString("MyObject", "");
@@ -589,109 +439,73 @@ public class PickLocationActivity extends AppCompatActivity implements  Response
         SharedPreferences.Editor editor = sharedPreference.edit();
         if (locations != null) {
             LinkedList<HistorySearchedModel> list = new LinkedList<HistorySearchedModel>(Arrays.asList(locations));
-            //ArrayList<HistorySearchedModel> arrayList = new ArrayList<HistorySearchedModel>(Arrays.asList(locations));
-            //arrayList.add(myobject);
-
             if (list.size()==5){
                 list.removeLast();
             }
             list.addFirst(myobject);
-            //UserLocation[] arr = new UserLocation[arrayList.size()];
             HistorySearchedModel[] arr = new HistorySearchedModel[list.size()];
-            //arr = arrayList.toArray(arr);
             arr = list.toArray(arr);
             String json = gson.toJson(arr);
             editor.putString("MyObject", json);
         }else{
             LinkedList<HistorySearchedModel> list = new LinkedList<HistorySearchedModel>();
-
             list.addFirst(myobject);
-            //UserLocation[] arr = new UserLocation[list.size()];
             HistorySearchedModel[] arr = list.toArray(new HistorySearchedModel[list.size()]);
-            //arr = list.toArray(arr);
             String json = gson.toJson(arr);
             editor.putString("MyObject", json);
         }
 
-        editor.commit();
-        //textView.setText("Object Stored");
-        //Toast.makeText(getApplicationContext(), "Object Stored", 1000).show();
+        editor.apply();
+
     }
 
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        if (intent != null) {
-            switch (requestCode) {
-                case PLACE_AUTOCOMPLETE_REQUEST_CODE:
-                    if (resultCode == RESULT_OK) {
-                        Place place = PlaceAutocomplete.getPlace(this, intent);
-                        String address = String.valueOf(place.getAddress());
-                        LatLng latLng = place.getLatLng();
-                        String[] str= address.split(",");
-                        int j = 1;
-                        String addressLine1="";
-                        String addressLine2="";
-                        String addressCity="";
-                        String addressState="";
-                        String addressCountry="";
-                        for(int i=str.length-1; i >=0 ; i--){
-                            if(j==1){
-                                addressCountry = str[i].trim();
-                            }else if (j==2){
-                                addressState = str[i].trim();
-                            }else if (j==3){
-                                addressCity = str[i].trim();
-                            }else if (j==4){
-                                addressLine2 = str[i].trim();
-                            }else if (j==5){
-                                addressLine1 = str[i].trim();
-                            }else {
-                                addressLine1 = addressLine1.concat(" "+str[i].trim());
-                            }
-                            j++;
-                        }
-
-                        String main_text="";
-                        if (addressLine1 != ""){
-                            main_text = addressLine1;
-                        }
-                        if (addressLine2 != "" && addressLine1 == ""){
-                            main_text = addressLine2;
-                        }else if(addressLine2 != "" && addressLine1 != ""){
-                            main_text = main_text + ", "+addressLine2;
-                        }
-
-                        String secondary_text = addressCity+", "+addressState+", "+addressCountry ;
-                        SharedPreferences.Editor editor = sharedPreference.edit();
-                        editor.putString(Constants.MAIN_TEXT,main_text);
-                        editor.putString(Constants.SECONDARY_TEXT,secondary_text);
-                        editor.putString(Constants.LATITUDE, Double.toString(latLng.latitude));
-                        editor.putString(Constants.LONGIITUDE,Double.toString(latLng.longitude));
-                        editor.putString(Constants.ADDRESS,main_text+", "+secondary_text);
-                        editor.putString(Constants.CITY,addressCity);
-                        editor.putString(Constants.COUNTRY,addressCountry);
-                        editor.putString(Constants.POSTAL_CODE,"");
-                        editor.putString(Constants.STATE,addressState);
-                        editor.putString(Constants.KNOWN_NAME,"");
-                        editor.apply();
-                        //new CustomToast().Show_Toast(this, Double.toString(latitude));
-                        NearByPlaces.getNearByCities(getApplicationContext(), addressCity);
-                        HistorySearchedModel model = new HistorySearchedModel(main_text, secondary_text, Double.toString(latLng.latitude), Double.toString(latLng.longitude), addressLine1, addressLine2, addressCity, addressState, addressCountry);
-                        saveObject(model);
-                        //Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-                        //startActivity(intent1);
-                        finish();
-                    } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                        Status status = PlaceAutocomplete.getStatus(this, intent);
-                        Log.i("TAG", status.getStatusMessage());
-                    } else if (resultCode == RESULT_CANCELED) {
-                        // The user canceled the operation.
-                    }
-                    break;
-
+        if (requestCode == REQUEST_CHECK_SETTINGS) {
+            if (resultCode == RESULT_OK && intent != null) {
+                Log.i(TAG, "Result Code OK");
+                requestLastLocation();
+            }else if (resultCode == RESULT_CANCELED){
+                Log.i(TAG, "Result Code Not OK");
+                new CustomToast().Show_Toast(this, "Please choose location in order to enjoy the service.");
+                buildNotFound();
             }
+        }
+    }
+
+    private void askPermission(String permission, int requestCode){
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{permission},requestCode);
+        }else {
+            //we have permission
+            fetchLocation();
+        }
+    }
+
+
+    private void saveLocation(UserLocation mUserLocation) {
+        if (mUserLocation != null) {
+            //new CustomToast().Show_Toast(PickLocationActivity.this, "save");
+            SharedPreferences.Editor editor = sharedPreference.edit();
+            editor.putString(Constants.LATITUDE, Double.toString(latitude));
+            editor.putString(Constants.LONGIITUDE, Double.toString(longitude));
+            editor.putString(Constants.ADDRESS, mUserLocation.getAddress());
+            editor.putString(Constants.CITY, mUserLocation.getCity());
+            editor.putString(Constants.COUNTRY, mUserLocation.getCountry());
+            editor.putString(Constants.POSTAL_CODE, mUserLocation.getPostalCode());
+            editor.putString(Constants.STATE, mUserLocation.getState());
+            editor.putString(Constants.KNOWN_NAME, mUserLocation.getKnownName());
+            editor.putString(Constants.MAIN_TEXT, mUserLocation.getAddress());
+            editor.putString(Constants.SECONDARY_TEXT, mUserLocation.getCity() + ", " +
+                    mUserLocation.getState() + ", " +
+                    mUserLocation.getCountry());
+            editor.apply();
+            //NearByPlaces.getNearByCities(getApplicationContext(), mUserLocation.getCity());
+            Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+            startActivity(intent1);
+            finish();
         }
     }
 

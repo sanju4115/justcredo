@@ -2,7 +2,6 @@
 <LinearLayout android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/border"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <FrameLayout
@@ -32,13 +31,13 @@
 
     <TextView
         android:id="@+id/grid_name"
+        android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:paddingStart="5dp"
         android:paddingEnd="5dp"
-        android:text="School Name"
-        android:textSize="10sp"
+        android:textSize="12sp"
         android:textStyle="bold"
         android:textColor="@color/colorPrimaryText"
         android:ellipsize="end"
@@ -51,9 +50,9 @@
         android:layout_marginTop="0dp"
         android:paddingStart="5dp"
         android:paddingEnd="5dp"
+        android:visibility="gone"
         android:layout_marginBottom="2dp"
-        android:text="School Address"
-        android:textSize="10sp"
+        android:textSize="12sp"
         android:ellipsize="end"
         android:maxLines="1"/>
 

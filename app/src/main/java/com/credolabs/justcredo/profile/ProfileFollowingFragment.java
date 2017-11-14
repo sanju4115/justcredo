@@ -16,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.credolabs.justcredo.R;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -34,20 +35,24 @@ import static com.facebook.FacebookSdk.getApplicationContext;
 public class ProfileFollowingFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
 
-    private String mParam1;
-    private String mParam2;
+    private String parent;
+    private String userName;
+    private String uid;
+
 
     private OnFragmentInteractionListener mListener;
 
     public ProfileFollowingFragment() {
     }
 
-    public static ProfileFollowingFragment newInstance(String param1, String param2) {
+    public static ProfileFollowingFragment newInstance(String uid, String parent, String userName) {
         ProfileFollowingFragment fragment = new ProfileFollowingFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM1, uid);
+        args.putString(ARG_PARAM2, parent);
+        args.putString(ARG_PARAM3, userName);
         fragment.setArguments(args);
         return fragment;
     }
@@ -56,8 +61,9 @@ public class ProfileFollowingFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            uid = getArguments().getString(ARG_PARAM1);
+            parent = getArguments().getString(ARG_PARAM2);
+            userName = getArguments().getString(ARG_PARAM3);
         }
     }
 
@@ -65,12 +71,22 @@ public class ProfileFollowingFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_profile_following, container, false);
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
         final ProgressBar progressBar = (ProgressBar)view.findViewById(R.id.progress);
         final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
         TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
-        not_found_text1.setText("It seems you are following no one.");
         TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
-        not_found_text2.setText("Explore places and share your experience so that people can know you.");
+
+
+
+        if (parent.equals("other_user")){
+            not_found_text1.setText(userName + " is not following anyone.");
+            not_found_text2.setVisibility(View.GONE);
+        }else {
+            not_found_text1.setText("It seems you are following no one.");
+            not_found_text2.setText("Explore places and share your experience so that people can know you.");
+        }
+
         final RecyclerView searched_items = (RecyclerView) view.findViewById(R.id.follower_items);
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         searched_items.setHasFixedSize(true);
@@ -78,14 +94,15 @@ public class ProfileFollowingFragment extends Fragment {
                 mLayoutManager.getOrientation());
         searched_items.addItemDecoration(mDividerItemDecoration);
         searched_items.setLayoutManager(mLayoutManager);
+        searched_items.setVisibility(View.GONE);
+
         final ArrayList<User> usersList = new ArrayList<>();
         final UserAdapter userAdapter = new UserAdapter(getActivity(), usersList);
         searched_items.setAdapter(userAdapter);
-        progressBar.setVisibility(View.VISIBLE);
+        not_found.setVisibility(View.GONE);
         DatabaseReference followerReference = FirebaseDatabase.getInstance().getReference().child("following");
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser user = auth.getCurrentUser();
-        followerReference.child(user.getUid()).addChildEventListener(new ChildEventListener() {
+
+        followerReference.child(uid).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String key = dataSnapshot.getKey();
@@ -96,11 +113,13 @@ public class ProfileFollowingFragment extends Fragment {
                         User user = dataSnapshot.getValue(User.class);
                         if (!usersList.contains(user)) {
                             usersList.add(user);
-                            if (usersList.size() > 0 & searched_items != null) {
+                            if (usersList.size() > 0 ) {
+                                searched_items.setVisibility(View.VISIBLE);
                                 not_found.setVisibility(View.GONE);
                                 userAdapter.notifyDataSetChanged();
                             }
                         }
+                        progressBar.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -162,5 +181,11 @@ public class ProfileFollowingFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 }

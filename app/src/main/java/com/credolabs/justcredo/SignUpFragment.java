@@ -16,6 +16,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.credolabs.justcredo.internet.ConnectionUtil;
+import com.credolabs.justcredo.internet.ConnectivityReceiver;
+import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.CustomeToastFragment;
 import com.credolabs.justcredo.utility.Util;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -29,6 +32,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,12 +40,12 @@ import java.util.regex.Pattern;
 
 public class SignUpFragment extends Fragment implements View.OnClickListener{
 
-    private static View view;
-    private static EditText fullName, emailId, mobileNumber, location,
+    private View view;
+    private EditText fullName, emailId, mobileNumber, location,
             password, confirmPassword;
-    private static TextView login;
-    private static Button signUpButton;
-    private static CheckBox terms_conditions;
+    private TextView login;
+    private Button signUpButton;
+    private CheckBox terms_conditions;
     private String getFullName;
     private String getEmailId;
     private String getMobileNumber;
@@ -63,6 +67,7 @@ public class SignUpFragment extends Fragment implements View.OnClickListener{
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_signup, container, false);
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
         mAuth = FirebaseAuth.getInstance();
         mReferenceUsers = FirebaseDatabase.getInstance().getReference().child("users");
         mDialog = new ProgressDialog(getActivity());
@@ -96,9 +101,13 @@ public class SignUpFragment extends Fragment implements View.OnClickListener{
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.signUpBtn:
-
+                if (ConnectivityReceiver.isConnected()) {
                 // Call checkValidation method
                 checkValidation();
+                }else{
+                    new CustomToast().Show_Toast(getActivity(),
+                            "Please check your network connection!");
+                }
                 break;
 
             case R.id.already_user:
@@ -175,6 +184,7 @@ public class SignUpFragment extends Fragment implements View.OnClickListener{
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
                         String userID = mAuth.getCurrentUser().getUid();
+                        FirebaseMessaging.getInstance().subscribeToTopic(userID);
                         DatabaseReference currentUserDB = mReferenceUsers.child(userID);
                         currentUserDB.child("uid").setValue(currentUserDB.getKey());
                         currentUserDB.child("name").setValue(getFullName);
@@ -210,4 +220,9 @@ public class SignUpFragment extends Fragment implements View.OnClickListener{
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+    }
 }

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="end"
+        android:visibility="gone"
+        android:id="@+id/edit_music_section">
+
+        <Button
+            android:id="@+id/edit_music"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="true"
+            android:textSize="12sp"
+            android:text="@string/edit_genres"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:id="@+id/save_cancel">
+
+            <Button
+                android:id="@+id/save_music"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="true"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:text="@string/save"
+                />
+
+            <Button
+                android:id="@+id/cancel_music"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="true"
+                android:textSize="12sp"
+                android:text="@string/cancel"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@+id/edit_music_section"
+        android:background="@color/colorIcons"
+        android:layout_marginBottom="5dp"
+        android:padding="10dp"
+        android:id="@+id/dance_section">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@string/dancing_genres"
+            android:textColor="@color/colorPrimaryText" />
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:id="@+id/dance_gridview"
+            android:numColumns="auto_fit"
+            android:gravity="center"
+            android:layout_marginBottom="10dp"
+            android:stretchMode="columnWidth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@+id/dance_section"
+        android:background="@color/colorIcons"
+        android:layout_marginBottom="5dp"
+        android:padding="10dp"
+        android:id="@+id/singing_section">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@string/singing_genres"
+            android:textColor="@color/colorPrimaryText" />
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:id="@+id/singing_gridview"
+            android:numColumns="auto_fit"
+            android:gravity="center"
+            android:layout_marginBottom="10dp"
+            android:stretchMode="columnWidth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="5dp"
+        android:padding="10dp"
+        android:background="@color/colorIcons"
+        android:layout_below="@+id/singing_section"
+        android:id="@+id/instruments_section"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/instruments_genres"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimaryText"
+            />
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:id="@+id/instruments_gridview"
+            android:numColumns="auto_fit"
+            android:gravity="center"
+            android:stretchMode="columnWidth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="5dp"
+        android:padding="10dp"
+        android:background="@color/colorIcons"
+        android:layout_below="@+id/instruments_section"
+        android:id="@+id/other_genres_section"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/other_genres"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimaryText"
+            />
+
+        <com.credolabs.justcredo.utility.ExpandableHeightGridView
+            android:id="@+id/other_genres_gridview"
+            android:numColumns="auto_fit"
+            android:gravity="center"
+            android:stretchMode="columnWidth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+</RelativeLayout>

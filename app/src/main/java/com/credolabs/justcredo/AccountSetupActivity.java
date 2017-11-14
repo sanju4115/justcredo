@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.utility.Util;
 
 public class AccountSetupActivity extends AppCompatActivity {
@@ -18,6 +19,7 @@ public class AccountSetupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account_setup);
+        ConnectionUtil.checkConnection(findViewById(R.id.placeSnackBar));
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         fragmentManager = getSupportFragmentManager();
@@ -77,4 +79,9 @@ public class AccountSetupActivity extends AppCompatActivity {
         finish();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(findViewById(R.id.placeSnackBar));
+    }
 }

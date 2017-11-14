@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.credolabs.justcredo.adapters.CategoryGridAdapter;
+import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.utility.ExpandableHeightGridView;
@@ -101,7 +102,7 @@ public class CategoryGridFragment extends Fragment {
         });
         DatabaseReference highly_paid = FirebaseDatabase.getInstance()
                 .getReference().child(categoryName);
-        highly_paid.addListenerForSingleValueEvent(new ValueEventListener() {
+        highly_paid.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (categoryName.equals("schools")){
@@ -132,7 +133,6 @@ public class CategoryGridFragment extends Fragment {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
             }
         });
 

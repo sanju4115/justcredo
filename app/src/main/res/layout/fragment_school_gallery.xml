@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-
+<!--
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -16,8 +16,9 @@
             android:id="@+id/tag_line"
             android:background="@drawable/card"
             android:textStyle="bold"
-            android:textColor="@color/black"
-            android:text="Photos of the place"/>
+            android:layout_marginBottom="10dp"
+            android:textColor="@color/colorPrimaryDark"
+            android:text="Photos of the place"/>-->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -27,23 +28,32 @@
             android:id="@+id/linearLayoutEdit">
             <Button
                 android:id="@+id/add_photos_school"
+                style="@style/Widget.AppCompat.Button.Colored"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Add Phots"/>
+                android:enabled="true"
+                android:textSize="12sp"
+                android:text="Add Photo"/>
 
             <Button
                 android:id="@+id/btnSaveImages"
+                style="@style/Widget.AppCompat.Button.Colored"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:enabled="true"
+                android:textSize="12sp"
                 android:text="Save"/>
 
             <Button
                 android:id="@+id/btnClearImages"
+                style="@style/Widget.AppCompat.Button.Colored"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:enabled="true"
+                android:textSize="12sp"
                 android:text="Clear"/>
 
         </LinearLayout>
@@ -54,13 +64,20 @@
             android:layout_height="wrap_content"
             android:scrollbars="vertical" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="vertical" />
+            android:layout_height="wrap_content">
 
+            <include layout="@layout/search_not_found" />
 
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:scrollbars="vertical" />
+
+        </FrameLayout>
 
     </LinearLayout>
 

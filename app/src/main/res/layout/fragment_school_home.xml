@@ -1,7 +1,11 @@
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_gravity="fill_vertical"
+    android:background="@color/colorDivider"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.credolabs.justcredo.school.SchoolHomeFragment">
 
     <LinearLayout
@@ -9,23 +13,157 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progress"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone"
+            style="?android:attr/progressBarStyleLarge"
+            />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/card"
-            android:textStyle="bold"
-            android:id="@+id/edit_button"
+            android:orientation="horizontal"
+            android:layout_gravity="end"
             android:visibility="gone"
-            android:gravity="center"
-            android:drawableEnd="@mipmap/ic_edit"
-            android:text="@string/edit_home_text" />
+            android:id="@+id/edit_boards_section">
 
 
-        <include layout="@layout/school_header" />
-        <include layout="@layout/school_description" />
-        <include layout="@layout/school_review" />
-        <include layout="@layout/school_edit_home" />
+
+            <Button
+                    android:id="@+id/save_boards"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:layout_weight="1"
+                    android:textSize="12sp"
+                    android:text="@string/save"
+                    />
+
+                <Button
+                    android:id="@+id/cancel_boards"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:enabled="true"
+                    android:textSize="12sp"
+                    android:text="@string/cancel"
+                    />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="end"
+            android:visibility="gone"
+            android:id="@+id/edit_type_section">
+
+
+
+            <Button
+                android:id="@+id/save_type"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="true"
+                android:textSize="12sp"
+                android:text="@string/save"
+                />
+
+            <Button
+                android:id="@+id/cancel_type"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="true"
+                android:textSize="12sp"
+                android:text="@string/cancel"
+                />
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/container"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:id="@+id/content"
+            android:orientation="vertical">
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/view_pager"
+                android:layout_width="fill_parent"
+                android:layout_height="200dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="end"
+                android:visibility="gone"
+                android:id="@+id/edit_school_home_section">
+
+                <Button
+                    android:id="@+id/edit_school_home"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:textSize="12sp"
+                    android:text="@string/edit_home_text" />
+
+                <Button
+                    android:id="@+id/cancel_school_home"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:enabled="true"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    android:text="@string/cancel"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:id="@+id/fragment_container">
+
+                <include layout="@layout/school_header" />
+                <include layout="@layout/school_review" />
+
+                <include layout="@layout/school_type_details" />
+
+                <include layout="@layout/school_classes"/>
+                <include layout="@layout/school_description" />
+
+
+            </LinearLayout>
+
+            <include layout="@layout/school_edit_home" />
+
+        </LinearLayout>
+
 
     </LinearLayout>
 
-</android.support.v4.widget.NestedScrollView>
+
+</ScrollView>

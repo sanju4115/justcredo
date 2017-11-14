@@ -35,4 +35,8 @@ public final class Constants {
     public static final String NO_COVER_PIC_URL = "https://firebasestorage.googleapis.com/v0/b/credo-f7d83.appspot.com/o/utility%2Fic_nocover.png?alt=media&token=33f61553-7784-46e5-8c2e-e20a17597aaf";
 
     public static final String NEAR_BY_CITIES = "nearByCities";
+
+    //types of reviews
+    public static final String BLOG_TYPE = "blogs";
+    public static final String REVIEW_TYPE = "review_type";
 }

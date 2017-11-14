@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
@@ -63,12 +64,13 @@ public class CategoryGridAdapter extends BaseAdapter {
             TextView textName = (TextView) grid.findViewById(R.id.grid_name);
             TextView textAddress = (TextView) grid.findViewById(R.id.grid_address);
             ImageView imageView = (ImageView) grid.findViewById(R.id.grid_image);
+            ProgressBar progressBar = (ProgressBar) grid.findViewById(R.id.image_progress);
 
             String address = Util.getAddress(model.getAddress());
 
             textName.setText(model.getName());
             textAddress.setText(address);
-            Util.loadImageWithGlide(Glide.with(mContext),Util.getFirstImage(model.getImages()),imageView);
+            Util.loadImageWithGlideProgress(Glide.with(mContext),Util.getFirstImage(model.getImages()),imageView,progressBar);
 
         } else {
             grid = (View) convertView;

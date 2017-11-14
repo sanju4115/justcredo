@@ -79,8 +79,8 @@ import rebus.bottomdialog.BottomDialog;
 
 public class AddPlaceActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private DatabaseReference mDatabaseReference, mDatabaseReviewReference, mDatabaseCategoryReference, mDatabaseFacilitiesReference,
-                              mDatabaseExtrasReference, mDatabaseSportsReference, mDatabaseMusicReference;
+    private DatabaseReference mDatabaseReference;
+    private DatabaseReference mDatabaseCategoryReference;
     private ArrayList<String> places = new ArrayList<>();
     private ArrayList<CheckBox> categoryCheckBoxes = new ArrayList<>();
     private ArrayList<CheckBox> facilitiesCheckBoxes = new ArrayList<>();
@@ -195,12 +195,12 @@ public class AddPlaceActivity extends AppCompatActivity implements View.OnClickL
         mStorageReference = FirebaseStorage.getInstance().getReference();
 
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
-        mDatabaseReviewReference = FirebaseDatabase.getInstance().getReference().child("place_type");
+        DatabaseReference mDatabaseReviewReference = FirebaseDatabase.getInstance().getReference().child("place_type");
         mDatabaseCategoryReference = FirebaseDatabase.getInstance().getReference().child("Category");
-        mDatabaseFacilitiesReference = FirebaseDatabase.getInstance().getReference().child("facilities");
-        mDatabaseExtrasReference = FirebaseDatabase.getInstance().getReference().child("extracurricular");
-        mDatabaseSportsReference = FirebaseDatabase.getInstance().getReference().child("sports");
-        mDatabaseMusicReference = FirebaseDatabase.getInstance().getReference().child("music");
+        DatabaseReference mDatabaseFacilitiesReference = FirebaseDatabase.getInstance().getReference().child("facilities");
+        DatabaseReference mDatabaseExtrasReference = FirebaseDatabase.getInstance().getReference().child("extracurricular");
+        DatabaseReference mDatabaseSportsReference = FirebaseDatabase.getInstance().getReference().child("sports");
+        DatabaseReference mDatabaseMusicReference = FirebaseDatabase.getInstance().getReference().child("music");
         mDatabaseSportsReference.keepSynced(true);
         mDatabaseMusicReference.keepSynced(true);
         mDatabaseExtrasReference.keepSynced(true);
@@ -449,7 +449,7 @@ public class AddPlaceActivity extends AppCompatActivity implements View.OnClickL
               break;
           }
       }
-      if (pass==false){
+      if (!pass){
           new CustomToast().Show_Toast(this,
                   "Please select atleast one category!");
           return false;
