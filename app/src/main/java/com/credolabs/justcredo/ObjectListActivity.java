@@ -8,11 +8,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -28,6 +32,7 @@ import com.credolabs.justcredo.newplace.PlaceTypes;
 import com.credolabs.justcredo.search.FilterFragment;
 import com.credolabs.justcredo.search.Filtering;
 import com.credolabs.justcredo.utility.CustomToast;
+import com.credolabs.justcredo.utility.MyExceptionHandler;
 import com.credolabs.justcredo.utility.NearByPlaces;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -65,7 +70,7 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-
+        //Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
         category = getIntent().getStringExtra("category");
         toolbar.setTitle("List");
         progressBar = (ProgressBar)findViewById(R.id.progress);
@@ -93,7 +98,7 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
             mDatabaseSchoolReference.keepSynced(true);
 
             if (category.contains(PlaceTypes.SCHOOLS.getValue())) {
-                mDatabaseSchoolReference.orderByChild(School.TYPE).endAt(PlaceTypes.SCHOOLS.getValue())
+                mDatabaseSchoolReference.orderByChild(School.TYPE).endAt(PlaceTypes.SCHOOLS.getValue()).limitToFirst(100)
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -193,10 +198,10 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
                     FragmentManager fragmentManager = getSupportFragmentManager();
                     fragmentManager
                             .beginTransaction()
-                            .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_on_left)
+                            .setCustomAnimations(R.anim.slide_from_right, R.anim.slide_to_left)
                             .replace(R.id.frameContainer, filterFragment).commit();
                 }
-                not_found.setVisibility(View.GONE);
+                //not_found.setVisibility(View.GONE);
                 menuItem.setVisible(false);
                 toolbar.setTitle("Choose Filters");
                 list_layout.setVisibility(View.GONE);
@@ -206,6 +211,7 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
                 if (filterFragment !=null && frameContainer.getVisibility()==View.VISIBLE){
                     frameContainer.setVisibility(View.GONE);
                     list_layout.setVisibility(View.VISIBLE);
+                    //not_found.setVisibility(View.VISIBLE);
                     item.setVisible(true);
                     toolbar.setTitle("List");
                 }else {

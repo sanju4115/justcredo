@@ -12,6 +12,8 @@ public class CategoryModel implements Serializable{
     private String description;
     private String image;
 
+    public static final String CATEGORYMODEL = "categoryModel";
+
     public String getName() {
         return name;
     }

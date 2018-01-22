@@ -3,6 +3,7 @@ package com.credolabs.justcredo.model;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.widget.ImageView;
 
@@ -24,7 +25,7 @@ import java.util.HashMap;
  * Created by Sanjay kumar on 9/24/2017.
  */
 
-public class School implements Serializable, ObjectModel {
+public class School implements Serializable, ObjectModel, Comparable {
     private String description;
     private HashMap<String, String> images;
     private float latitude;
@@ -119,6 +120,17 @@ public class School implements Serializable, ObjectModel {
     private static DatabaseReference schoolReference = mDatabaseReference.child(SCHOOL_DATABASE);
     private static DatabaseReference mBookmarkReference = mDatabaseReference.child(BOOKMARK_DATABASE);
 
+    @Override
+    public int compareTo(@NonNull Object o) {
+        if (o instanceof School){
+            School school = (School) o;
+            if (this.getName().equalsIgnoreCase(school.getName())){
+                return this.getId().compareTo(school.getId());
+            }
+            return this.getName().compareTo(school.getName());
+        }
+        return 0;
+    }
 
 
     public enum StatusType {
@@ -573,6 +585,15 @@ public class School implements Serializable, ObjectModel {
     @Override
     public boolean equals(Object obj) {
         return obj != null && obj instanceof School && ((School) obj).getId().equals(this.getId());
+    }
 
+    @Override
+    public int hashCode() {
+        String id = this.getId();
+        StringBuffer stringBuffer = new StringBuffer();
+        for (char ch : id.toCharArray()){
+            stringBuffer.append((int) ch);
+        }
+        return Integer.parseInt(String.valueOf(stringBuffer));
     }
 }

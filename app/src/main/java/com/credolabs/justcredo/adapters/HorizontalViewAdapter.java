@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.android.volley.toolbox.ImageLoader;
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.credolabs.justcredo.HorizontalListViewFragment;
 import com.credolabs.justcredo.MyApplication;
@@ -89,6 +90,8 @@ public class HorizontalViewAdapter extends RecyclerView.Adapter<HorizontalViewHo
             String key= entry.getKey();
             String value=entry.getValue();
             Util.loadImageWithGlideProgress(glide,value,holder.coverImageView,holder.progressBar);
+        }else {
+            Util.loadImageWithGlideProgress(glide,"",holder.coverImageView,holder.progressBar);
         }
 
         holder.setClickListener(new RecyclerViewOnClickListener.OnClickListener() {

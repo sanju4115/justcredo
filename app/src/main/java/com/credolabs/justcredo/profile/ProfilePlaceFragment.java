@@ -88,7 +88,7 @@ public class ProfilePlaceFragment extends Fragment {
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         searched_items.setHasFixedSize(true);
         searched_items.setLayoutManager(mLayoutManager);
-        final ArrayList<ObjectModel> modelArrayList = new ArrayList<>();
+        final ArrayList<School> modelArrayList = new ArrayList<>();
         //final ArrayList<ObjectModel> filteredModelArrayList = new ArrayList<>();
         final SearchAdapter categoryAdapter = new SearchAdapter(getActivity(), modelArrayList,"profile");
         searched_items.setAdapter(categoryAdapter);

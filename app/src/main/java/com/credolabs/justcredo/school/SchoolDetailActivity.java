@@ -67,6 +67,7 @@ public class SchoolDetailActivity extends AppCompatActivity implements
     final ZoomObject zoomObject = new ZoomObject();
     private ProgressBar progress;
     private LinearLayout not_found;
+    private ArrayList<String> imagesList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,14 +93,17 @@ public class SchoolDetailActivity extends AppCompatActivity implements
                 model = dataSnapshot.getValue(School.class);
                 if (model != null) {
                     toolbar.setTitle(model.getName());
-                    final ArrayList<String> imagesList = new ArrayList<String>(model.getImages().values());
-                    String address = Util.getAddress(model.getAddress());
-                    zoomObject.setImages(imagesList);
-                    zoomObject.setName(model.getName());
-                    zoomObject.setAddress(address);
-                    zoomObject.setLogo(imagesList.get(0));
+                    if (model.getImages()!=null) {
+                        imagesList = new ArrayList<String>(model.getImages().values());
+                        String address = Util.getAddress(model.getAddress());
+                        zoomObject.setImages(imagesList);
+                        zoomObject.setName(model.getName());
+                        zoomObject.setAddress(address);
+                        zoomObject.setLogo(imagesList.get(0));
 
-
+                    }else {
+                        imagesList = new ArrayList<>();
+                    }
                     tabLayout = (TabLayout) findViewById(R.id.profile_tablayout);
                     viewPager = (ViewPager) findViewById(R.id.profile_viewPager);
                     ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());

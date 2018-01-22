@@ -2,6 +2,7 @@ package com.credolabs.justcredo;
 
 import android.*;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -42,6 +43,9 @@ import com.credolabs.justcredo.dashboard.FeedFragment;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.internet.ConnectivityReceiver;
 import com.credolabs.justcredo.location.LocationResolver;
+import com.credolabs.justcredo.model.CategoryModel;
+import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.newplace.PlaceTypes;
 import com.credolabs.justcredo.notifications.NotificationsFragment;
 import com.credolabs.justcredo.profile.ProfileBookmarksFragment;
 import com.credolabs.justcredo.profile.ProfileFollowerFragment;
@@ -49,11 +53,14 @@ import com.credolabs.justcredo.profile.ProfileFollowingFragment;
 import com.credolabs.justcredo.profile.ProfileHomeFragment;
 import com.credolabs.justcredo.profile.ProfilePlaceFragment;
 import com.credolabs.justcredo.profile.ProfileReviewFragment;
+import com.credolabs.justcredo.search.Filtering;
 import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.dashboard.DashboardFragment;
 import com.credolabs.justcredo.utility.CustomToast;
+import com.credolabs.justcredo.utility.MyExceptionHandler;
 import com.credolabs.justcredo.utility.NearByPlaces;
 import com.credolabs.justcredo.utility.UserLocation;
+import com.credolabs.justcredo.utility.Util;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -67,8 +74,16 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 import static android.content.ContentValues.TAG;
 
@@ -96,25 +111,28 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
     private BottomNavigationView bottomNavigation;
     private LocationRequest mLocationRequest;
     private Location mLastLocation;
+    private ArrayList<CategoryModel> categoryModelArrayList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         fragmentManager = getSupportFragmentManager();
         setContentView(R.layout.activity_home);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        bottomNavigation = (BottomNavigationView) findViewById(R.id.navigation);
-        not_found = (LinearLayout) findViewById(R.id.not_found);
-        content = (FrameLayout) findViewById(R.id.content);
-        progressBar = (ProgressBar) findViewById(R.id.progress);
-        locationOutput = (TextView)findViewById(R.id.locationView);
+        //Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
+        bottomNavigation = findViewById(R.id.navigation);
+        not_found = findViewById(R.id.not_found);
+        content = findViewById(R.id.content);
+        progressBar = findViewById(R.id.progress);
+        locationOutput =findViewById(R.id.locationView);
         locationOutput.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 callSearchLocationActivity();
             }
         });
+        categoryModelArrayList = (ArrayList<CategoryModel>) getIntent().getSerializableExtra(CategoryModel.CATEGORYMODEL);
         FirebaseMessaging.getInstance().subscribeToTopic(FirebaseAuth.getInstance().getCurrentUser().getUid());
         final TextView not_found_text1 = (TextView)findViewById(R.id.not_found_text1);
         not_found_text1.setText("You have not selected your location yet.");
@@ -132,43 +150,70 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
         }else {
             askPermission(android.Manifest.permission.ACCESS_FINE_LOCATION,ACCESS_FINE_LOCATION);
         }
-        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int id = item.getItemId();
-                switch (item.getItemId()) {
-                    case R.id.navigation_home:
-                        fragment = new CategoryFragment();
-                        break;
-                    case R.id.navigation_dashboard:
-                        fragment = new DashboardFragment();
-                        break;
-                    case R.id.navigation_notifications:
-                        fragment = new NotificationsFragment();
-                        break;
-                    case R.id.navigation_profile:
-                        fragment = ProfileFragment.newInstance("","");
-                        break;
-                }
 
-                final FragmentTransaction transaction = fragmentManager.beginTransaction();
-                transaction.replace(R.id.content, fragment).commit();
-                return true;
+        String addressCity="";
+        final HashMap<String,String> addressHashMap = Util.getCurrentUSerAddress(this);
+        if (addressHashMap.get("addressCity")!=null) {
+            if (addressHashMap.get("addressCity").trim().equalsIgnoreCase("Gurgaon")) {
+                addressCity = "Gurugram";
+            } else {
+                addressCity = addressHashMap.get("addressCity").trim();
+            }
+        }
+        final ProgressDialog mProgressDialog = new ProgressDialog(this);
+
+        mProgressDialog.setMessage("Loading Experiences");
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.show();
+        DatabaseReference mDatabaseSchoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
+        mDatabaseSchoolReference.keepSynced(true);
+        mDatabaseSchoolReference.orderByChild("address/addressCity").equalTo(addressCity).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final HashMap<String,HashMap<String,String>> map = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
+                final HashMap<String,ArrayList<School>> schoolListMap = Filtering.convert(map);
+                bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        int id = item.getItemId();
+                        switch (item.getItemId()) {
+                            case R.id.navigation_home:
+                                fragment = CategoryFragment.newInstance(schoolListMap,categoryModelArrayList);
+                                break;
+                            case R.id.navigation_dashboard:
+                                fragment = new DashboardFragment();
+                                break;
+                            case R.id.navigation_notifications:
+                                fragment = new NotificationsFragment();
+                                break;
+                            case R.id.navigation_profile:
+                                fragment = ProfileFragment.newInstance("","");
+                                break;
+                        }
+
+                        final FragmentTransaction transaction = fragmentManager.beginTransaction();
+                        transaction.replace(R.id.content, fragment).commit();
+                        return true;
+
+                    }
+                });
+
+                mProgressDialog.dismiss();
+
+                if (getIntent().hasExtra("notification")&& getIntent().getStringExtra("notification").equals("notification")){
+                    bottomNavigation.setSelectedItemId(R.id.navigation_notifications);
+                }else {
+                    bottomNavigation.setSelectedItemId(R.id.navigation_home);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
             }
         });
-
-        if (getIntent().hasExtra("notification")&& getIntent().getStringExtra("notification").equals("notification")){
-            bottomNavigation.setSelectedItemId(R.id.navigation_notifications);
-        }else {
-            bottomNavigation.setSelectedItemId(R.id.navigation_home);
-        }
-
-        ApplicationInfo appliInfo = null;
-        try {
-            appliInfo = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
-            Log.d("MetaData", appliInfo.metaData.getString("com.google.android.geo.API_KEY"));
-        } catch (PackageManager.NameNotFoundException e) {}
     }
 
     @Override
@@ -198,11 +243,6 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Cache cache = MyApplication.getInstance().getRequestQueue().getCache();
-        Calendar calendar = Calendar.getInstance();
-        if(cache.get(URL_FEED) != null) {
-            cache.invalidate(URL_FEED,true);
-        }
     }
 
     @Override
@@ -474,6 +514,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
 
     private void callSearchLocationActivity(){
         Intent intent = new Intent(HomeActivity.this,PickLocationActivity.class);
+        intent.putExtra(CategoryModel.CATEGORYMODEL,categoryModelArrayList);
         startActivity(intent);
         overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
         finish();

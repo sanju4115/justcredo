@@ -95,9 +95,7 @@
             android:name=".SearchActivity"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustPan" />
-        <activity
-            android:name=".FilterActivity"
-            android:theme="@style/AppTheme" />
+
         <activity
             android:name=".ReviewActivity"
             android:theme="@style/AppTheme" />

@@ -89,6 +89,8 @@ public class ObjectListViewRecyclerAdapter extends
             String key= entry.getKey();
             String value=entry.getValue();
             Util.loadImageWithGlideProgress(Glide.with(context),value,mainHolder.image,mainHolder.progressBar);
+        }else {
+            Util.loadImageWithGlideProgress(Glide.with(context),"",mainHolder.image,mainHolder.progressBar);
         }
 
         // Implement click listener over layout

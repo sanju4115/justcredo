@@ -5,7 +5,7 @@
 
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="25dp"
+        android:layout_height="35dp"
         android:gravity="center"
         android:drawableStart="@drawable/ic_checked_vector"
         android:id="@+id/text"

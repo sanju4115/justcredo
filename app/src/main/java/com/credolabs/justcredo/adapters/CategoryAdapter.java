@@ -2,6 +2,7 @@ package com.credolabs.justcredo.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
+import com.credolabs.justcredo.CategoryFragment;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.model.CategoryModel;
@@ -27,11 +29,13 @@ import java.util.ArrayList;
 public class CategoryAdapter extends BaseAdapter {
 
     private Context mContext;
+    private Fragment fragment;
     private ArrayList<CategoryModel> listArrayList;
 
 
-    public CategoryAdapter(Context c, ArrayList<CategoryModel> listArrayList) {
-        mContext = c;
+    public CategoryAdapter(Context context, Fragment c, ArrayList<CategoryModel> listArrayList) {
+        mContext = context;
+        this.fragment = c;
         this.listArrayList = listArrayList;
     }
 
@@ -69,7 +73,7 @@ public class CategoryAdapter extends BaseAdapter {
 
             textName.setText(model.getName());
             textAddress.setText(address);
-            Util.loadImageWithGlide(Glide.with(mContext),model.getImage(),imageView);
+            Util.loadImageWithGlide(Glide.with(fragment),model.getImage(),imageView);
 
         } else {
             grid = (View) convertView;

@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.internet.ConnectivityReceiver;
+import com.credolabs.justcredo.model.CategoryModel;
 import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.CustomeToastFragment;
 import com.credolabs.justcredo.utility.Util;
@@ -60,6 +61,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -126,95 +128,11 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
 
         mUsersReference = FirebaseDatabase.getInstance().getReference().child("users");
 
-        // Initialize Facebook Login button
-        /*mCallbackManager = CallbackManager.Factory.create();
-        LoginButton loginButton = (LoginButton)view.findViewById(R.id.login_button);
-        loginButton.setFragment(this);
-        loginButton.setReadPermissions("email", "public_profile");
-        loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                Log.d(TAG, "facebook:onSuccess");
-                handleFacebookAccessToken(loginResult.getAccessToken());
-            }
-
-            @Override
-            public void onCancel() {
-                Log.d(TAG, "facebook:onCancel");
-
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                Log.d(TAG, "facebook:onError", error);
-            }
-        });*/
-
 
         initViews();
         setListeners();
         return view;
     }
-
-    /*private void handleFacebookAccessToken(AccessToken token) {
-        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            final FirebaseUser user = mAuth.getCurrentUser();
-                            mUsersReference.addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    Intent i = new Intent(getActivity(), HomeActivity.class);
-                                    if (dataSnapshot.hasChild(user.getUid())) {
-                                        startActivity(i);
-                                        getActivity().finish();
-                                    } else {
-                                        FirebaseUser user = mAuth.getCurrentUser();
-                                        String userID = user.getUid();
-                                        DatabaseReference currentUserDB = mUsersReference.child(userID);
-                                        currentUserDB.child("name").setValue(user.getDisplayName());
-                                        currentUserDB.child("email").setValue(user.getEmail());
-                                        currentUserDB.child("uid").setValue(user.getUid());
-                                        currentUserDB.child("profilePic").setValue(user.getPhotoUrl().toString());
-                                        startActivity(i);
-                                        getActivity().finish();
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
-                        } else {
-
-                            new CustomeToastFragment().Show_Toast(getActivity(), view,
-                                    task.getResult().toString());
-
-                        }
-                    }
-                }).addOnFailureListener(getActivity(), new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        if (e instanceof FirebaseAuthWeakPasswordException) {
-                            new CustomeToastFragment().Show_Toast(getActivity(), view,
-                                    "Password is not strong enough");
-                        }else if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                            new CustomeToastFragment().Show_Toast(getActivity(), view,
-                                    "Email address is malformed");
-                        }else if (e instanceof FirebaseAuthUserCollisionException) {
-                            new CustomeToastFragment().Show_Toast(getActivity(), view,
-                                    "There already exists an account with the given email address");
-                        }
-
-                   }
-                });;
-    }*/
-
 
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
@@ -225,14 +143,12 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             mDialog.setMessage("Signing In");
             mDialog.setCancelable(false);
             mDialog.show();
             if (result.isSuccess()) {
-                // Google Sign In was successful, authenticate with Firebase
                 account = result.getSignInAccount();
 
                 firebaseAuthWithGoogle(account);
@@ -241,8 +157,6 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
             }
         }
 
-        // Pass the activity result back to the Facebook SDK
-        //mCallbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
@@ -252,12 +166,9 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
                             checkUserExist();
                             mDialog.dismiss();
-                            //updateUI(user);
                         } else {
-                            // If sign in fails, display a message to the user.
                             new CustomeToastFragment().Show_Toast(getActivity(), view,
                                     "Authentication failed. Check your network connection.");
                             mDialog.dismiss();
@@ -268,25 +179,43 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
 
     private void checkUserExist() {
         final String userID = mAuth.getCurrentUser().getUid();
-        mUsersReference.addValueEventListener(new ValueEventListener() {
+        mUsersReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Intent i = new Intent(getActivity(),HomeActivity.class);
-                if (dataSnapshot.hasChild(userID)){
-                    startActivity(i);
-                    getActivity().finish();
-                }else {
-                    FirebaseUser user = mAuth.getCurrentUser();
-                    String userID = user.getUid();
-                    FirebaseMessaging.getInstance().subscribeToTopic(userID);
-                    DatabaseReference currentUserDB = mUsersReference.child(userID);
-                    currentUserDB.child("name").setValue(account.getDisplayName());
-                    currentUserDB.child("email").setValue(account.getEmail());
-                    currentUserDB.child("uid").setValue(user.getUid());
-                    currentUserDB.child("profilePic").setValue(account.getPhotoUrl().toString());
-                    startActivity(i);
-                    getActivity().finish();
-                }
+            public void onDataChange(final DataSnapshot dataSnapshotUser) {
+                final Intent intent = new Intent(getActivity(),HomeActivity.class);
+                final ArrayList<CategoryModel> categoryModelArrayList = new ArrayList<>();
+                DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories").child("schools");
+                mReferenceCategories.keepSynced(true);
+                mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        categoryModelArrayList.clear();
+                        for (DataSnapshot category: dataSnapshot.getChildren()) {
+                            CategoryModel cat = category.getValue(CategoryModel.class);
+                            categoryModelArrayList.add(cat);
+                        }
+                        intent.putExtra(CategoryModel.CATEGORYMODEL,categoryModelArrayList);
+                        if (!dataSnapshotUser.hasChild(userID)){
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            String userID = user.getUid();
+                            FirebaseMessaging.getInstance().subscribeToTopic(userID);
+                            DatabaseReference currentUserDB = mUsersReference.child(userID);
+                            currentUserDB.child("name").setValue(account.getDisplayName());
+                            currentUserDB.child("email").setValue(account.getEmail());
+                            currentUserDB.child("uid").setValue(user.getUid());
+                            currentUserDB.child("profilePic").setValue(account.getPhotoUrl().toString());
+
+                        }
+                        startActivity(intent);
+                        getActivity().finish();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
             }
 
             @Override

@@ -25,6 +25,11 @@ import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.PrefUtil;
 import com.credolabs.justcredo.utility.VolleyJSONRequest;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 
@@ -83,18 +88,36 @@ public class SplashActivity extends AppCompatActivity {
                 // This method will be executed once the timer is over
                 // Start your app main activity
                 if (verified){
-                    Intent intent = new Intent(SplashActivity.this,HomeActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
-                    finish();
+                    final ArrayList<CategoryModel> categoryModelArrayList = new ArrayList<>();
+                    DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories").child("schools");
+                    mReferenceCategories.keepSynced(true);
+                    mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            categoryModelArrayList.clear();
+                            for (DataSnapshot category: dataSnapshot.getChildren()) {
+                                CategoryModel cat = category.getValue(CategoryModel.class);
+                                categoryModelArrayList.add(cat);
+                            }
+                            Intent intent = new Intent(SplashActivity.this,HomeActivity.class);
+                            intent.putExtra(CategoryModel.CATEGORYMODEL,categoryModelArrayList);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(intent);
+                            finish();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
                 }else{
                     Intent intent = new Intent(SplashActivity.this,AccountSetupActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                     finish();
                 }
-                // close this activity
-                finish();
             }
         }, SPLASH_TIME_OUT);
     }

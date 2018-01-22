@@ -35,9 +35,9 @@ import java.util.Map;
 
 public class SearchAdapter extends RecyclerView.Adapter<SearchViewHolder> {
     private Context context;
-    private ArrayList<ObjectModel> modelArrayList;
+    private ArrayList<School> modelArrayList;
     private String parentCaller;
-    public SearchAdapter(Context context, ArrayList<ObjectModel> modelsArrayList, String parentCaller) {
+    public SearchAdapter(Context context, ArrayList<School> modelsArrayList, String parentCaller) {
         this.context = context;
         this.parentCaller = parentCaller;
         this.modelArrayList = modelsArrayList;

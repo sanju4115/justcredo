@@ -30,6 +30,7 @@ import com.credolabs.justcredo.HomeActivity;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.adapters.HistorySearchedAdapter;
 import com.credolabs.justcredo.location.LocationResolver;
+import com.credolabs.justcredo.model.CategoryModel;
 import com.credolabs.justcredo.model.HistorySearchedModel;
 import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.CustomToast;
@@ -72,6 +73,7 @@ public class PickLocationActivity extends AppCompatActivity implements GoogleApi
     private LocationRequest mLocationRequest;
     private Location mLastLocation;
     private static final int REQUEST_CHECK_SETTINGS = 2;
+    private ArrayList<CategoryModel> categoryModelArrayList;
 
 
     @Override
@@ -84,9 +86,14 @@ public class PickLocationActivity extends AppCompatActivity implements GoogleApi
         slideDownAnimation = AnimationUtils.loadAnimation(getApplicationContext(),
                 R.anim.slide_down_animation);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        categoryModelArrayList = (ArrayList<CategoryModel>) getIntent().getSerializableExtra(CategoryModel.CATEGORYMODEL);
+
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        if (getSupportActionBar()!=null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
 
         final AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
                 .setCountry("IN")
@@ -153,9 +160,7 @@ public class PickLocationActivity extends AppCompatActivity implements GoogleApi
                 //NearByPlaces.getNearByCities(getApplicationContext(), addressCity);
                 HistorySearchedModel model = new HistorySearchedModel(main_text, secondary_text, Double.toString(latLng.latitude), Double.toString(latLng.longitude), addressLine1, addressLine2, addressCity, addressState, addressCountry);
                 saveObject(model);
-                Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-                startActivity(intent1);
-                finish();
+                callHomeActivity();
             }
 
             @Override
@@ -213,11 +218,7 @@ public class PickLocationActivity extends AppCompatActivity implements GoogleApi
                 editor.putString(Constants.STATE,locations.getAddressState());
                 editor.putString(Constants.KNOWN_NAME,"");
                 editor.apply();
-                //new CustomToast().Show_Toast(PickLocationActivity.this, locations.getLatitude());
-                //NearByPlaces.getNearByCities(getApplicationContext(), locations.getAddressCity());
-                Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-                startActivity(intent1);
-                finish();
+               callHomeActivity();
             }
         });
 
@@ -246,18 +247,13 @@ public class PickLocationActivity extends AppCompatActivity implements GoogleApi
 
     @Override
     public void onBackPressed(){
-        Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-        startActivity(intent1);
-        finish();
+        callHomeActivity();
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         if (menuItem.getItemId() == android.R.id.home) {
-            Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-            startActivity(intent1);
-            overridePendingTransition(R.anim.enter_from_left, R.anim.exit_on_right);
-            this.finish();
+           callHomeActivity();
         }
         return super.onOptionsItemSelected(menuItem);
     }
@@ -429,8 +425,7 @@ public class PickLocationActivity extends AppCompatActivity implements GoogleApi
     public HistorySearchedModel[] getObject(){
         Gson gson = new Gson();
         String json = sharedPreference.getString("MyObject", "");
-        HistorySearchedModel[] obj = gson.fromJson(json, HistorySearchedModel[].class);
-        return obj ;
+        return gson.fromJson(json, HistorySearchedModel[].class);
     }
 
     public void saveObject(HistorySearchedModel myobject){
@@ -502,11 +497,15 @@ public class PickLocationActivity extends AppCompatActivity implements GoogleApi
                     mUserLocation.getState() + ", " +
                     mUserLocation.getCountry());
             editor.apply();
-            //NearByPlaces.getNearByCities(getApplicationContext(), mUserLocation.getCity());
-            Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
-            startActivity(intent1);
-            finish();
+            callHomeActivity();
         }
+    }
+
+    private void callHomeActivity(){
+        Intent intent1 = new Intent(PickLocationActivity.this, HomeActivity.class);
+        intent1.putExtra(CategoryModel.CATEGORYMODEL,categoryModelArrayList);
+        startActivity(intent1);
+        finish();
     }
 
 

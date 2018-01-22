@@ -18,6 +18,7 @@ import com.credolabs.justcredo.adapters.HorizontalViewAdapter;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.newplace.PlaceTypes;
 import com.credolabs.justcredo.search.Filtering;
+import com.credolabs.justcredo.utility.CustomToast;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,11 +32,24 @@ public class HorizontalListViewFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
+    private static final String ARG_PARAM4 = "param4";
     private String page;
     private String placeType;
     private School model;
+    private ArrayList<School> schools;
     public HorizontalListViewFragment() {
     }
+
+    public static HorizontalListViewFragment newInstance(ArrayList<School> schools, String page, String placeType) {
+        HorizontalListViewFragment fragment = new HorizontalListViewFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_PARAM1, page);
+        args.putString(ARG_PARAM2, placeType);
+        args.putSerializable(ARG_PARAM4, schools);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     public static HorizontalListViewFragment newInstance(String page, String placeType) {
         HorizontalListViewFragment fragment = new HorizontalListViewFragment();
         Bundle args = new Bundle();
@@ -62,6 +76,7 @@ public class HorizontalListViewFragment extends Fragment {
             page = getArguments().getString(ARG_PARAM1);
             placeType = getArguments().getString(ARG_PARAM2);
             model = (School) getArguments().getSerializable(ARG_PARAM3);
+            schools = (ArrayList<School>) getArguments().getSerializable(ARG_PARAM4);
         }
     }
 
@@ -90,7 +105,45 @@ public class HorizontalListViewFragment extends Fragment {
 
         final ArrayList<School> schoolsList = new ArrayList<>();
 
-        mDatabaseSchoolReference.orderByChild(School.TYPE).equalTo(placeType).addListenerForSingleValueEvent(new ValueEventListener() {
+
+        if (schools!=null){
+            if (schools.size() > 0) {
+                if (model!=null){
+                    schools.remove(model);
+                }
+                if (schools.size()>0){
+                    Filtering.sortByRating(schools);
+                    ArrayList<School> top10=schools;
+                    if (schools.size()>10){
+                        top10 = new ArrayList<>(schools.subList(0,10));
+                    }
+                    HorizontalViewAdapter horizontalViewAdapter = new HorizontalViewAdapter(page,getActivity().getApplicationContext(),top10, Glide.with(HorizontalListViewFragment.this));
+                    recyclerView.setAdapter(horizontalViewAdapter);
+                    horizontalViewAdapter.notifyDataSetChanged();
+                    progressBar.setVisibility(View.GONE);
+                    /*show_more.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(getActivity(),ObjectListActivity.class);
+                            intent.putExtra("list",schools);
+                            startActivity(intent);
+                            getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+                        }
+                    });*/
+                }else {
+                    progressBar.setVisibility(View.GONE);
+                    top_section.setVisibility(View.GONE);
+                }
+
+            }else {
+                progressBar.setVisibility(View.GONE);
+                top_section.setVisibility(View.GONE);
+            }
+
+            recyclerView.setLayoutManager(MyLayoutManager);
+        }
+
+        /*mDatabaseSchoolReference.orderByChild(School.TYPE).equalTo(placeType).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 schoolsList.clear();
@@ -99,6 +152,7 @@ public class HorizontalListViewFragment extends Fragment {
                     schoolsList.add(place);
                 }
 
+                new CustomToast().Show_Toast(getActivity(), String.valueOf(schoolsList.size()));
                 if (schoolsList.size() > 0) {
                     if (model!=null){
                         schoolsList.remove(model);
@@ -141,7 +195,7 @@ public class HorizontalListViewFragment extends Fragment {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        });*/
 
         return view;
     }

@@ -128,33 +128,36 @@ public class SchoolHomeFragment extends Fragment {
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
         final ViewPager mPager = (ViewPager) view.findViewById(R.id.view_pager);
-        final ArrayList<String> list = new ArrayList<String>(model.getImages().values());
-        String address = Util.getAddress(model.getAddress());
-        ZoomObject zoomObject = new ZoomObject();
-        zoomObject.setImages(list);
-        zoomObject.setName(model.getName());
-        zoomObject.setAddress(address);
-        zoomObject.setLogo(list.get(0));
-        mPager.setAdapter(new ImageSlideAdapter(getActivity(),list,zoomObject));
-        final int[] currentPage = {0};
-        // Auto start of viewpager
-        final Handler handler = new Handler();
-        final Runnable Update = new Runnable() {
-            public void run() {
-                if (currentPage[0] == list.size()) {
-                    currentPage[0] = 0;
+        if (model.getImages()!=null) {
+            final ArrayList<String> list = new ArrayList<String>(model.getImages().values());
+            String address = Util.getAddress(model.getAddress());
+            ZoomObject zoomObject = new ZoomObject();
+            zoomObject.setImages(list);
+            zoomObject.setName(model.getName());
+            zoomObject.setAddress(address);
+            zoomObject.setLogo(list.get(0));
+            mPager.setAdapter(new ImageSlideAdapter(getActivity(), list, zoomObject));
+            final int[] currentPage = {0};
+            // Auto start of viewpager
+            final Handler handler = new Handler();
+            final Runnable Update = new Runnable() {
+                public void run() {
+                    if (currentPage[0] == list.size()) {
+                        currentPage[0] = 0;
+                    }
+                    mPager.setCurrentItem(currentPage[0]++, true);
                 }
-                mPager.setCurrentItem(currentPage[0]++, true);
-            }
-        };
-        Timer swipeTimer = new Timer();
-        swipeTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(Update);
-            }
-        }, 2500, 2500);
-
+            };
+            Timer swipeTimer = new Timer();
+            swipeTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    handler.post(Update);
+                }
+            }, 2500, 2500);
+        }else {
+            mPager.setVisibility(View.GONE);
+        }
         //TextView edit_button = (TextView) view.findViewById(R.id.edit_button);
         fragment_container = (LinearLayout) view.findViewById(R.id.fragment_container);
         school_edit_home = (LinearLayout) view.findViewById(R.id.school_edit_home);
