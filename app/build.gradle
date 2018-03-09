@@ -91,6 +91,7 @@ dependencies {
     compile 'com.github.aakira:expandable-layout:1.4.2@aar'
     compile 'com.github.myinnos:AwesomeImagePicker:1.0.2'
     compile 'com.google.android.gms:play-services-ads:11.6.0'
+    compile 'com.github.Kunzisoft:Android-SwitchDateTimePicker:1.9'
     testCompile 'junit:junit:4.12'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }
@@ -99,3 +100,5 @@ apply plugin: 'com.google.gms.google-services'
 repositories {
     mavenCentral()
 }
+
+apply plugin: 'kotlin-android-extensions'

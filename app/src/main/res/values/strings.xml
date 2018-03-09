@@ -452,5 +452,6 @@
     <string name="filter_by">Filter By</string>
     <string name="apply">Apply</string>
     <string name="type_anything_you_are_looking_for">Type Anything You Are Looking For</string>
+    <string name="title_activity_travel">TravelActivity</string>
 
 </resources>

@@ -59,8 +59,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${GOOGLE_MAP_API_KEY}" />
 
-        <activity
-            android:name=".HomeActivity"/>
+        <activity android:name=".HomeActivity" />
         <activity
             android:name=".autocomplete.PickLocationActivity"
             android:label="@string/title_activity_pick_location"
@@ -95,7 +94,6 @@
             android:name=".SearchActivity"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustPan" />
-
         <activity
             android:name=".ReviewActivity"
             android:theme="@style/AppTheme" />
@@ -155,6 +153,14 @@
             android:name=".newplace.NewPlace"
             android:label="@string/title_activity_new_place"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".TravelActivity"
+            android:label="@string/title_activity_travel"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".easyparcel.ParcelActivity"
+            android:label="@string/title_activity_travel"
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>

@@ -88,29 +88,10 @@ public class SplashActivity extends AppCompatActivity {
                 // This method will be executed once the timer is over
                 // Start your app main activity
                 if (verified){
-                    final ArrayList<CategoryModel> categoryModelArrayList = new ArrayList<>();
-                    DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories").child("schools");
-                    mReferenceCategories.keepSynced(true);
-                    mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            categoryModelArrayList.clear();
-                            for (DataSnapshot category: dataSnapshot.getChildren()) {
-                                CategoryModel cat = category.getValue(CategoryModel.class);
-                                categoryModelArrayList.add(cat);
-                            }
-                            Intent intent = new Intent(SplashActivity.this,HomeActivity.class);
-                            intent.putExtra(CategoryModel.CATEGORYMODEL,categoryModelArrayList);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(intent);
-                            finish();
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
+                    Intent intent = new Intent(SplashActivity.this,HomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                    finish();
 
                 }else{
                     Intent intent = new Intent(SplashActivity.this,AccountSetupActivity.class);

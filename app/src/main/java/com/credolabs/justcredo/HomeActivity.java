@@ -132,7 +132,6 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
                 callSearchLocationActivity();
             }
         });
-        categoryModelArrayList = (ArrayList<CategoryModel>) getIntent().getSerializableExtra(CategoryModel.CATEGORYMODEL);
         FirebaseMessaging.getInstance().subscribeToTopic(FirebaseAuth.getInstance().getCurrentUser().getUid());
         final TextView not_found_text1 = (TextView)findViewById(R.id.not_found_text1);
         not_found_text1.setText("You have not selected your location yet.");
@@ -180,7 +179,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
                         int id = item.getItemId();
                         switch (item.getItemId()) {
                             case R.id.navigation_home:
-                                fragment = CategoryFragment.newInstance(schoolListMap,categoryModelArrayList);
+                                fragment = new CategoryFragment();
                                 break;
                             case R.id.navigation_dashboard:
                                 fragment = new DashboardFragment();
