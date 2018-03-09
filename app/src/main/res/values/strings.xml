@@ -8,7 +8,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
 
-    <string name="app_name">Credo</string>
+    <string name="app_name">ShuttlParcel</string>
     <string name="title_activity_category">CategoryActivity</string>
     <string name="title_activity_search">SearchActivity</string>
     <string name="search_hint">Current Location</string>
@@ -47,7 +47,7 @@
 
     <string name="header_name">Name</string>
     <string name="header_email">Email</string>
-    <string name="tag_line_home">Showing a selection of sponsored content and recomendations for you</string>
+    <string name="tag_line_home">Easy way to parcel your things.</string>
     <string name="welcome_message">Welcome ! Here are some recomendations for you</string>
     <string name="image_trans">image_transition</string>
 
@@ -453,5 +453,13 @@
     <string name="apply">Apply</string>
     <string name="type_anything_you_are_looking_for">Type Anything You Are Looking For</string>
     <string name="title_activity_travel">TravelActivity</string>
+
+    <string-array name="pickup_points">
+        <item>IFFCO Chowk</item>
+        <item>Old DLF Colony</item>
+        <item>Malibu Towne</item>
+        <item>Subhash Chowk</item>
+        <item>Taj Vivanta (HUDA CC)</item>
+    </string-array>
 
 </resources>

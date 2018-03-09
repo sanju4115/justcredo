@@ -9,8 +9,8 @@ import java.util.HashMap;
 
 public class ParcelDetails implements Serializable {
 
-    private HashMap<String, String> toAddress;
-    private HashMap<String, String> FromAddress;
+    private String toAddress;
+    private String FromAddress;
     private Long time;
     private String uid;
     private String status;
@@ -18,7 +18,7 @@ public class ParcelDetails implements Serializable {
     public ParcelDetails() {
     }
 
-    public ParcelDetails(HashMap<String, String> toAddress, HashMap<String, String> fromAddress, Long time, String uid, String status) {
+    public ParcelDetails(String toAddress,String fromAddress, Long time, String uid, String status) {
         this.toAddress = toAddress;
         FromAddress = fromAddress;
         this.time = time;
@@ -26,19 +26,19 @@ public class ParcelDetails implements Serializable {
         this.status = status;
     }
 
-    public HashMap<String, String> getToAddress() {
+    public String getToAddress() {
         return toAddress;
     }
 
-    public void setToAddress(HashMap<String, String> toAddress) {
+    public void setToAddress(String toAddress) {
         this.toAddress = toAddress;
     }
 
-    public HashMap<String, String> getFromAddress() {
+    public String getFromAddress() {
         return FromAddress;
     }
 
-    public void setFromAddress(HashMap<String, String> fromAddress) {
+    public void setFromAddress(String fromAddress) {
         FromAddress = fromAddress;
     }
 

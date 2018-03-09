@@ -2,17 +2,23 @@ package com.credolabs.justcredo.easyparcel;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.utility.Util;
@@ -24,12 +30,17 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.kunzisoft.switchdatetime.SwitchDateTimeDialogFragment;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 public class ParcelActivity extends AppCompatActivity {
 
@@ -42,10 +53,11 @@ public class ParcelActivity extends AppCompatActivity {
     private EditText fromAdressText;
     private EditText toAdressText;
 
-    private HashMap<String,String> fromAddress;
-    private HashMap<String,String> toAddress;
+    private String fromAddress;
+    private String toAddress;
 
     private Date parcelDate;
+    private ProgressDialog mProgressDialog;
 
 
     @Override
@@ -55,8 +67,10 @@ public class ParcelActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        fromAddress = new HashMap<>();
-        toAddress = new HashMap<>();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_action_close);
+
 
 
         final TextInputLayout timeText = findViewById(R.id.time);
@@ -88,8 +102,61 @@ public class ParcelActivity extends AppCompatActivity {
             }
         });
 
+        Spinner staticSpinner = findViewById(R.id.static_from);
+        ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
+                .createFromResource(this, R.array.pickup_points,
+                        android.R.layout.simple_spinner_item);
+        staticAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        staticSpinner.setAdapter(staticAdapter);
 
-        fromAdressText = findViewById(R.id.fromAdressText);
+
+        Spinner toSpinner = findViewById(R.id.static_to);
+        ArrayAdapter<CharSequence> toAdapter = ArrayAdapter
+                .createFromResource(this, R.array.pickup_points,
+                        android.R.layout.simple_spinner_item);
+        toAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        toSpinner.setAdapter(staticAdapter);
+
+        staticSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                Log.v("item", (String) parent.getItemAtPosition(position));
+                fromAddress = (String) parent.getItemAtPosition(position);
+
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+
+        toSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                Log.v("item", (String) parent.getItemAtPosition(position));
+                toAddress = (String) parent.getItemAtPosition(position);
+
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+
+
+
+
+
+
+
+
+        /*fromAdressText = findViewById(R.id.fromAdressText);
         fromAdressText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -129,12 +196,12 @@ public class ParcelActivity extends AppCompatActivity {
                 }
             }
         });
-
+*/
         Button create_order = findViewById(R.id.create_order);
         create_order.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ProgressDialog mProgressDialog = new ProgressDialog(ParcelActivity.this);
+                mProgressDialog = new ProgressDialog(ParcelActivity.this);
 
                 mProgressDialog.setMessage("Submitting Your Order");
                 mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -144,14 +211,63 @@ public class ParcelActivity extends AppCompatActivity {
                 ParcelDetails parcelDetails = new ParcelDetails(toAddress,fromAddress, parcelDate.getTime(), FirebaseAuth.getInstance().getUid(),"Created");
 
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("parcel");
-                databaseReference.push().setValue(parcelDetails);
-                mProgressDialog.dismiss();
+                DatabaseReference newRef = databaseReference.push();
+                String key = newRef.getKey();
+                newRef.setValue(parcelDetails);
+
+
+
+                allotTrip(key);
             }
         });
 
     }
 
-    @Override
+    private void allotTrip(final String key) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("trip");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArrayList<Trip> tripArrayList = new ArrayList<>();
+                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
+                    Trip trip = noteDataSnapshot.getValue(Trip.class);
+                    if (trip != null) {
+                        trip.setKey(noteDataSnapshot.getKey());
+                    }
+                    tripArrayList.add(trip);
+                }
+                if (tripArrayList.size() > 0) {
+                    Trip trip = tripArrayList.get(0);
+                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("order_trip_mapping");
+                    databaseReference.push().setValue(new OrderTripMapping(trip.getKey(),key));
+
+                    mProgressDialog.dismiss();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ParcelActivity.this);
+                    builder.setCancelable(true);
+                    builder.setMessage("Congrats, your order created !");
+                    builder.setPositiveButton("Ok",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog,
+                                                    int which) {
+                                    ParcelActivity.this.finish();
+                                    dialog.dismiss();
+                                }
+                            });
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+
+
+    }
+
+    /*@Override
     public void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
         super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
         if (imageReturnedIntent != null) {
@@ -254,6 +370,14 @@ public class ParcelActivity extends AppCompatActivity {
                     break;
             }
         }
+    }*/
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
+        if (menuItem.getItemId() == android.R.id.home) {
+            this.finish();
+        }
+        return super.onOptionsItemSelected(menuItem);
     }
 
 }

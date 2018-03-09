@@ -22,7 +22,7 @@
         android:paddingLeft="5dp"
         >
 
-        <RelativeLayout
+        <!--<RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp">
@@ -41,7 +41,7 @@
                 android:inputType="none"
                 android:focusable="false"/>
 
-        </RelativeLayout>
+        </RelativeLayout>-->
 
     </LinearLayout>
 
@@ -52,8 +52,9 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
+            android:layout_gravity="center"
             android:focusableInTouchMode="true">
 
             <LinearLayout
@@ -64,7 +65,8 @@
 
 
 
-                <LinearLayout android:layout_width="wrap_content"
+                <LinearLayout android:layout_width="match_parent"
+                    android:id="@+id/create_order_btn"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:layout_margin="10dp"
@@ -72,8 +74,8 @@
 
                     <ImageView
                         android:src="@drawable/parcel"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="150dp"
                         android:padding="5dp"
                         android:layout_marginEnd="8dp" />
 
@@ -107,54 +109,6 @@
                 </LinearLayout>
 
 
-
-                <LinearLayout android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_margin="10dp"
-                    android:id="@+id/travelButton"
-                    xmlns:android="http://schemas.android.com/apk/res/android">
-
-                    <ImageView
-                        android:src="@drawable/travel"
-                        android:id="@+id/imageView"
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:padding="5dp"
-                        android:layout_marginEnd="8dp" />
-
-
-                    <TextView
-                        android:id="@+id/grid_name"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:paddingStart="5dp"
-                        android:paddingEnd="5dp"
-                        android:text="Travel Plan"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/colorPrimaryText"
-                        android:ellipsize="end"
-                        android:maxLines="1"/>
-
-                    <TextView
-                        android:id="@+id/grid_address"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="0dp"
-                        android:paddingStart="5dp"
-                        android:paddingEnd="5dp"
-                        android:visibility="gone"
-                        android:layout_marginBottom="2dp"
-                        android:textSize="12sp"
-                        android:ellipsize="end"
-                        android:maxLines="1"/>
-
-                </LinearLayout>
-
-
             </LinearLayout>
 
 
@@ -166,6 +120,7 @@
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:paddingBottom="2dp"
+                android:gravity="bottom"
                 android:textSize="12sp"
                 android:text="@string/tag_line_home"/>
 

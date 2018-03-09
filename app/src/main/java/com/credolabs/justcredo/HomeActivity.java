@@ -108,7 +108,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
     private ProgressBar progressBar;
     private double latitude;
     private double longitude;
-    private BottomNavigationView bottomNavigation;
+    //private BottomNavigationView bottomNavigation;
     private LocationRequest mLocationRequest;
     private Location mLastLocation;
     private ArrayList<CategoryModel> categoryModelArrayList;
@@ -121,7 +121,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         //Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
-        bottomNavigation = findViewById(R.id.navigation);
+        //bottomNavigation = findViewById(R.id.navigation);
         not_found = findViewById(R.id.not_found);
         content = findViewById(R.id.content);
         progressBar = findViewById(R.id.progress);
@@ -129,7 +129,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
         locationOutput.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callSearchLocationActivity();
+                //callSearchLocationActivity();
             }
         });
         FirebaseMessaging.getInstance().subscribeToTopic(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -161,14 +161,18 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
         }
         final ProgressDialog mProgressDialog = new ProgressDialog(this);
 
-        mProgressDialog.setMessage("Loading Experiences");
+        /*mProgressDialog.setMessage("Loading Experiences");
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         mProgressDialog.setIndeterminate(true);
         mProgressDialog.setCancelable(false);
-        mProgressDialog.show();
+        mProgressDialog.show();*/
         DatabaseReference mDatabaseSchoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
         mDatabaseSchoolReference.keepSynced(true);
-        mDatabaseSchoolReference.orderByChild("address/addressCity").equalTo(addressCity).addListenerForSingleValueEvent(new ValueEventListener() {
+        fragment = new CategoryFragment();
+        final FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.content, fragment).commit();
+
+        /*mDatabaseSchoolReference.orderByChild("address/addressCity").equalTo(addressCity).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final HashMap<String,HashMap<String,String>> map = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
@@ -201,18 +205,18 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
 
                 mProgressDialog.dismiss();
 
-                if (getIntent().hasExtra("notification")&& getIntent().getStringExtra("notification").equals("notification")){
+                *//*if (getIntent().hasExtra("notification")&& getIntent().getStringExtra("notification").equals("notification")){
                     bottomNavigation.setSelectedItemId(R.id.navigation_notifications);
                 }else {
                     bottomNavigation.setSelectedItemId(R.id.navigation_home);
-                }
+                }*//*
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        });*/
     }
 
     @Override
@@ -246,7 +250,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
 
     @Override
     public void onBackPressed() {
-        int id = bottomNavigation.getSelectedItemId();
+        /*//int id = bottomNavigation.getSelectedItemId();
         if (id != R.id.navigation_home){
             bottomNavigation.setSelectedItemId(R.id.navigation_home);
         }else {
@@ -269,7 +273,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
 
             alertDialogBuilder.create();
             alertDialogBuilder.show();
-        }
+        }*/
     }
 
     @Override
@@ -472,7 +476,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
 
             progressBar.setVisibility(View.GONE);
             not_found.setVisibility(View.GONE);
-            bottomNavigation.setSelectedItemId(R.id.navigation_home);
+            //bottomNavigation.setSelectedItemId(R.id.navigation_home);
             content.setVisibility(View.VISIBLE);
         }
     }

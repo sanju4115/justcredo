@@ -58,32 +58,26 @@ public class CategoryFragment extends Fragment {
         setRetainInstance(true);
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
-        final LinearLayout searchLayout = (LinearLayout) view.findViewById(R.id.search_bar_view);
-        EditText editText = (EditText) view.findViewById(R.id.adressText);
+        //final LinearLayout searchLayout = (LinearLayout) view.findViewById(R.id.search_bar_view);
+        /*EditText editText = (EditText) view.findViewById(R.id.adressText);
         editText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), SearchActivity.class);
+                *//*Intent intent = new Intent(getActivity(), SearchActivity.class);
                 ActivityOptionsCompat options = ActivityOptionsCompat.
                         makeSceneTransitionAnimation(getActivity(), (View)searchLayout, "search_bar");
-                startActivity(intent, options.toBundle());
+                startActivity(intent, options.toBundle());*//*
             }
-        });
+        });*/
 
-        LinearLayout travelButton = view.findViewById(R.id.travelButton);
-        travelButton.setOnClickListener(new View.OnClickListener() {
+        LinearLayout create_order_btn = view.findViewById(R.id.create_order_btn);
+        create_order_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getActivity(), ParcelActivity.class);
-                ActivityOptionsCompat options = ActivityOptionsCompat.
-                        makeSceneTransitionAnimation(getActivity(), (View)searchLayout, "search_bar");
-                startActivity(intent, options.toBundle());
+                startActivity(intent);
             }
         });
-
-
-
-
 
         return view;
     }

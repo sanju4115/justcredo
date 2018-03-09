@@ -15,11 +15,39 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:visibility="visible"
         android:id="@+id/travel_form">
 
-        <EditText
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:text="From Address"/>
+
+            <Spinner
+                android:id="@+id/static_from"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:text="To Address"/>
+
+            <Spinner
+                android:id="@+id/static_to"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+
+
+       <!-- <EditText
             android:id="@+id/fromAdressText"
             android:layout_width="match_parent"
             android:layout_height="50dp"
@@ -51,7 +79,7 @@
             android:paddingBottom="12dp"
             android:paddingStart="5dp"
             android:paddingEnd="5dp"
-            android:paddingTop="12dp" />
+            android:paddingTop="12dp" />-->
 
         <android.support.design.widget.TextInputLayout
             android:id="@+id/time"
