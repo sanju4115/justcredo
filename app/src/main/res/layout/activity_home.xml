@@ -23,16 +23,10 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:title=" "
+        app:title="Shuttl Parcel "
         app:layout_scrollFlags="scroll|enterAlways"
         app:titleTextColor="@android:color/white">
 
-        <ImageView
-            android:layout_width="130dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/coollogo"
-            android:layout_marginEnd="50dp"
-            android:contentDescription="@string/logo" />
 
         <android.support.v7.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
