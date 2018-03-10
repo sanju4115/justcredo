@@ -92,7 +92,7 @@
 
     </android.support.design.widget.CoordinatorLayout>
 
-    <android.support.design.widget.BottomNavigationView
+    <!--<android.support.design.widget.BottomNavigationView
         android:id="@+id/navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -101,6 +101,6 @@
         app:menu="@menu/navigation"
         app:itemBackground="@color/colorPrimary"
         app:itemIconTint="@drawable/bnv_tab_item_foreground"
-        app:itemTextColor="@drawable/bnv_tab_item_foreground"/>
+        app:itemTextColor="@drawable/bnv_tab_item_foreground"/>-->
 
 </android.support.v7.widget.LinearLayoutCompat>
