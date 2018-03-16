@@ -26,6 +26,9 @@ import android.widget.Toast;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.internet.ConnectivityReceiver;
 import com.credolabs.justcredo.model.CategoryModel;
+import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.model.User;
+import com.credolabs.justcredo.search.Filtering;
 import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.CustomeToastFragment;
 import com.credolabs.justcredo.utility.Util;
@@ -44,6 +47,7 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -59,9 +63,16 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,7 +94,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     private SignInButton signInButtonGoogle;
     private static final int RC_SIGN_IN = 1;
     private GoogleApiClient mGoogleApiClient;
-    private DatabaseReference mUsersReference;
+    private CollectionReference mUsersReference;
     private GoogleSignInAccount account;
     //private  CallbackManager mCallbackManager;
 
@@ -126,7 +137,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                 }
             });
 
-        mUsersReference = FirebaseDatabase.getInstance().getReference().child("users");
+        mUsersReference = FirebaseFirestore.getInstance().collection("users");
 
 
         initViews();
@@ -179,50 +190,26 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
 
     private void checkUserExist() {
         final String userID = mAuth.getCurrentUser().getUid();
-        mUsersReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(final DataSnapshot dataSnapshotUser) {
-                final Intent intent = new Intent(getActivity(),HomeActivity.class);
-                final ArrayList<CategoryModel> categoryModelArrayList = new ArrayList<>();
-                DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories").child("schools");
-                mReferenceCategories.keepSynced(true);
-                mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        categoryModelArrayList.clear();
-                        for (DataSnapshot category: dataSnapshot.getChildren()) {
-                            CategoryModel cat = category.getValue(CategoryModel.class);
-                            categoryModelArrayList.add(cat);
-                        }
-                        intent.putExtra(CategoryModel.CATEGORYMODEL,categoryModelArrayList);
-                        if (!dataSnapshotUser.hasChild(userID)){
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            String userID = user.getUid();
-                            FirebaseMessaging.getInstance().subscribeToTopic(userID);
-                            DatabaseReference currentUserDB = mUsersReference.child(userID);
-                            currentUserDB.child("name").setValue(account.getDisplayName());
-                            currentUserDB.child("email").setValue(account.getEmail());
-                            currentUserDB.child("uid").setValue(user.getUid());
-                            currentUserDB.child("profilePic").setValue(account.getPhotoUrl().toString());
+        Task<DocumentSnapshot> task = mUsersReference.document(userID).get();
+        if (!task.isSuccessful()){
 
-                        }
-                        startActivity(intent);
-                        getActivity().finish();
-                    }
+            FirebaseMessaging.getInstance().subscribeToTopic(userID);
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
+            DocumentReference newUserRef = mUsersReference.document(userID);
+            Map<String, Object> docData = new HashMap<>();
+            docData.put("uid",userID);
+            docData.put("name",account.getDisplayName());
+            docData.put("email",account.getEmail());
+            if (account.getPhotoUrl()!=null) {
+                docData.put("profilePic", account.getPhotoUrl().toString());
             }
+            newUserRef.set(docData);
+        }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+        final Intent intent = new Intent(getActivity(),HomeActivity.class);
+        startActivity(intent);
+        getActivity().finish();
 
-            }
-        });
     }
 
 

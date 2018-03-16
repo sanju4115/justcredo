@@ -96,7 +96,7 @@ public class CustomPlaceAutoCompleteFragment extends PlaceAutocompleteFragment {
         int var1 = -1;
 
         try {
-            Intent var2 = (new PlaceAutocomplete.IntentBuilder(2)).setBoundsBias(this.zzaRk).setFilter(this.zzaRl).zzih(this.editSearch.getText().toString()).zzea(1).build(this.getActivity());
+            Intent var2 = (new PlaceAutocomplete.IntentBuilder(2)).setBoundsBias(this.zzaRk).setFilter(this.zzaRl).zzim(this.editSearch.getText().toString()).zzdz(1).build(this.getActivity());
             this.startActivityForResult(var2, 1);
         } catch (GooglePlayServicesRepairableException var3) {
             var1 = var3.getConnectionStatusCode();

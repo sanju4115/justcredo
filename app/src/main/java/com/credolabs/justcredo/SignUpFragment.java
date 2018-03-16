@@ -1,9 +1,7 @@
 package com.credolabs.justcredo;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -26,14 +24,17 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,7 +55,7 @@ public class SignUpFragment extends Fragment implements View.OnClickListener{
     private String getConfirmPassword;
 
     private FirebaseAuth mAuth;
-    private DatabaseReference mReferenceUsers;
+    private FirebaseFirestore mReferenceUsers;
     private ProgressDialog mDialog;
 
     public SignUpFragment() {
@@ -69,7 +70,7 @@ public class SignUpFragment extends Fragment implements View.OnClickListener{
         view = inflater.inflate(R.layout.fragment_signup, container, false);
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
         mAuth = FirebaseAuth.getInstance();
-        mReferenceUsers = FirebaseDatabase.getInstance().getReference().child("users");
+        mReferenceUsers = FirebaseFirestore.getInstance();;
         mDialog = new ProgressDialog(getActivity());
 
         initViews();
@@ -182,22 +183,22 @@ public class SignUpFragment extends Fragment implements View.OnClickListener{
             mAuth.createUserWithEmailAndPassword(getEmailId,getPassword).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()) {
+                    if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         String userID = mAuth.getCurrentUser().getUid();
                         FirebaseMessaging.getInstance().subscribeToTopic(userID);
-                        DatabaseReference currentUserDB = mReferenceUsers.child(userID);
-                        currentUserDB.child("uid").setValue(currentUserDB.getKey());
-                        currentUserDB.child("name").setValue(getFullName);
-                        currentUserDB.child("email").setValue(getEmailId);
-                        currentUserDB.child("mobile").setValue(getMobileNumber);
-                        currentUserDB.child("location").setValue(getLocation);
+                        DocumentReference newUserRef = mReferenceUsers.collection("users").document(userID);
+                        Map<String, Object> docData = new HashMap<>();
+                        docData.put("uid",userID);
+                        docData.put("name",getFullName);
+                        docData.put("email",getEmailId);
+                        docData.put("mobile",getMobileNumber);
+                        docData.put("location",getLocation);
+                        newUserRef.set(docData);
                         mDialog.dismiss();
                         Intent intent = new Intent(getActivity(), HomeActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
                         getActivity().finish();
-                    }else {
-
                     }
                 }
             }).addOnFailureListener(getActivity(), new OnFailureListener() {

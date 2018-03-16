@@ -79,6 +79,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
@@ -118,8 +120,38 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
         super.onCreate(savedInstanceState);
         fragmentManager = getSupportFragmentManager();
         setContentView(R.layout.activity_home);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /*final ProgressDialog mProgressDialog = new ProgressDialog(HomeActivity.this);
+
+                mProgressDialog.setMessage("Loading Experiences");
+                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                mProgressDialog.setIndeterminate(true);
+                mProgressDialog.setCancelable(false);
+                mProgressDialog.show();
+                DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories").child("schools");
+                mReferenceCategories.keepSynced(true);
+                final CollectionReference firebaseFirestore = FirebaseFirestore.getInstance().collection("categories");
+                mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot category: dataSnapshot.getChildren()) {
+                            CategoryModel cat = category.getValue(CategoryModel.class);
+                            firebaseFirestore.document().set(cat);
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });*/
+            }
+        });
         //Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
         bottomNavigation = findViewById(R.id.navigation);
         not_found = findViewById(R.id.not_found);
