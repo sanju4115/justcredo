@@ -218,7 +218,12 @@ public class School implements Serializable, ObjectModel, Comparable, Parcelable
         dest.writeString(this.time);
         dest.writeString(this.userID);
         dest.writeString(this. website);
-        dest.writeLong(this.noOfRating);
+        if (noOfRating==null){
+            dest.writeLong(0);
+        }else {
+            dest.writeLong(this.noOfRating);
+        }
+
         if (this.noOfBookmarks==null) {
             dest.writeLong(0);
         }else {

@@ -80,12 +80,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.concurrent.atomic.DoubleAdder;
 
 import static android.content.ContentValues.TAG;
 
@@ -136,6 +139,57 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
                 mProgressDialog.show();
                 DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories").child("schools");
                 mReferenceCategories.keepSynced(true);
+
+
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                Query first = db.collection(School.SCHOOL_DATABASE);
+                //.whereEqualTo(temp, true)
+                //.whereEqualTo(School.ADDRESS + "." + School.ADDRESS_CITY, addressCity)
+                //.orderBy(School.RATING, Query.Direction.DESCENDING).limit(LIMIT);
+
+                first.get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                for (DocumentSnapshot document : task.getResult()) {
+                                    School model = document.toObject(School.class);
+                                    HashMap<String, String> map = model.getCategories();
+                                    HashMap<String, Boolean> placeTypeMap = new HashMap<>();
+                                    if (map.get(PlaceTypes.SchoolTypes.International.getValue()) != null) {
+                                        placeTypeMap.put(School.INTERNATIONAL_SCHOOL, true);
+                                    }
+                                    if (map.get(PlaceTypes.SchoolTypes.Primary.getValue()) != null) {
+                                        placeTypeMap.put(School.PRIMARY_SCHOOL, true);
+                                    }
+                                    if (map.get(PlaceTypes.SchoolTypes.Secondary.getValue()) != null) {
+                                        placeTypeMap.put(School.SECONDARY_SCHOOL, true);
+                                    }
+                                    if (map.get(PlaceTypes.SchoolTypes.Pre.getValue()) != null) {
+                                        placeTypeMap.put(School.PRE_SCHOOL, true);
+                                    }
+                                    if (map.get(PlaceTypes.SchoolTypes.SpecialSchool.getValue()) != null) {
+                                        placeTypeMap.put(School.SPECIAL_SCHOOL, true);
+                                    }
+                                    if (model.getType().equals(PlaceTypes.MUSIC.getValue())) {
+                                        placeTypeMap.put(School.MUSIC_SCHOOL, true);
+                                    }
+                                    if (model.getType().equals(PlaceTypes.ART.getValue())) {
+                                        placeTypeMap.put(School.ART_SCHOOL, true);
+                                    }
+                                    if (model.getType().equals(PlaceTypes.SPORTS.getValue())) {
+                                        placeTypeMap.put(School.SPORTS_SCHOOL, true);
+                                    }
+                                    if (model.getType().equals(PlaceTypes.COACHING.getValue())) {
+                                        placeTypeMap.put(School.COACHING_CLASS_SCHOOL, true);
+                                    }
+                                    if (model.getType().equals(PlaceTypes.PrivateTutors.getValue())) {
+                                        placeTypeMap.put(School.PRIVATE_TUTOR_SCHOOL, true);
+                                    }
+                                    model.setPlaceType(placeTypeMap);
+                                    db.collection(School.SCHOOL_DATABASE).document(model.getId()).set(model);
+                                }
+                            }
+                        });
+
+
                 final CollectionReference firebaseFirestore = FirebaseFirestore.getInstance().collection("categories");
                 mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -153,6 +207,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
                     }
                 });*/
             }
+
         });
         //Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
         bottomNavigation = findViewById(R.id.navigation);

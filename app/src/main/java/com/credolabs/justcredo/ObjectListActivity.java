@@ -1,6 +1,7 @@
 package com.credolabs.justcredo;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,6 +28,8 @@ import com.credolabs.justcredo.search.FilterFragment;
 import com.credolabs.justcredo.search.Filtering;
 import com.credolabs.justcredo.utility.NearByPlaces;
 import com.credolabs.justcredo.utility.Util;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,6 +38,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,35 +56,36 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
     private FilterFragment filterFragment;
     private Toolbar toolbar;
     private MenuItem item;
-    private boolean loading=false,isLastPage=false;
-    private int pageCount=0;
 
-    private static final int LIMIT = 5;
+    private boolean loading=false,isLastPage=false;
+    private static final int LIMIT = 15;
     private String addressCity;
     private Query next;
+    private final ArrayList<School> schoolsList = new ArrayList<>();
+    private boolean dataLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_object_list);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar =  findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         //Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
         category = getIntent().getStringExtra("category");
         toolbar.setTitle("List");
-        progressBar = (ProgressBar)findViewById(R.id.progress);
+        progressBar = findViewById(R.id.progress);
         progressBar.setVisibility(View.VISIBLE);
-        list_layout = (RelativeLayout) findViewById(R.id.list_layout);
-        frameContainer = (FrameLayout) findViewById(R.id.frameContainer);
-        TextView not_found_text2 = (TextView) findViewById(R.id.not_found_text2);
+        list_layout =  findViewById(R.id.list_layout);
+        frameContainer =  findViewById(R.id.frameContainer);
+        TextView not_found_text2 =  findViewById(R.id.not_found_text2);
         not_found_text2.setText(R.string.listActivity_not_found_text2);
 
-        not_found = (LinearLayout) findViewById(R.id.not_found);
+        not_found =  findViewById(R.id.not_found);
         not_found.setVisibility(View.GONE);
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
-        listRecyclerView = (RecyclerView)findViewById(R.id.linear_recyclerview);
+        listRecyclerView = findViewById(R.id.linear_recyclerview);
         listRecyclerView.setHasFixedSize(true);
         listRecyclerView.setLayoutManager(mLayoutManager);
 
@@ -95,7 +100,6 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
             }
         }
 
-        ArrayList<School> schoolsList = new ArrayList<>();
         adapter = new ObjectListViewRecyclerAdapter(ObjectListActivity.this, schoolsList);
         String temp = School.PLACE_TYPE+"."+category;
 
@@ -111,6 +115,7 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
                 schoolsList.clear();
                 for (DocumentSnapshot document : task.getResult()) {
                     School model = document.toObject(School.class);
+                    model.setDistance(NearByPlaces.distance(ObjectListActivity.this, model.getLatitude(), model.getLongitude()));
                     schoolsList.add(model);
                 }
 
@@ -125,11 +130,18 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
                                 .orderBy(School.RATING, Query.Direction.DESCENDING)
                                 .startAfter(lastVisible)
                                 .limit(LIMIT);
-                    }else {
-                        isLastPage = true;
                     }
                 }
+                if (schoolsList.size()<LIMIT) {
+                    isLastPage = true;
+                }
                 if (schoolsList.size() > 0) {
+                    if (filtersList !=null && !filtersList.isEmpty()){
+                        ArrayList<School> listTemp = Filtering.appliyFilter(filtersList, filterMap, schoolsList);
+                        schoolsList.clear();
+                        schoolsList.addAll(listTemp);
+                        //Filtering.sortByDistance(schoolsList);
+                    }
                     not_found.setVisibility(View.GONE);
                     adapter = new ObjectListViewRecyclerAdapter(ObjectListActivity.this, schoolsList);
                     listRecyclerView.setAdapter(adapter);
@@ -157,12 +169,14 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
 
                         loading = true;
                         loading_more.setVisibility(View.VISIBLE);
+                        ArrayList<School> newLoaded = new ArrayList<>();
                         next.get().addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 int count = 0;
                                 for (DocumentSnapshot document : task.getResult()) {
                                     School model = document.toObject(School.class);
-                                    schoolsList.add(model);
+                                    model.setDistance(NearByPlaces.distance(ObjectListActivity.this, model.getLatitude(), model.getLongitude()));
+                                    newLoaded.add(model);
                                     count++;
                                 }
                                 if (count<LIMIT){
@@ -181,7 +195,15 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
                                     }
                                 }
 
-                                if (!schoolsList.isEmpty()) {
+                                if (!newLoaded.isEmpty()) {
+                                    if (filtersList !=null && !filtersList.isEmpty()){
+                                        ArrayList<School> listTemp = Filtering.appliyFilter(filtersList, filterMap, newLoaded);
+                                        schoolsList.addAll(listTemp);
+                                        //Filtering.sortByDistance(schoolsList);
+                                    }else {
+                                        schoolsList.addAll(newLoaded);
+                                    }
+
                                     adapter.notifyDataSetChanged();
                                     loading_more.setVisibility(View.GONE);
                                 }
@@ -249,94 +271,75 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
     }
 
     @Override
-    public void onFragmentInteraction(ArrayList<School> schoolsList, final HashMap<String, ArrayList<FilterModel>> filterMap, final ArrayList<String> filtersList) {
+    public void onFragmentInteraction(final HashMap<String, ArrayList<FilterModel>> filterMap, final ArrayList<String> filtersList) {
         this.filterMap =filterMap;
         this.filtersList =filtersList;
         item.setVisible(true);
         toolbar.setTitle("List");
         frameContainer.setVisibility(View.GONE);
         progressBar.setVisibility(View.VISIBLE);
-        DatabaseReference mDatabaseSchoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
-        mDatabaseSchoolReference.keepSynced(true);
-        if (category.contains(PlaceTypes.SCHOOLS.getValue())) {
-            mDatabaseSchoolReference.orderByChild(School.TYPE).equalTo(PlaceTypes.SCHOOLS.getValue())
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            ArrayList<School> schoolsList = new ArrayList<>();
-                            for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                School place = noteDataSnapshot.getValue(School.class);
-                                if (place != null) {
-                                    place.setDistance(NearByPlaces.distance(ObjectListActivity.this, place.getLatitude(), place.getLongitude()));
-                                }
-                                schoolsList.add(place);
-                            }
-                            if (schoolsList.size() > 0 & listRecyclerView != null) {
-                                schoolsList = Filtering.filterByCity(schoolsList, ObjectListActivity.this);
-                                if (schoolsList.size() > 0) {
-                                    schoolsList = Filtering.appliyFilter(filtersList,filterMap,schoolsList);
-                                    Filtering.sortByDistance(schoolsList);
-                                    adapter = new ObjectListViewRecyclerAdapter(ObjectListActivity.this, schoolsList);
-                                    listRecyclerView.setAdapter(adapter);
-                                }
-                            }
-                            if (schoolsList.size()>0){
-                                not_found.setVisibility(View.GONE);
-                                list_layout.setVisibility(View.VISIBLE);
-                            }else{
-                                not_found.setVisibility(View.VISIBLE);
-                                list_layout.setVisibility(View.GONE);
-                            }
 
-                            progressBar.setVisibility(View.GONE);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String temp = School.PLACE_TYPE+"."+category;
 
+        //clearing school list to load new list
+        schoolsList.clear();
+
+        Query first = db.collection(School.SCHOOL_DATABASE)
+                .whereEqualTo(temp, true)
+                .whereEqualTo(School.ADDRESS + "." + School.ADDRESS_CITY, addressCity)
+                .orderBy(School.RATING, Query.Direction.DESCENDING).limit(LIMIT);
+
+        first.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (DocumentSnapshot document : task.getResult()) {
+                        School model = document.toObject(School.class);
+                        model.setDistance(NearByPlaces.distance(ObjectListActivity.this, model.getLatitude(), model.getLongitude()));
+                        schoolsList.add(model);
+                    }
+
+                    if (task.getResult()!=null) {
+                        if (!(task.getResult().size()<1)) {
+                            DocumentSnapshot lastVisible = task.getResult().getDocuments()
+                                    .get(task.getResult().size() - 1);
+
+                            next = db.collection(School.SCHOOL_DATABASE)
+                                    .whereEqualTo(temp, true)
+                                    .whereEqualTo(School.ADDRESS + "." + School.ADDRESS_CITY, addressCity)
+                                    .orderBy(School.RATING, Query.Direction.DESCENDING)
+                                    .startAfter(lastVisible)
+                                    .limit(LIMIT);
                         }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
+                    }
+                    if (schoolsList.size()<LIMIT) {
+                        isLastPage = true;
+                    }
+                    if (schoolsList.size() > 0) {
+                        ArrayList<School> listTemp = Filtering.appliyFilter(filtersList, filterMap, schoolsList);
+                        if (listTemp.size()>0){
+                            schoolsList.clear();
+                            schoolsList.addAll(listTemp);
+                            adapter.notifyDataSetChanged();
+                            not_found.setVisibility(View.GONE);
+                            list_layout.setVisibility(View.VISIBLE);
+                        }else {
                             not_found.setVisibility(View.VISIBLE);
-                        }
-                    });
-        }else {
-            mDatabaseSchoolReference.orderByChild(School.TYPE).equalTo(category)
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            ArrayList<School> schoolsList = new ArrayList<>();
-                            for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                School place = noteDataSnapshot.getValue(School.class);
-                                if (place != null) {
-                                    place.setDistance(NearByPlaces.distance(ObjectListActivity.this, place.getLatitude(), place.getLongitude()));
-                                }
-                                schoolsList.add(place);
-                            }
-                            if (schoolsList.size() > 0 & listRecyclerView != null) {
-                                schoolsList = Filtering.filterByCity(schoolsList, ObjectListActivity.this);
-                                if (schoolsList.size() > 0) {
-                                    schoolsList = Filtering.appliyFilter(filtersList,filterMap,schoolsList);
-                                    Filtering.sortByDistance(schoolsList);
-                                    adapter = new ObjectListViewRecyclerAdapter(ObjectListActivity.this, schoolsList);
-                                    listRecyclerView.setAdapter(adapter);
-                                }
-                            }
-                            if (schoolsList.size()>0){
-                                not_found.setVisibility(View.GONE);
-                                list_layout.setVisibility(View.VISIBLE);
-                            }else{
-                                not_found.setVisibility(View.VISIBLE);
-                                list_layout.setVisibility(View.GONE);
-                            }
-
-                            progressBar.setVisibility(View.GONE);
-
+                            list_layout.setVisibility(View.GONE);
                         }
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            not_found.setVisibility(View.VISIBLE);
-                        }
-                    });
-        }
+                    }else{
+                        not_found.setVisibility(View.VISIBLE);
+                        list_layout.setVisibility(View.GONE);
+                    }
+                }else{
+                    not_found.setVisibility(View.VISIBLE);
+                    list_layout.setVisibility(View.GONE);
+                }
 
+                progressBar.setVisibility(View.GONE);
+            }
+        });
     }
 }

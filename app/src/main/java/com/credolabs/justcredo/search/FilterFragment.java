@@ -45,7 +45,6 @@ public class FilterFragment extends Fragment {
     private ListView filterListView;
     private ListView checkboxListView;
     private ProgressBar progress;
-    private ArrayList<School> schoolsList;
 
     private OnFragmentInteractionListener mListener;
 
@@ -78,7 +77,6 @@ public class FilterFragment extends Fragment {
         final View view = inflater.inflate(R.layout.fragment_filter, container, false);
 
         progress =view.findViewById(R.id.progress);
-        schoolsList = new ArrayList<>();
         if (filterMap == null) {
             // for making objects for all the checkbox list for all the filters
             // so that it can be stored whether it is checked or not
@@ -231,7 +229,7 @@ public class FilterFragment extends Fragment {
 
     public void onButtonPressed() {
         if (mListener != null) {
-            mListener.onFragmentInteraction(schoolsList,filterMap,filtersList);
+            mListener.onFragmentInteraction(filterMap,filtersList);
         }
     }
 
@@ -253,7 +251,7 @@ public class FilterFragment extends Fragment {
     }
 
     public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(ArrayList<School> schoolsList, HashMap<String, ArrayList<FilterModel>> filterMap, ArrayList<String> filtersList);
+        void onFragmentInteraction(HashMap<String, ArrayList<FilterModel>> filterMap, ArrayList<String> filtersList);
     }
 
     private void displayListView(ArrayList<FilterModel> checkboxList, Context context) {
