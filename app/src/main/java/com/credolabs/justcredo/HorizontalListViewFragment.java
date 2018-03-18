@@ -34,6 +34,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ public class HorizontalListViewFragment extends Fragment {
     private School model;
     private ArrayList<School> schoolArrayList;
     private String addressCity;
+    private static final int LIMIT = 10;
 
     public HorizontalListViewFragment() {
     }
@@ -153,15 +155,21 @@ public class HorizontalListViewFragment extends Fragment {
 
 
         if (schoolArrayList == null) {
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            String temp = School.PLACE_TYPE+"."+placeType;
+            Query first = db.collection(School.SCHOOL_DATABASE)
+                    .whereEqualTo(temp, true)
+                    .whereEqualTo(School.ADDRESS + "." + School.ADDRESS_CITY, addressCity)
+                    .orderBy(School.RATING, Query.Direction.DESCENDING).limit(LIMIT);
             schoolArrayList = new ArrayList<>();
-            FirebaseFirestore.getInstance().collection(School.SCHOOL_DATABASE)
+            /*FirebaseFirestore.getInstance().collection(School.SCHOOL_DATABASE)
                     .whereEqualTo(School.TYPE, placeType)
                     .whereEqualTo(School.ADDRESS + "." + School.ADDRESS_CITY, addressCity)
                     //.whereLessThanOrEqualTo(School.LATITUDE,maxLat)
                     //.whereGreaterThanOrEqualTo(School.LATITUDE,minLat)
                     //.whereLessThanOrEqualTo(School.LONGITUDE,maxLon)
-                    //.whereLessThanOrEqualTo(School.LONGITUDE,minLon)
-                    .get().addOnCompleteListener(task -> {
+                    //.whereLessThanOrEqualTo(School.LONGITUDE,minLon)*/
+                    first.get().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     schoolArrayList.clear();
                     for (DocumentSnapshot document : task.getResult()) {

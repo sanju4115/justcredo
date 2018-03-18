@@ -31,9 +31,8 @@
                 android:id="@+id/imageView"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:scaleType="center"
-                android:layout_alignParentLeft="true"
-                android:layout_marginRight="8dp" />
+                android:scaleType="centerCrop"
+                android:layout_marginEnd="8dp" />
 
         </FrameLayout>
         <TextView
@@ -41,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignTop="@+id/imageFrame"
-            android:layout_toRightOf="@+id/imageFrame"
+            android:layout_toEndOf="@+id/imageFrame"
             android:textSize="@dimen/title"
             android:textStyle="bold" />
         <TextView
@@ -50,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/categoryTextView"
             android:layout_marginTop="5dp"
-            android:layout_toRightOf="@+id/imageFrame"
+            android:layout_toEndOf="@+id/imageFrame"
             android:textColor="@color/genre"
             android:textSize="@dimen/genre" />
 
@@ -72,7 +71,7 @@
                 android:id="@+id/distance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="10dp" />
+                android:textSize="10sp" />
 
         </LinearLayout>
 

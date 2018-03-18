@@ -150,6 +150,7 @@ public class CategoryFragment extends Fragment {
                                     getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
                                 }
                             });
+                            buildHorizontalListSection();
                         }
                     } else {
                         new CustomeToastFragment().Show_Toast(getActivity(), view,
@@ -170,9 +171,11 @@ public class CategoryFragment extends Fragment {
                     getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
                 }
             });
+
+            buildHorizontalListSection();
         }
 
-        top_rated_school = HorizontalListViewFragment
+        /*top_rated_school = HorizontalListViewFragment
                 .newInstance("Top Schools", PlaceTypes.SCHOOLS.getValue());
         top_rated_music = HorizontalListViewFragment
                 .newInstance("Top Music Classes",PlaceTypes.MUSIC.getValue());
@@ -193,8 +196,8 @@ public class CategoryFragment extends Fragment {
         transaction.add(R.id.fragment_container, top_rated_painting );
         transaction.add(R.id.fragment_container, top_rated_coaching );
         transaction.add(R.id.fragment_container, top_rated_private_tutors );
-        transaction.add(R.id.fragment_container, nearByFragment);
-        transaction.commit();
+        transaction.add(R.id.fragment_container, nearByFragment);*/
+
 
 
         /*sponsored_indicator = (CirclePageIndicator) view.findViewById(R.id.sponsored_indicator);
@@ -214,6 +217,21 @@ public class CategoryFragment extends Fragment {
         progressBar.setVisibility(View.GONE);
 
         return view;
+    }
+
+
+    private void buildHorizontalListSection(){
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+
+        for (CategoryModel categoryModel : categoryModelArrayList){
+            transaction.add(R.id.fragment_container, HorizontalListViewFragment
+                    .newInstance("Top "+ categoryModel.getName(), categoryModel.getKey()) );
+        }
+
+        nearByFragment = NearByFragment.newInstance(null,"");
+        transaction.add(R.id.fragment_container, nearByFragment);
+
+        transaction.commit();
     }
 
     public void onButtonPressed(Uri uri) {

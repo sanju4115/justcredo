@@ -27,6 +27,15 @@ public class Review implements Serializable{
     private HashMap<String, String> images;
     public static final String REVIEW_DATABASE = "reviews";
 
+    public static final String DB_REVIEWS_REF = "reviews";
+    public static final String DB_BLOG_REF = "blog";
+
+
+    public static final String ADDRESS_CITY = "addressCity";
+    public static final String TIMESTAMP = "timestamp";
+
+
+
 
     public Review() {
     }

@@ -205,9 +205,10 @@ public class ObjectListActivity extends AppCompatActivity implements FilterFragm
                                     }
 
                                     adapter.notifyDataSetChanged();
-                                    loading_more.setVisibility(View.GONE);
+
                                 }
                             }
+                            loading_more.setVisibility(View.GONE);
                             loading =false;
                         });
 
