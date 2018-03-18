@@ -62,11 +62,10 @@ public class FeedFragment extends Fragment {
     private ArrayList<Review> reviewArrayList;
     private ProgressBar progress;
     private LinearLayout not_found;
-    private DatabaseReference mDatabaseReference;
-    private ArrayList<Review> reviews;
+
 
     private boolean loading=false,isLastPage=false;
-    private static final int LIMIT = 5;
+    private static final int LIMIT = 30;
     private Query next;
     private String addressCity="";
     private LinearLayoutManager mLayoutManager;
@@ -115,10 +114,7 @@ public class FeedFragment extends Fragment {
         reviewRecyclerView.setLayoutManager(mLayoutManager);
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("reviews");
-        mDatabaseReference.keepSynced(true);
         reviewArrayList = new ArrayList<>();
-        reviews = new ArrayList<>();
 
         adapter = new FeedListViewRecyclerAdapter(getActivity(), reviewArrayList, "feed");
         reviewRecyclerView.setAdapter(adapter);

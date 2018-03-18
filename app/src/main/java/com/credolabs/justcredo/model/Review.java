@@ -28,7 +28,7 @@ public class Review implements Serializable{
     public static final String REVIEW_DATABASE = "reviews";
 
     public static final String DB_REVIEWS_REF = "reviews";
-    public static final String DB_BLOG_REF = "blog";
+    public static final String DB_BLOG_REF = "blogs";
 
 
     public static final String ADDRESS_CITY = "addressCity";

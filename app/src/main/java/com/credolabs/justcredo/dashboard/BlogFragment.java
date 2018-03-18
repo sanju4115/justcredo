@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.credolabs.justcredo.R;
@@ -26,6 +27,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,8 +53,13 @@ public class BlogFragment extends Fragment {
     private ArrayList<Review> reviewArrayList;
     private ProgressBar progress;
     private LinearLayout not_found;
-    private DatabaseReference mDatabaseReference;
-    private ArrayList<Review> reviews;
+
+    private boolean loading=false,isLastPage=false;
+    private static final int LIMIT = 30;
+    private Query next;
+    private String addressCity="";
+    private LinearLayoutManager mLayoutManager;
+    private RelativeLayout loading_more;
 
     public BlogFragment() {
     }
@@ -85,15 +94,23 @@ public class BlogFragment extends Fragment {
         final TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
         not_found_text2.setText("May be try to change the location.");
         not_found.setVisibility(View.GONE);
+
+        loading_more = view.findViewById(R.id.loading_more);
+
         reviewRecyclerView = (RecyclerView) view.findViewById(R.id.review_list);
         reviewRecyclerView.setHasFixedSize(true);
-        reviewRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        mLayoutManager = new LinearLayoutManager(getActivity());
+
+        reviewRecyclerView.setLayoutManager(mLayoutManager);
+
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("blogs/school_blogs");
-        mDatabaseReference.keepSynced(true);
         reviewArrayList = new ArrayList<>();
-        reviews = new ArrayList<>();
+
+        adapter = new FeedListViewRecyclerAdapter(getActivity(), reviewArrayList, "feed");
+        reviewRecyclerView.setAdapter(adapter);
+
         buildContent();
 
         return view;
@@ -138,7 +155,6 @@ public class BlogFragment extends Fragment {
 
     private void buildContent(){
         progress.setVisibility(View.VISIBLE);
-        String addressCity="";
         final HashMap<String,String> addressHashMap = Util.getCurrentUSerAddress(getActivity());
         if (addressHashMap.get("addressCity")!=null){
             if (addressHashMap.get("addressCity").trim().equalsIgnoreCase("Gurgaon")){
@@ -148,47 +164,99 @@ public class BlogFragment extends Fragment {
             }
         }
 
-        mDatabaseReference.orderByChild("addressCity").equalTo(addressCity).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        Query first = db.collection(Review.DB_BLOG_REF)
+                .whereEqualTo(Review.ADDRESS_CITY, addressCity)
+                .orderBy(Review.TIMESTAMP, Query.Direction.DESCENDING).limit(LIMIT);
+
+        first.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
                 reviewArrayList.clear();
-                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                    Review review = noteDataSnapshot.getValue(Review.class);
-                    reviewArrayList.add(review);
+                for (DocumentSnapshot document : task.getResult()) {
+                    Review model = document.toObject(Review.class);
+                    reviewArrayList.add(model);
                 }
 
-                Collections.sort(reviewArrayList, new Comparator<Review>(){
-                    public int compare(Review o1, Review o2){
-                        return o2.getTimestamp().compareTo(o1.getTimestamp());
+                if (task.getResult() != null) {
+                    if (!(task.getResult().size() < 1)) {
+                        DocumentSnapshot lastVisible = task.getResult().getDocuments()
+                                .get(task.getResult().size() - 1);
+
+                        next = db.collection(Review.DB_BLOG_REF)
+                                .whereEqualTo(Review.ADDRESS_CITY, addressCity)
+                                .orderBy(Review.TIMESTAMP, Query.Direction.DESCENDING)
+                                .startAfter(lastVisible)
+                                .limit(LIMIT);
                     }
-                });
-
-
-                //reviews = NearByPlaces.filterByCities(getActivity().getApplicationContext(),reviewArrayList,reviews);
+                }
+                if (reviewArrayList.size() < LIMIT) {
+                    isLastPage = true;
+                }
                 progress.setVisibility(View.GONE);
                 if (reviewArrayList.size() > 0 & reviewRecyclerView != null) {
                     not_found.setVisibility(View.GONE);
-                    if ( adapter== null) {
-                        adapter = new FeedListViewRecyclerAdapter(getActivity(), reviewArrayList,"blogs");
-                        reviewRecyclerView.setAdapter(adapter);
-                    } else {
-                        adapter.notifyDataSetChanged();
-                    }
-                }else{
-                    if (adapter!=null){
-                        adapter.notifyDataSetChanged();
-                    }
-                    progress.setVisibility(View.GONE);
+                    adapter.notifyDataSetChanged();
+
+                } else {
                     not_found.setVisibility(View.VISIBLE);
                 }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+            }else {
                 progress.setVisibility(View.GONE);
                 not_found.setVisibility(View.VISIBLE);
             }
         });
 
+
+        reviewRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                int lastvisibleitemposition = mLayoutManager.findLastVisibleItemPosition();
+
+                if (lastvisibleitemposition == adapter.getItemCount() - 1) {
+
+                    if (!loading && !isLastPage) {
+
+                        loading = true;
+                        loading_more.setVisibility(View.VISIBLE);
+                        ArrayList<Review> newLoaded = new ArrayList<>();
+                        next.get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                int count = 0;
+                                for (DocumentSnapshot document : task.getResult()) {
+                                    Review model = document.toObject(Review.class);
+                                    newLoaded.add(model);
+                                    count++;
+                                }
+                                if (count<LIMIT){
+                                    isLastPage = true;
+                                }
+                                if (task.getResult()!=null) {
+                                    if (!(task.getResult().size() < 1)) {
+                                        DocumentSnapshot lastVisible = task.getResult().getDocuments()
+                                                .get(task.getResult().size() - 1);
+
+                                        next = db.collection(Review.DB_BLOG_REF)
+                                                .whereEqualTo(Review.ADDRESS_CITY, addressCity)
+                                                .orderBy(Review.TIMESTAMP, Query.Direction.DESCENDING)
+                                                .startAfter(lastVisible)
+                                                .limit(LIMIT);
+                                    }
+                                }
+
+                                if (!newLoaded.isEmpty()) {
+                                    reviewArrayList.addAll(newLoaded);
+                                    adapter.notifyDataSetChanged();
+                                }
+                            }
+                            loading_more.setVisibility(View.GONE);
+                            loading =false;
+                        });
+                    }
+                }
+            }
+        });
     }
 }
