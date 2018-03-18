@@ -97,11 +97,9 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
         DashboardFragment.OnFragmentInteractionListener,BlogFragment.OnFragmentInteractionListener, NotificationsFragment.OnFragmentInteractionListener,
         GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    private Fragment fragment;
     private FragmentManager fragmentManager;
     private TextView locationOutput;
     private SharedPreferences sharedPreferences;
-    private static final String URL_FEED = "0:"+Constants.CATEGORY_URL;
     private static final int ACCESS_FINE_LOCATION = 1;
     private static final int REQUEST_CHECK_SETTINGS = 2;
     private LinearLayout not_found;
@@ -113,7 +111,11 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
     private BottomNavigationView bottomNavigation;
     private LocationRequest mLocationRequest;
     private Location mLastLocation;
-    private ArrayList<CategoryModel> categoryModelArrayList;
+    private final CategoryFragment categoryFragment = new CategoryFragment();
+    private final DashboardFragment dashboardFragment = new DashboardFragment();
+    private final NotificationsFragment notificationsFragment = new NotificationsFragment();
+    private final ProfileFragment profileFragment = ProfileFragment.newInstance("","");
+    private Fragment active = categoryFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,7 +166,6 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
                 callSearchLocationActivity();
             }
         });
-        categoryModelArrayList = (ArrayList<CategoryModel>) getIntent().getSerializableExtra(CategoryModel.CATEGORYMODEL);
         FirebaseMessaging.getInstance().subscribeToTopic(FirebaseAuth.getInstance().getCurrentUser().getUid());
         final TextView not_found_text1 = (TextView)findViewById(R.id.not_found_text1);
         not_found_text1.setText("You have not selected your location yet.");
@@ -183,69 +184,48 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
             askPermission(android.Manifest.permission.ACCESS_FINE_LOCATION,ACCESS_FINE_LOCATION);
         }
 
-        String addressCity="";
-        final HashMap<String,String> addressHashMap = Util.getCurrentUSerAddress(this);
-        if (addressHashMap.get("addressCity")!=null) {
-            if (addressHashMap.get("addressCity").trim().equalsIgnoreCase("Gurgaon")) {
-                addressCity = "Gurugram";
-            } else {
-                addressCity = addressHashMap.get("addressCity").trim();
-            }
-        }
-        final ProgressDialog mProgressDialog = new ProgressDialog(this);
+        fragmentManager.beginTransaction().add(R.id.content, dashboardFragment).commit();
+        fragmentManager.beginTransaction().add(R.id.content, notificationsFragment).commit();
+        fragmentManager.beginTransaction().add(R.id.content, profileFragment).commit();
+        fragmentManager.beginTransaction().add(R.id.content,categoryFragment).commit();
 
-        mProgressDialog.setMessage("Loading Experiences");
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mProgressDialog.setIndeterminate(true);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.show();
-        DatabaseReference mDatabaseSchoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
-        mDatabaseSchoolReference.keepSynced(true);
-        mDatabaseSchoolReference.orderByChild("address/addressCity").equalTo(addressCity).addListenerForSingleValueEvent(new ValueEventListener() {
+        fragmentManager.beginTransaction().hide(dashboardFragment).commit();
+        fragmentManager.beginTransaction().hide(notificationsFragment).commit();
+        fragmentManager.beginTransaction().hide(profileFragment).commit();
+
+        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                final HashMap<String,HashMap<String,String>> map = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
-                final HashMap<String,ArrayList<School>> schoolListMap = Filtering.convert(map);
-                bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                        int id = item.getItemId();
-                        switch (item.getItemId()) {
-                            case R.id.navigation_home:
-                                fragment = CategoryFragment.newInstance(schoolListMap,categoryModelArrayList);
-                                break;
-                            case R.id.navigation_dashboard:
-                                fragment = new DashboardFragment();
-                                break;
-                            case R.id.navigation_notifications:
-                                fragment = new NotificationsFragment();
-                                break;
-                            case R.id.navigation_profile:
-                                fragment = ProfileFragment.newInstance("","");
-                                break;
-                        }
-
-                        final FragmentTransaction transaction = fragmentManager.beginTransaction();
-                        transaction.replace(R.id.content, fragment).commit();
-                        return true;
-
-                    }
-                });
-
-                mProgressDialog.dismiss();
-
-                if (getIntent().hasExtra("notification")&& getIntent().getStringExtra("notification").equals("notification")){
-                    bottomNavigation.setSelectedItemId(R.id.navigation_notifications);
-                }else {
-                    bottomNavigation.setSelectedItemId(R.id.navigation_home);
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.navigation_home:
+                        fragmentManager.beginTransaction().hide(active).show(categoryFragment).commit();
+                        active = categoryFragment;
+                        break;
+                    case R.id.navigation_dashboard:
+                        fragmentManager.beginTransaction().hide(active).show(dashboardFragment).commit();
+                        active = dashboardFragment;
+                        break;
+                    case R.id.navigation_notifications:
+                        fragmentManager.beginTransaction().hide(active).show(notificationsFragment).commit();
+                        active = notificationsFragment;
+                        break;
+                    case R.id.navigation_profile:
+                        fragmentManager.beginTransaction().hide(active).show(profileFragment).commit();
+                        active = profileFragment;
+                        break;
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                return true;
 
             }
         });
+
+        if (getIntent().hasExtra("notification")&& getIntent().getStringExtra("notification").equals("notification")){
+            bottomNavigation.setSelectedItemId(R.id.navigation_notifications);
+        }else {
+            bottomNavigation.setSelectedItemId(R.id.navigation_home);
+        }
+
     }
 
     @Override
@@ -546,7 +526,6 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
 
     private void callSearchLocationActivity(){
         Intent intent = new Intent(HomeActivity.this,PickLocationActivity.class);
-        intent.putExtra(CategoryModel.CATEGORYMODEL,categoryModelArrayList);
         startActivity(intent);
         overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
         finish();

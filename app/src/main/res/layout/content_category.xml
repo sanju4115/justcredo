@@ -93,6 +93,8 @@
 
                 </FrameLayout>
 
+
+
                 <com.credolabs.justcredo.utility.ExpandableHeightGridView
                     android:numColumns="3"
                     android:gravity="center"

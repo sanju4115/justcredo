@@ -3,7 +3,10 @@ package com.credolabs.justcredo;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -18,14 +21,23 @@ import com.credolabs.justcredo.adapters.HorizontalViewAdapter;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.newplace.PlaceTypes;
 import com.credolabs.justcredo.search.Filtering;
+import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.CustomToast;
+import com.credolabs.justcredo.utility.GeoLocation;
+import com.credolabs.justcredo.utility.Util;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class HorizontalListViewFragment extends Fragment {
@@ -36,7 +48,9 @@ public class HorizontalListViewFragment extends Fragment {
     private String page;
     private String placeType;
     private School model;
-    private ArrayList<School> schools;
+    private ArrayList<School> schoolArrayList;
+    private String addressCity;
+
     public HorizontalListViewFragment() {
     }
 
@@ -76,7 +90,7 @@ public class HorizontalListViewFragment extends Fragment {
             page = getArguments().getString(ARG_PARAM1);
             placeType = getArguments().getString(ARG_PARAM2);
             model = (School) getArguments().getSerializable(ARG_PARAM3);
-            schools = (ArrayList<School>) getArguments().getSerializable(ARG_PARAM4);
+            schoolArrayList = (ArrayList<School>) getArguments().getSerializable(ARG_PARAM4);
         }
     }
 
@@ -100,104 +114,89 @@ public class HorizontalListViewFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         final LinearLayoutManager MyLayoutManager = new LinearLayoutManager(getActivity());
         MyLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        DatabaseReference mDatabaseSchoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
-        mDatabaseSchoolReference.keepSynced(true);
 
-        final ArrayList<School> schoolsList = new ArrayList<>();
-
-
-        if (schools!=null){
-            if (schools.size() > 0) {
-                if (model!=null){
-                    schools.remove(model);
-                }
-                if (schools.size()>0){
-                    Filtering.sortByRating(schools);
-                    ArrayList<School> top10=schools;
-                    if (schools.size()>10){
-                        top10 = new ArrayList<>(schools.subList(0,10));
-                    }
-                    HorizontalViewAdapter horizontalViewAdapter = new HorizontalViewAdapter(page,getActivity().getApplicationContext(),top10, Glide.with(HorizontalListViewFragment.this));
-                    recyclerView.setAdapter(horizontalViewAdapter);
-                    horizontalViewAdapter.notifyDataSetChanged();
-                    progressBar.setVisibility(View.GONE);
-                    /*show_more.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent = new Intent(getActivity(),ObjectListActivity.class);
-                            intent.putExtra("list",schools);
-                            startActivity(intent);
-                            getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
-                        }
-                    });*/
-                }else {
-                    progressBar.setVisibility(View.GONE);
-                    top_section.setVisibility(View.GONE);
-                }
-
-            }else {
-                progressBar.setVisibility(View.GONE);
-                top_section.setVisibility(View.GONE);
+        final HashMap<String,String> addressHashMap = Util.getCurrentUSerAddress(getActivity());
+        if (addressHashMap.get("addressCity")!=null) {
+            if (addressHashMap.get("addressCity").trim().equalsIgnoreCase("Gurgaon")) {
+                addressCity = "Gurugram";
+            } else {
+                addressCity = addressHashMap.get("addressCity").trim();
             }
-
-            recyclerView.setLayoutManager(MyLayoutManager);
         }
 
-        /*mDatabaseSchoolReference.orderByChild(School.TYPE).equalTo(placeType).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                schoolsList.clear();
-                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                    School place = noteDataSnapshot.getValue(School.class);
-                    schoolsList.add(place);
-                }
+        /*double earthRadius = 6371.01;
+        GeoLocation myLocation = GeoLocation.fromDegrees(Double.parseDouble(addressHashMap.get(Constants.LATITUDE)), Double.parseDouble(addressHashMap.get(Constants.LONGIITUDE)));
+        double distance = 10;
+        GeoLocation[] boundingCoordinates =
+                myLocation.boundingCoordinates(distance, earthRadius);
+        boolean flag =
+                boundingCoordinates[0].getLongitudeInRadians() >
+                        boundingCoordinates[1].getLongitudeInRadians();
+        Double minLat,maxLat,maxLon,minLon;
+        if (flag){
+            maxLon = boundingCoordinates[0].getLongitudeInDegrees();
+            minLon = boundingCoordinates[1].getLongitudeInDegrees();
+        }else{
+            maxLon = boundingCoordinates[1].getLongitudeInDegrees();
+            minLon = boundingCoordinates[0].getLongitudeInDegrees();
+        }
 
-                new CustomToast().Show_Toast(getActivity(), String.valueOf(schoolsList.size()));
-                if (schoolsList.size() > 0) {
-                    if (model!=null){
-                        schoolsList.remove(model);
+        flag = boundingCoordinates[0].getLatitudeInRadians() >
+                        boundingCoordinates[1].getLatitudeInRadians();
+        if (flag){
+            maxLat = boundingCoordinates[0].getLatitudeInDegrees();
+            minLat = boundingCoordinates[1].getLatitudeInDegrees();
+        }else{
+            maxLat = boundingCoordinates[1].getLatitudeInDegrees();
+            minLat = boundingCoordinates[0].getLatitudeInDegrees();
+        }*/
+
+
+        if (schoolArrayList == null) {
+            schoolArrayList = new ArrayList<>();
+            FirebaseFirestore.getInstance().collection(School.SCHOOL_DATABASE)
+                    .whereEqualTo(School.TYPE, placeType)
+                    .whereEqualTo(School.ADDRESS + "." + School.ADDRESS_CITY, addressCity)
+                    //.whereLessThanOrEqualTo(School.LATITUDE,maxLat)
+                    //.whereGreaterThanOrEqualTo(School.LATITUDE,minLat)
+                    //.whereLessThanOrEqualTo(School.LONGITUDE,maxLon)
+                    //.whereLessThanOrEqualTo(School.LONGITUDE,minLon)
+                    .get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    schoolArrayList.clear();
+                    for (DocumentSnapshot document : task.getResult()) {
+                        School model = document.toObject(School.class);
+                        schoolArrayList.add(model);
                     }
-                    final ArrayList<School> citySchools = Filtering.filterByCity(schoolsList,getActivity());
-                    if (citySchools.size()>0){
-                        Filtering.sortByRating(citySchools);
-                        ArrayList<School> top10=citySchools;
-                        if (citySchools.size()>10){
-                            top10 = new ArrayList<>(citySchools.subList(0,10));
+
+                    if (!schoolArrayList.isEmpty()) {
+                        Filtering.sortByRating(schoolArrayList);
+                        ArrayList<School> top10 = schoolArrayList;
+                        if (schoolArrayList.size() > 10) {
+                            top10 = new ArrayList<>(schoolArrayList.subList(0, 10));
                         }
-                        HorizontalViewAdapter horizontalViewAdapter = new HorizontalViewAdapter(page,getActivity().getApplicationContext(),top10, Glide.with(HorizontalListViewFragment.this));
+                        HorizontalViewAdapter horizontalViewAdapter = new HorizontalViewAdapter(page, getActivity(), top10, Glide.with(HorizontalListViewFragment.this));
                         recyclerView.setAdapter(horizontalViewAdapter);
                         horizontalViewAdapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);
-                        show_more.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Intent intent = new Intent(getActivity(),ObjectListActivity.class);
-                                intent.putExtra("list",citySchools);
-                                startActivity(intent);
-                                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
-                            }
-                        });
-                    }else {
+                        recyclerView.setLayoutManager(MyLayoutManager);
+                            /*show_more.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent intent = new Intent(getActivity(),ObjectListActivity.class);
+                                    intent.putExtra("list",schools);
+                                    startActivity(intent);
+                                    getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+                                }
+                            });*/
+                    } else {
                         progressBar.setVisibility(View.GONE);
                         top_section.setVisibility(View.GONE);
                     }
-
-                }else {
-                    progressBar.setVisibility(View.GONE);
-                    top_section.setVisibility(View.GONE);
                 }
+            });
 
-                recyclerView.setLayoutManager(MyLayoutManager);
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });*/
-
+        }
         return view;
     }
-
 }

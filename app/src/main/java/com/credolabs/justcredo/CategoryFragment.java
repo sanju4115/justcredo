@@ -4,12 +4,17 @@ import android.content.Context;
 import android.content.Intent;
 
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,24 +28,38 @@ import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.CategoryModel;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.newplace.PlaceTypes;
+import com.credolabs.justcredo.utility.CustomeToastFragment;
 import com.credolabs.justcredo.utility.ExpandableHeightGridView;
+import com.credolabs.justcredo.utility.ListViewInScroll;
+import com.firebase.client.DataSnapshot;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Timer;
+import java.util.concurrent.CompletableFuture;
+
+import static com.credolabs.justcredo.MyApplication.TAG;
 
 public class CategoryFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    private HashMap<String,ArrayList<School>> schoolListMap;
-    private ArrayList<CategoryModel> categoryModelArrayList;
-
     private OnFragmentInteractionListener mListener;
+    private ArrayList<CategoryModel> categoryModelArrayList;
+    private Fragment top_rated_school,top_rated_music,top_rated_sports,top_rated_painting,
+            top_rated_coaching,top_rated_private_tutors,nearByFragment;
 
     public CategoryFragment() {
     }
@@ -58,12 +77,20 @@ public class CategoryFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            schoolListMap = (HashMap<String,ArrayList<School>>) getArguments().getSerializable(ARG_PARAM1);
-            categoryModelArrayList = (ArrayList<CategoryModel>) getArguments().getSerializable(ARG_PARAM2);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("dataGotFromServer", categoryModelArrayList);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            categoryModelArrayList = savedInstanceState.getParcelableArrayList("dataGotFromServer");
         }
-
-
     }
 
     @Override
@@ -75,8 +102,8 @@ public class CategoryFragment extends Fragment {
         setRetainInstance(true);
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
-        final LinearLayout searchLayout = (LinearLayout) view.findViewById(R.id.search_bar_view);
-        EditText editText = (EditText) view.findViewById(R.id.adressText);
+        final LinearLayout searchLayout = view.findViewById(R.id.search_bar_view);
+        EditText editText = view.findViewById(R.id.adressText);
         editText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -90,7 +117,7 @@ public class CategoryFragment extends Fragment {
         AdView mAdView = (AdView) view.findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().addTestDevice("79824E5B159FF8F9CEE8BBF2FFEF89AC").build();
         mAdView.loadAd(adRequest);
-        final ProgressBar progress_ad = (ProgressBar) view.findViewById(R.id.progress_ad);
+        final ProgressBar progress_ad = view.findViewById(R.id.progress_ad);
         mAdView.setAdListener(new AdListener(){
             @Override
             public void onAdLoaded() {
@@ -98,43 +125,77 @@ public class CategoryFragment extends Fragment {
             }
         });
 
-        if (categoryModelArrayList!=null) {
+        if (categoryModelArrayList==null) {
+            categoryModelArrayList = new ArrayList<>();
+            FirebaseFirestore.getInstance().collection(CategoryModel.DB_REF).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                    if (task.isSuccessful()) {
+                        categoryModelArrayList.clear();
+                        for (DocumentSnapshot document : task.getResult()) {
+                            CategoryModel model = document.toObject(CategoryModel.class);
+                            categoryModelArrayList.add(model);
+                        }
+
+                        if (!categoryModelArrayList.isEmpty()) {
+                            final ExpandableHeightGridView categoryListView = view.findViewById(R.id.category_list);
+                            CategoryAdapter categoryAdapter = new CategoryAdapter(getActivity(), CategoryFragment.this, categoryModelArrayList);
+                            categoryListView.setAdapter(categoryAdapter);
+                            categoryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                @Override
+                                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                    Intent intent = new Intent(getActivity(), ObjectListActivity.class);
+                                    intent.putExtra("category", categoryModelArrayList.get(position).getKey());
+                                    startActivity(intent);
+                                    getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+                                }
+                            });
+                        }
+                    } else {
+                        new CustomeToastFragment().Show_Toast(getActivity(), view,
+                                "Something went wrong.");
+                    }
+                }
+            });
+        }else if (!categoryModelArrayList.isEmpty()) {
             final ExpandableHeightGridView categoryListView = view.findViewById(R.id.category_list);
             CategoryAdapter categoryAdapter = new CategoryAdapter(getActivity(), CategoryFragment.this, categoryModelArrayList);
             categoryListView.setAdapter(categoryAdapter);
             categoryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Intent intent = new Intent(getActivity(),ObjectListActivity.class);
-                    intent.putExtra("category",categoryModelArrayList.get(position).getName());
+                    Intent intent = new Intent(getActivity(), ObjectListActivity.class);
+                    intent.putExtra("category", categoryModelArrayList.get(position).getName());
                     startActivity(intent);
                     getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
                 }
             });
         }
 
+        top_rated_school = HorizontalListViewFragment
+                .newInstance("Top Schools", PlaceTypes.SCHOOLS.getValue());
+        top_rated_music = HorizontalListViewFragment
+                .newInstance("Top Music Classes",PlaceTypes.MUSIC.getValue());
+        top_rated_sports = HorizontalListViewFragment
+                .newInstance("Top Sports Classes",PlaceTypes.SPORTS.getValue());
+        top_rated_painting = HorizontalListViewFragment
+                .newInstance("Top Art Classes",PlaceTypes.ART.getValue());
+        top_rated_coaching = HorizontalListViewFragment
+                .newInstance("Top Coachings",PlaceTypes.COACHING.getValue());
+        top_rated_private_tutors = HorizontalListViewFragment
+                .newInstance("Top Home Tutors",PlaceTypes.PrivateTutors.getValue());
+        nearByFragment = NearByFragment.newInstance(null,"");
+
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-        Fragment top_rated_school = HorizontalListViewFragment
-                .newInstance(schoolListMap.get(PlaceTypes.SCHOOLS.getValue()),"Top Schools", PlaceTypes.SCHOOLS.getValue());
-        Fragment top_rated_music = HorizontalListViewFragment
-                .newInstance(schoolListMap.get(PlaceTypes.MUSIC.getValue()),"Top Music Classes",PlaceTypes.MUSIC.getValue());
-        Fragment top_rated_sports = HorizontalListViewFragment
-                .newInstance(schoolListMap.get(PlaceTypes.SPORTS.getValue()),"Top Sports Classes",PlaceTypes.SPORTS.getValue());
-        Fragment top_rated_painting = HorizontalListViewFragment
-                .newInstance(schoolListMap.get(PlaceTypes.ART.getValue()),"Top Art Classes",PlaceTypes.ART.getValue());
-        Fragment top_rated_coaching = HorizontalListViewFragment
-                .newInstance(schoolListMap.get(PlaceTypes.COACHING.getValue()),"Top Coachings",PlaceTypes.COACHING.getValue());
-        Fragment top_rated_private_tutors = HorizontalListViewFragment
-                .newInstance(schoolListMap.get(PlaceTypes.PrivateTutors.getValue()),"Top Home Tutors",PlaceTypes.PrivateTutors.getValue());
         transaction.add(R.id.fragment_container, top_rated_school );
         transaction.add(R.id.fragment_container, top_rated_music );
         transaction.add(R.id.fragment_container, top_rated_sports );
         transaction.add(R.id.fragment_container, top_rated_painting );
         transaction.add(R.id.fragment_container, top_rated_coaching );
         transaction.add(R.id.fragment_container, top_rated_private_tutors );
-        transaction.add(R.id.fragment_container, NearByFragment.newInstance(schoolListMap.get("ALL"),""));
-        //transaction.add(R.id.fragment_container, school );
+        transaction.add(R.id.fragment_container, nearByFragment);
         transaction.commit();
+
 
         /*sponsored_indicator = (CirclePageIndicator) view.findViewById(R.id.sponsored_indicator);
         sponsored_view_pager = (ViewPager) view.findViewById(R.id.sponsored_view_pager);
@@ -182,32 +243,6 @@ public class CategoryFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-        //buildSponsoredSection();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
 
 /*
     private void buildSponsoredSection() {

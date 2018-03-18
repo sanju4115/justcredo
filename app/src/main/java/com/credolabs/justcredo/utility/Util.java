@@ -248,6 +248,8 @@ public class Util {
             }
             j++;
         }
+        currentAddress.put(Constants.LATITUDE,sharedPreferences.getString(Constants.LATITUDE,""));
+        currentAddress.put(Constants.LONGIITUDE,sharedPreferences.getString(Constants.LONGIITUDE,""));
         return currentAddress;
     }
 

@@ -3,6 +3,7 @@ package com.credolabs.justcredo;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,11 +18,16 @@ import com.credolabs.justcredo.adapters.SearchAdapter;
 import com.credolabs.justcredo.model.ObjectModel;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.utility.Util;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +40,9 @@ public class NearByFragment extends Fragment {
 
     private ArrayList<School> schools;
     private String mParam2;
+
+    private String addressCity;
+
 
     public NearByFragment() {
     }
@@ -72,17 +81,39 @@ public class NearByFragment extends Fragment {
         searched_items.addItemDecoration(mDividerItemDecoration);
         searched_items.setLayoutManager(mLayoutManager);
         progressBar.setVisibility(View.VISIBLE);
-        if (schools.size()>5){
-            Random r = new Random();
-            int rand = r.nextInt((schools.size() - 5));
-            schools = new ArrayList<>( schools.subList(rand,rand+5));
+        final HashMap<String,String> addressHashMap = Util.getCurrentUSerAddress(getActivity());
+        if (addressHashMap.get("addressCity")!=null) {
+            if (addressHashMap.get("addressCity").trim().equalsIgnoreCase("Gurgaon")) {
+                addressCity = "Gurugram";
+            } else {
+                addressCity = addressHashMap.get("addressCity").trim();
+            }
         }
-        SearchAdapter categoryAdapter = new SearchAdapter(getActivity(), schools,"search");
-        searched_items.setAdapter(categoryAdapter);
-        progressBar.setVisibility(View.GONE);
-        if (schools.size()<=0){
-            nearby_text.setText(R.string.sorry_nearby_text);
-        }
+        FirebaseFirestore.getInstance().collection(School.SCHOOL_DATABASE)
+                .whereEqualTo(School.ADDRESS + "." + School.ADDRESS_CITY, addressCity)
+                .get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()){
+                        ArrayList<School> schoolArrayList = new ArrayList<>();
+                        for (DocumentSnapshot document : task.getResult()) {
+                            School model = document.toObject(School.class);
+                            schoolArrayList.add(model);
+                        }
+
+                        if (schoolArrayList.size()>5){
+                            Random r = new Random();
+                            int rand = r.nextInt((schoolArrayList.size() - 5));
+                            schoolArrayList = new ArrayList<>( schoolArrayList.subList(rand,rand+5));
+                        }
+                        SearchAdapter categoryAdapter = new SearchAdapter(getActivity(), schoolArrayList,"search");
+                        searched_items.setAdapter(categoryAdapter);
+                        progressBar.setVisibility(View.GONE);
+                        if (schoolArrayList.size()<=0){
+                            nearby_text.setText(R.string.sorry_nearby_text);
+                        }
+
+
+                    }
+                });
 
         return view;
     }

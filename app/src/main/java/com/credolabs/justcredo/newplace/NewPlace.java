@@ -155,12 +155,6 @@ public class NewPlace extends AppCompatActivity {
 
         newPlace = mDatabaseReference.child(PlaceTypes.SCHOOLS.getValue().toLowerCase()).push();
         newPlace.child(School.TYPE).setValue(category);
-        if (category.equalsIgnoreCase(PlaceTypes.ART.getValue()) || category.equalsIgnoreCase(PlaceTypes.SPORTS.getValue()) ||
-                category.equalsIgnoreCase(PlaceTypes.COACHING.getValue())){
-            HashMap<String,String> map = new HashMap<>();
-            map.put(category,category);
-            newPlace.child(School.CATEGORIES).setValue(map);
-        }
 
         HashMap<String, HashMap<String, String>> typePlace = typePlaceFragment.getFragmentState();
         HashMap<String, HashMap<String,String>> placeFacilities = placeFacilitiesFragment.getFragmentState();
@@ -273,7 +267,8 @@ public class NewPlace extends AppCompatActivity {
         newPlace.child(School.SPECIAL_FACILITIES).setValue(placeFacilities.get(School.SPECIAL_FACILITIES));
         newPlace.child(School.EXTRACURRICULAR).setValue(placeExtra);
         if (category.equalsIgnoreCase(PlaceTypes.ART.getValue()) || category.equalsIgnoreCase(PlaceTypes.SPORTS.getValue()) ||
-                category.equalsIgnoreCase(PlaceTypes.COACHING.getValue())){
+                category.equalsIgnoreCase(PlaceTypes.COACHING.getValue()) || category.equals(PlaceTypes.MUSIC.getValue()) ||
+                    category.equals(PlaceTypes.PrivateTutors.getValue())){
             HashMap<String,String> map = new HashMap<>();
             map.put(category,category);
             newPlace.child(School.CATEGORIES).setValue(map);

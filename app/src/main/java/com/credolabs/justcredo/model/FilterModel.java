@@ -16,6 +16,9 @@ public class FilterModel implements Serializable {
         this.selected = selected;
     }
 
+    public FilterModel() {
+    }
+
     public String getName() {
         return name;
     }

@@ -3,6 +3,8 @@ package com.credolabs.justcredo.model;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.widget.ImageView;
@@ -25,7 +27,7 @@ import java.util.HashMap;
  * Created by Sanjay kumar on 9/24/2017.
  */
 
-public class School implements Serializable, ObjectModel, Comparable {
+public class School implements Serializable, ObjectModel, Comparable, Parcelable{
     private String description;
     private HashMap<String, String> images;
     private float latitude;
@@ -65,6 +67,20 @@ public class School implements Serializable, ObjectModel, Comparable {
     private String type;
     private int distance;
     private HashMap<String,String> classesType;
+    private HashMap<String,Boolean> placeType;
+
+
+    public static final String PLACE_TYPE = "placeType";
+    public static final String PRIMARY_SCHOOL = "primarySchool";
+    public static final String SECONDARY_SCHOOL = "secondarySchool";
+    public static final String PRE_SCHOOL = "preSchool";
+    public static final String SPECIAL_SCHOOL = "specialSchool";
+    public static final String INTERNATIONAL_SCHOOL = "internationalSchool";
+    public static final String MUSIC_SCHOOL = "musicClass";
+    public static final String ART_SCHOOL = "artClass";
+    public static final String SPORTS_SCHOOL = "sportsClass";
+    public static final String PRIVATE_TUTOR_SCHOOL = "privateTutor";
+    public static final String COACHING_CLASS_SCHOOL = "coachingClass";
 
     public static final String CLASSES_TYPE = "classesType";
     public static final String DISTANCE = "distance";
@@ -130,6 +146,114 @@ public class School implements Serializable, ObjectModel, Comparable {
             return this.getName().compareTo(school.getName());
         }
         return 0;
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public School createFromParcel(Parcel in) {
+            return new School(in);
+        }
+
+        public School[] newArray(int size) {
+            return new School[size];
+        }
+    };
+
+    private School(Parcel in){
+
+        this.description = in.readString();
+        this.images = in.readHashMap(String.class.getClassLoader());
+        this.latitude = in.readFloat();
+        this.longitude = in.readFloat();
+        this.mail = in.readString();
+        this.mobileNumber = in.readString();
+        this.name = in.readString();
+        this.time = in.readString();
+        this.userID = in.readString();
+        this. website = in.readString();
+        this.noOfRating = in.readLong();
+        this.noOfReview = in.readLong();
+        this.rating = in.readLong();
+        this.id = in.readString();
+        this.address = in.readHashMap(String.class.getClassLoader());
+        this.categories = in.readHashMap(String.class.getClassLoader());
+        this.extracurricular = in.readHashMap(String.class.getClassLoader());
+        this.facilities = in.readHashMap(String.class.getClassLoader());
+        this.specialFacilities = in.readHashMap(String.class.getClassLoader());
+        this.music = in.readHashMap(String.class.getClassLoader());
+        this.sports = in.readHashMap(String.class.getClassLoader());
+        this.boards = in.readHashMap(String.class.getClassLoader());
+        this.gender = in.readHashMap(String.class.getClassLoader());
+        this.classes = in.readHashMap(String.class.getClassLoader());
+        this.faculties = in.readHashMap(String.class.getClassLoader());
+        this.noOfStaffs = in.readString();
+        this.schoolTimings = in.readHashMap(String.class.getClassLoader());
+        this.coverPic  = in.readString();
+        this.status  = in.readString();
+        this.bookmarks = in.readHashMap(String.class.getClassLoader());
+        this.noOfBookmarks = in.readLong();
+        this.singing = in.readHashMap(String.class.getClassLoader());
+        this.dancing = in.readHashMap(String.class.getClassLoader());
+        this.instruments = in.readHashMap(String.class.getClassLoader());
+        this.other_genres = in.readHashMap(String.class.getClassLoader());
+        this.type = in.readString();
+        this.distance = in.readInt();
+        this.classesType = in.readHashMap(String.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+        dest.writeString(this.description);
+        dest.writeMap(this.images);
+        dest.writeFloat(this.latitude);
+        dest.writeFloat(this.longitude);
+        dest.writeString(this.mail);
+        dest.writeString(this.mobileNumber);
+        dest.writeString(this.name);
+        dest.writeString(this.time);
+        dest.writeString(this.userID);
+        dest.writeString(this. website);
+        dest.writeLong(this.noOfRating);
+        if (this.noOfBookmarks==null) {
+            dest.writeLong(0);
+        }else {
+            dest.writeLong(this.noOfReview);
+        }
+        dest.writeLong(this.rating);
+        dest.writeString(this.id);
+        dest.writeMap(this.address);
+        dest.writeMap(this.categories);
+        dest.writeMap(this.extracurricular);
+        dest.writeMap(this.facilities);
+        dest.writeMap(this.specialFacilities);
+        dest.writeMap(this.music);
+        dest.writeMap(this.sports);
+        dest.writeMap(this.boards);
+        dest.writeMap(this.gender);
+        dest.writeMap(this.classes);
+        dest.writeMap(this.faculties);
+        dest.writeString(this.noOfStaffs);
+        dest.writeMap(this.schoolTimings);
+        dest.writeString(this.coverPic);
+        dest.writeString(this.status);
+        dest.writeMap(this.bookmarks);
+        if (this.noOfBookmarks==null) {
+            dest.writeLong(0);
+        }else {
+            dest.writeLong(this.noOfBookmarks);
+        }
+        dest.writeMap(this.singing);
+        dest.writeMap(this.dancing);
+        dest.writeMap(this.instruments);
+        dest.writeMap(this.other_genres);
+        dest.writeString(this.type);
+        dest.writeInt(this.distance);
+        dest.writeMap(this.classesType);
     }
 
 
@@ -595,5 +719,13 @@ public class School implements Serializable, ObjectModel, Comparable {
             stringBuffer.append((int) ch);
         }
         return Integer.parseInt(String.valueOf(stringBuffer));
+    }
+
+    public HashMap<String, Boolean> getPlaceType() {
+        return placeType;
+    }
+
+    public void setPlaceType(HashMap<String, Boolean> placeType) {
+        this.placeType = placeType;
     }
 }

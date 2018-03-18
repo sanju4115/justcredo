@@ -1,12 +1,9 @@
 package com.credolabs.justcredo.search;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +15,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.credolabs.justcredo.ObjectListActivity;
 import com.credolabs.justcredo.R;
+import com.credolabs.justcredo.model.FilterMap;
 import com.credolabs.justcredo.model.FilterModel;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.newplace.PlaceTypes;
@@ -30,6 +27,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +52,7 @@ public class FilterFragment extends Fragment {
     public FilterFragment() {
     }
 
-    public static FilterFragment newInstance(String category, HashMap<String, ArrayList<FilterModel>> filterMap,ArrayList<String> filtersList ) {
+    public static FilterFragment newInstance(String category, HashMap<String, ArrayList<FilterModel>> filterMap, ArrayList<String> filtersList ) {
         FilterFragment fragment = new FilterFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, category);
@@ -79,417 +77,108 @@ public class FilterFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_filter, container, false);
 
-        progress = (ProgressBar) view.findViewById(R.id.progress);
+        progress =view.findViewById(R.id.progress);
         schoolsList = new ArrayList<>();
         if (filterMap == null) {
             // for making objects for all the checkbox list for all the filters
             // so that it can be stored whether it is checked or not
             filterMap = new HashMap<>();
-            if (category !=null && category.contains(PlaceTypes.SCHOOLS.getValue())){
-                ArrayList<FilterModel> checkboxListType = new ArrayList<FilterModel>();
-                for (String s : PlaceUtil.getSchoolTypeList()) {
-                    FilterModel filterModel = new FilterModel(s, false);
-                    checkboxListType.add(filterModel);
-                }
-                filterMap.put(School.CATEGORIES, checkboxListType);
+            if ( category !=null && category.contains("School")){
+                FirebaseFirestore.getInstance().collection(FilterMap.FILTER_DB).document(FilterMap.SCHOOL_FILTER)
+                        .get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                FilterMap filter = task.getResult().toObject(FilterMap.class);
+                                filterMap.put(School.CATEGORIES, filter.getCategories());
+                                filterMap.put(School.BOARDS, filter.getBoards());
+                                filterMap.put(School.CLASSES, filter.getClasses());
+                                filterMap.put(School.EXTRACURRICULAR, filter.getExtracurricular());
+                                filterMap.put(School.FACILITIES, filter.getFacilities());
+                                filterMap.put(School.GENDER, filter.getGender());
+                                filterMap.put(School.SPECIAL_FACILITIES, filter.getSpecialFacilities());
+                                filtersList = new ArrayList<>();
+                                filtersList.add(School.CATEGORIES);
+                                filtersList.add(School.BOARDS);
+                                filtersList.add(School.CLASSES);
+                                filtersList.add(School.GENDER);
+                                filtersList.add(School.SPECIAL_FACILITIES);
+                                filtersList.add(School.FACILITIES);
+                                filtersList.add(School.EXTRACURRICULAR);
 
-                ArrayList<FilterModel> checkboxListBoard = new ArrayList<FilterModel>();
-                for (String s : PlaceUtil.getBoardTypeList()) {
-                    FilterModel filterModel = new FilterModel(s, false);
-                    checkboxListBoard.add(filterModel);
-                }
-                filterMap.put(School.BOARDS, checkboxListBoard);
-
-                ArrayList<FilterModel> checkboxListClasses = new ArrayList<FilterModel>();
-                for (String s : PlaceUtil.getClassesTypeList()) {
-                    FilterModel filterModel = new FilterModel(s, false);
-                    checkboxListClasses.add(filterModel);
-                }
-                filterMap.put(School.CLASSES, checkboxListClasses);
-
-                ArrayList<FilterModel> checkboxListGender = new ArrayList<FilterModel>();
-                for (String s : PlaceUtil.getGenderList()) {
-                    FilterModel filterModel = new FilterModel(s, false);
-                    checkboxListGender.add(filterModel);
-                }
-                filterMap.put(School.GENDER, checkboxListGender);
-
-                ArrayList<FilterModel> checkboxListExtraFac = new ArrayList<FilterModel>();
-                for (String s : PlaceUtil.getExtraFacilities()) {
-                    FilterModel filterModel = new FilterModel(s, false);
-                    checkboxListExtraFac.add(filterModel);
-                }
-                filterMap.put(School.SPECIAL_FACILITIES, checkboxListExtraFac);
-                DatabaseReference mDatabaseSchoolReference = FirebaseDatabase.getInstance().getReference().child("schools");
-                mDatabaseSchoolReference.keepSynced(true);
-                mDatabaseSchoolReference.orderByChild(School.TYPE).equalTo(PlaceTypes.SCHOOLS.getValue())
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                schoolsList.clear();
-                                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                    School place = noteDataSnapshot.getValue(School.class);
-                                    if (place != null) {
-                                        place.setDistance(NearByPlaces.distance(getActivity(), place.getLatitude(), place.getLongitude()));
-                                    }
-                                    schoolsList.add(place);
-                                    if (schoolsList.size() > 0 ) {
-                                        schoolsList = Filtering.filterByCity(schoolsList, getActivity());
-                                    }
-
-                                }
-                                DatabaseReference mDatabaseFacilitiesReference = FirebaseDatabase.getInstance().getReference().child("facilities");
-                                mDatabaseFacilitiesReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        ArrayList<FilterModel> checkboxList= new ArrayList<FilterModel>();
-                                        for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                            String facility = noteDataSnapshot.getValue(String.class);
-                                            FilterModel filterModel = new FilterModel(facility, false);
-                                            checkboxList.add(filterModel);
-                                        }
-                                        for (String s : Filtering.getAllFacilities(schoolsList)) {
-                                            FilterModel filterModel = new FilterModel(s, false);
-                                            checkboxList.add(filterModel);
-                                        }
-                                        filterMap.put(School.FACILITIES, checkboxList);
-                                        DatabaseReference mDatabaseFacilitiesReference = FirebaseDatabase.getInstance().getReference().child("extracurricular");
-                                        mDatabaseFacilitiesReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                                ArrayList<FilterModel> checkboxList= new ArrayList<FilterModel>();
-                                                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                                    String facility = noteDataSnapshot.getValue(String.class);
-                                                    FilterModel filterModel = new FilterModel(facility, false);
-                                                    checkboxList.add(filterModel);
-                                                }
-                                                for (String s : Filtering.getAllExtraCuricular(schoolsList)) {
-                                                    FilterModel filterModel = new FilterModel(s, false);
-                                                    checkboxList.add(filterModel);
-                                                }
-                                                filterMap.put(School.EXTRACURRICULAR, checkboxList);
-                                                filtersList = new ArrayList<>();
-                                                filtersList.add(School.CATEGORIES);
-                                                filtersList.add(School.BOARDS);
-                                                filtersList.add(School.CLASSES);
-                                                filtersList.add(School.GENDER);
-                                                filtersList.add(School.SPECIAL_FACILITIES);
-                                                filtersList.add(School.FACILITIES);
-                                                filtersList.add(School.EXTRACURRICULAR);
-
-                                                buildSection(view);
-
-                                            }
-
-                                            @Override
-                                            public void onCancelled(DatabaseError databaseError) {
-                                            }
-                                        });
-                                    }
-
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {
-                                    }
-                                });
-
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
+                                buildSection(view);
                             }
                         });
 
-            }else if (category !=null && ( category.equals(PlaceTypes.ART.getValue())||
-                    category.equals(PlaceTypes.COACHING.getValue())||
-                    category.equals(PlaceTypes.SPORTS.getValue())||
-                    category.equals(PlaceTypes.PrivateTutors.getValue()))){
+            }else if (category !=null && ( category.equals(School.SPORTS_SCHOOL)||
+                    category.equals(School.COACHING_CLASS_SCHOOL)||
+                    category.equals(School.ART_SCHOOL)||
+                    category.equals(School.PRIVATE_TUTOR_SCHOOL))) {
+                String dbRef = "";
+                switch (category) {
+                    case School.SPORTS_SCHOOL:
+                        dbRef = FilterMap.SPORTS_FILTER;
+                        break;
+                    case School.COACHING_CLASS_SCHOOL:
+                        dbRef = FilterMap.COACHING_FILTER;
+                        break;
+                    case School.ART_SCHOOL:
+                        dbRef = FilterMap.ART_FILTER;
+                        break;
+                    case School.PRIVATE_TUTOR_SCHOOL:
+                        dbRef = FilterMap.TUTOR_FILTER;
+                        break;
+                    case School.MUSIC_SCHOOL:
+                        dbRef = FilterMap.MUSIC_FILTER;
+                        break;
+                }
 
-                DatabaseReference mDatabaseFacilitiesReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
-                mDatabaseFacilitiesReference.orderByChild(School.TYPE).equalTo(category)
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                schoolsList.clear();
-                                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                    School place = noteDataSnapshot.getValue(School.class);
-                                    if (place != null) {
-                                        place.setDistance(NearByPlaces.distance(getActivity(), place.getLatitude(), place.getLongitude()));
-                                    }
-                                    schoolsList.add(place);
-                                }
+                FirebaseFirestore.getInstance().collection(FilterMap.FILTER_DB).document(dbRef)
+                        .get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FilterMap filter = task.getResult().toObject(FilterMap.class);
+                        filtersList = new ArrayList<>();
 
-                                if (schoolsList.size() > 0 ) {
-                                    schoolsList = Filtering.filterByCity(schoolsList, getActivity());
-                                    ArrayList<FilterModel> checkboxList = new ArrayList<FilterModel>();
-                                    for (String s : Filtering.getAllFacilities(schoolsList)) {
-                                        FilterModel filterModel = new FilterModel(s, false);
-                                        checkboxList.add(filterModel);
-                                    }
-                                    filterMap.put(School.FACILITIES, checkboxList);
-
-                                    ArrayList<FilterModel> checkboxListExtra = new ArrayList<FilterModel>();
-                                    for (String s : Filtering.getAllExtraCuricular(schoolsList)) {
-                                        FilterModel filterModel = new FilterModel(s, false);
-                                        checkboxListExtra.add(filterModel);
-                                    }
-                                    filterMap.put(School.EXTRACURRICULAR, checkboxListExtra);
-                                }
-
-                                ArrayList<FilterModel> checkboxListGender = new ArrayList<FilterModel>();
-                                for (String s : PlaceUtil.getGenderList()) {
-                                    FilterModel filterModel = new FilterModel(s, false);
-                                    checkboxListGender.add(filterModel);
-                                }
-                                filterMap.put(School.GENDER, checkboxListGender);
-                                DatabaseReference mDatabaseFacilitiesReference = null;
-                                if (category.equalsIgnoreCase(PlaceTypes.ART.getValue())) {
-                                    mDatabaseFacilitiesReference = FirebaseDatabase.getInstance()
-                                            .getReference().child("art").child(School.CATEGORIES);
-                                }else if (category.equalsIgnoreCase(PlaceTypes.SPORTS.getValue())){
-                                    mDatabaseFacilitiesReference = FirebaseDatabase.getInstance()
-                                            .getReference().child("sports");
-                                }else if (category.equalsIgnoreCase(PlaceTypes.COACHING.getValue())){
-                                    mDatabaseFacilitiesReference = FirebaseDatabase.getInstance()
-                                            .getReference().child("subjects/school");
-                                }else if (category.equalsIgnoreCase(PlaceTypes.PrivateTutors.getValue())){
-                                    mDatabaseFacilitiesReference = FirebaseDatabase.getInstance()
-                                            .getReference().child("subjects/school");
-                                }
-
-                                if (mDatabaseFacilitiesReference != null) {
-                                    mDatabaseFacilitiesReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            ArrayList<FilterModel> checkboxList = new ArrayList<FilterModel>();
-                                            for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                                String genres = noteDataSnapshot.getValue(String.class);
-                                                FilterModel filterModel = new FilterModel(genres, false);
-                                                checkboxList.add(filterModel);
-                                            }
-                                            for (String s : Filtering.getAllClassesType(schoolsList)) {
-                                                FilterModel filterModel = new FilterModel(s, false);
-                                                checkboxList.add(filterModel);
-                                            }
-
-                                            filterMap.put(School.CLASSES_TYPE, checkboxList);
-
-                                            if (category.equals(PlaceTypes.PrivateTutors.getValue())){
-                                                DatabaseReference mDatabaseFacilitiesReference = FirebaseDatabase.getInstance().
-                                                        getReference().child(PlaceTypes.PrivateTutors.getValue());
-                                                mDatabaseFacilitiesReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                                    @Override
-                                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                                        ArrayList<FilterModel> checkboxList = new ArrayList<FilterModel>();
-                                                        for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                                            String category = noteDataSnapshot.getValue(String.class);
-                                                            FilterModel filterModel = new FilterModel(category, false);
-                                                            checkboxList.add(filterModel);
-                                                        }
-                                                        filterMap.put(School.CATEGORIES, checkboxList);
-                                                        filtersList = new ArrayList<>();
-                                                        filtersList.add(School.CATEGORIES);
-                                                        filtersList.add(School.CLASSES_TYPE);
-                                                        filtersList.add(School.FACILITIES);
-                                                        filtersList.add(School.EXTRACURRICULAR);
-                                                        filtersList.add(School.GENDER);
-                                                        buildSection(view);
-                                                    }
-
-                                                    @Override
-                                                    public void onCancelled(DatabaseError databaseError) {
-                                                    }
-                                                });
-                                            }else {
-                                                filtersList = new ArrayList<>();
-                                                filtersList.add(School.CLASSES_TYPE);
-                                                filtersList.add(School.FACILITIES);
-                                                filtersList.add(School.EXTRACURRICULAR);
-                                                filtersList.add(School.GENDER);
-                                                buildSection(view);
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {
-                                        }
-
-                                    });
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-            }else if (category !=null && ( category.equals(PlaceTypes.MUSIC.getValue()))){
-                DatabaseReference mDatabaseFacilitiesReference = FirebaseDatabase.getInstance().
-                        getReference().child(School.MUSIC).child(School.CATEGORIES);
-                mDatabaseFacilitiesReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        ArrayList<FilterModel> checkboxList = new ArrayList<FilterModel>();
-                        for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                            String category = noteDataSnapshot.getValue(String.class);
-                            FilterModel filterModel = new FilterModel(category, false);
-                            checkboxList.add(filterModel);
+                        if (!category.equals(School.MUSIC_SCHOOL)) {
+                            filterMap.put(School.CLASSES_TYPE, filter.getClassesType());
+                            filtersList.add(School.CLASSES_TYPE);
                         }
-                        filterMap.put(School.CATEGORIES, checkboxList);
 
-                        DatabaseReference mDatabaseFacilitiesReference = FirebaseDatabase.getInstance()
-                                .getReference().child(School.MUSIC).child(School.SINGING).child(School.CATEGORIES);
+                        filterMap.put(School.FACILITIES, filter.getFacilities());
+                        filterMap.put(School.GENDER, filter.getGender());
+                        filterMap.put(School.EXTRACURRICULAR, filter.getExtracurricular());
+                        filtersList.add(School.GENDER);
+                        filtersList.add(School.FACILITIES);
+                        filtersList.add(School.EXTRACURRICULAR);
 
-                        mDatabaseFacilitiesReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                ArrayList<FilterModel> checkboxList = new ArrayList<FilterModel>();
-                                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                    String genres = noteDataSnapshot.getValue(String.class);
-                                    FilterModel filterModel = new FilterModel(genres, false);
-                                    checkboxList.add(filterModel);
-                                }
-                                filterMap.put(School.SINGING, checkboxList);
+                        if (category.equals(School.PRIVATE_TUTOR_SCHOOL) || category.equals(School.MUSIC_SCHOOL)) {
+                            filterMap.put(School.CATEGORIES, filter.getCategories());
+                            filtersList.add(School.CATEGORIES);
+                        }
 
-                                DatabaseReference dancingReference = FirebaseDatabase.getInstance()
-                                        .getReference().child(School.MUSIC).child(School.DANCING);
-
-                                dancingReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        ArrayList<FilterModel> checkboxList = new ArrayList<FilterModel>();
-                                        for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                            String genres = noteDataSnapshot.getValue(String.class);
-                                            FilterModel filterModel = new FilterModel(genres, false);
-                                            checkboxList.add(filterModel);
-                                        }
-                                        filterMap.put(School.DANCING, checkboxList);
-
-                                        DatabaseReference instrumentsReference = FirebaseDatabase.getInstance()
-                                                .getReference().child(School.MUSIC).child(School.INSTRUMENTS);
-
-                                        instrumentsReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                                ArrayList<FilterModel> checkboxList = new ArrayList<FilterModel>();
-                                                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                                    String genres = noteDataSnapshot.getValue(String.class);
-                                                    FilterModel filterModel = new FilterModel(genres, false);
-                                                    checkboxList.add(filterModel);
-                                                }
-                                                filterMap.put(School.INSTRUMENTS, checkboxList);
-
-                                                DatabaseReference mDatabaseFacilitiesReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
-                                                mDatabaseFacilitiesReference.orderByChild(School.TYPE).equalTo(category)
-                                                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                            @Override
-                                                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                                                schoolsList.clear();
-                                                                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                                                                    School place = noteDataSnapshot.getValue(School.class);
-                                                                    if (place != null) {
-                                                                        place.setDistance(NearByPlaces.distance(getActivity(), place.getLatitude(), place.getLongitude()));
-                                                                    }
-                                                                    schoolsList.add(place);
-                                                                }
-
-                                                                if (schoolsList.size() > 0 ) {
-                                                                    schoolsList = Filtering.filterByCity(schoolsList, getActivity());
-                                                                    ArrayList<FilterModel> checkboxList = new ArrayList<FilterModel>();
-                                                                    for (String s : Filtering.getAllOtherGenres(schoolsList)) {
-                                                                        FilterModel filterModel = new FilterModel(s, false);
-                                                                        checkboxList.add(filterModel);
-                                                                    }
-                                                                    filterMap.put(School.OTHER_GENRES, checkboxList);
-                                                                    ArrayList<FilterModel> checkboxListFacilities = new ArrayList<FilterModel>();
-                                                                    for (String s : Filtering.getAllFacilities(schoolsList)) {
-                                                                        FilterModel filterModel = new FilterModel(s, false);
-                                                                        checkboxListFacilities.add(filterModel);
-                                                                    }
-                                                                    filterMap.put(School.FACILITIES, checkboxListFacilities);
-
-                                                                    ArrayList<FilterModel> checkboxListExtra = new ArrayList<FilterModel>();
-                                                                    for (String s : Filtering.getAllExtraCuricular(schoolsList)) {
-                                                                        FilterModel filterModel = new FilterModel(s, false);
-                                                                        checkboxListExtra.add(filterModel);
-                                                                    }
-                                                                    filterMap.put(School.EXTRACURRICULAR, checkboxListExtra);
-                                                                    ArrayList<FilterModel> checkboxListGender = new ArrayList<FilterModel>();
-                                                                    for (String s : PlaceUtil.getGenderList()) {
-                                                                        FilterModel filterModel = new FilterModel(s, false);
-                                                                        checkboxListGender.add(filterModel);
-                                                                    }
-                                                                    filterMap.put(School.GENDER, checkboxListGender);
-                                                                    filtersList = new ArrayList<>();
-                                                                    filtersList.add(School.CATEGORIES);
-                                                                    filtersList.add(School.SINGING);
-                                                                    filtersList.add(School.DANCING);
-                                                                    filtersList.add(School.INSTRUMENTS);
-                                                                    filtersList.add(School.OTHER_GENRES);
-                                                                    filtersList.add(School.FACILITIES);
-                                                                    filtersList.add(School.EXTRACURRICULAR);
-                                                                    filtersList.add(School.GENDER);
-                                                                    buildSection(view);
-                                                                }
-
-                                                            }
-
-                                                            @Override
-                                                            public void onCancelled(DatabaseError databaseError) {
-
-                                                            }
-                                                        });
+                        if (category.equals(School.MUSIC_SCHOOL)) {
+                            filterMap.put(School.SINGING, filter.getSinging());
+                            filterMap.put(School.DANCING, filter.getDancing());
+                            filterMap.put(School.INSTRUMENTS, filter.getInstruments());
+                            filterMap.put(School.OTHER_GENRES, filter.getOther_genres());
+                            filtersList.add(School.SINGING);
+                            filtersList.add(School.DANCING);
+                            filtersList.add(School.INSTRUMENTS);
+                            filtersList.add(School.OTHER_GENRES);
+                        }
 
 
-                                            }
-
-                                            @Override
-                                            public void onCancelled(DatabaseError databaseError) {
-                                            }
-
-                                        });
-
-                                    }
-
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {
-                                    }
-
-                                });
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                            }
-
-                        });
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+                        buildSection(view);
                     }
                 });
             }
+
         }else {
             buildSection(view);
         }
 
-        Button apply = (Button) view.findViewById(R.id.filter_apply);
-        Button clear = (Button) view.findViewById(R.id.filter_clear);
-        apply.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyFilter();
-            }
-        });
-
-        clear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearFilter();
-            }
-        });
-
-
+        Button apply = view.findViewById(R.id.filter_apply);
+        Button clear = view.findViewById(R.id.filter_clear);
+        apply.setOnClickListener(v -> applyFilter());
+        clear.setOnClickListener(v -> clearFilter());
 
         return view;
     }
@@ -564,7 +253,7 @@ public class FilterFragment extends Fragment {
     }
 
     public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(ArrayList<School> schoolsList, HashMap<String, ArrayList<FilterModel>> filterMap,ArrayList<String> filtersList);
+        void onFragmentInteraction(ArrayList<School> schoolsList, HashMap<String, ArrayList<FilterModel>> filterMap, ArrayList<String> filtersList);
     }
 
     private void displayListView(ArrayList<FilterModel> checkboxList, Context context) {

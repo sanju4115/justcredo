@@ -4,10 +4,8 @@ import android.content.Context;
 
 import com.credolabs.justcredo.model.FilterModel;
 import com.credolabs.justcredo.model.ObjectModel;
-import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.newplace.PlaceTypes;
-import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.Util;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
