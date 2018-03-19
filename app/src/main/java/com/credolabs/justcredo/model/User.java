@@ -19,11 +19,13 @@ import java.util.HashMap;
  */
 
 public class User {
-    String email,profilePic,name,coverPic,description,mobile,uid,gender;
-    ArrayList<String> following,follower;
-    ArrayList<Review> post;
-    HashMap<String,String> address;
+    private String email,profilePic,name,coverPic,description,mobile,uid,gender;
+    private ArrayList<String> following,follower;
+    private ArrayList<Review> post;
+    private HashMap<String,String> address;
     public static final DatabaseReference USERREFERENCE = FirebaseDatabase.getInstance().getReference().child("users");
+
+    public static final String DB_REF = "users";
 
     public User() {
     }

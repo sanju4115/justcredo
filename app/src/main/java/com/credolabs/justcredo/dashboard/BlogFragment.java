@@ -108,7 +108,7 @@ public class BlogFragment extends Fragment {
 
         reviewArrayList = new ArrayList<>();
 
-        adapter = new FeedListViewRecyclerAdapter(getActivity(), reviewArrayList, "feed");
+        adapter = new FeedListViewRecyclerAdapter(getActivity(), reviewArrayList, "blogs");
         reviewRecyclerView.setAdapter(adapter);
 
         buildContent();

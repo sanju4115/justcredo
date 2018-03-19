@@ -45,6 +45,7 @@ import com.credolabs.justcredo.internet.ConnectivityReceiver;
 import com.credolabs.justcredo.location.LocationResolver;
 import com.credolabs.justcredo.model.CategoryModel;
 import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.newplace.PlaceTypes;
 import com.credolabs.justcredo.notifications.NotificationsFragment;
 import com.credolabs.justcredo.profile.ProfileBookmarksFragment;
@@ -131,73 +132,27 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
             @Override
             public void onClick(View view) {
                 /*final ProgressDialog mProgressDialog = new ProgressDialog(HomeActivity.this);
-
                 mProgressDialog.setMessage("Loading Experiences");
                 mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 mProgressDialog.setIndeterminate(true);
                 mProgressDialog.setCancelable(false);
                 mProgressDialog.show();
-                DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("categories").child("schools");
+                DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("users");
                 mReferenceCategories.keepSynced(true);
 
-
-                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                Query first = db.collection(School.SCHOOL_DATABASE);
-                //.whereEqualTo(temp, true)
-                //.whereEqualTo(School.ADDRESS + "." + School.ADDRESS_CITY, addressCity)
-                //.orderBy(School.RATING, Query.Direction.DESCENDING).limit(LIMIT);
-
-                first.get().addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                for (DocumentSnapshot document : task.getResult()) {
-                                    School model = document.toObject(School.class);
-                                    HashMap<String, String> map = model.getCategories();
-                                    HashMap<String, Boolean> placeTypeMap = new HashMap<>();
-                                    if (map.get(PlaceTypes.SchoolTypes.International.getValue()) != null) {
-                                        placeTypeMap.put(School.INTERNATIONAL_SCHOOL, true);
-                                    }
-                                    if (map.get(PlaceTypes.SchoolTypes.Primary.getValue()) != null) {
-                                        placeTypeMap.put(School.PRIMARY_SCHOOL, true);
-                                    }
-                                    if (map.get(PlaceTypes.SchoolTypes.Secondary.getValue()) != null) {
-                                        placeTypeMap.put(School.SECONDARY_SCHOOL, true);
-                                    }
-                                    if (map.get(PlaceTypes.SchoolTypes.Pre.getValue()) != null) {
-                                        placeTypeMap.put(School.PRE_SCHOOL, true);
-                                    }
-                                    if (map.get(PlaceTypes.SchoolTypes.SpecialSchool.getValue()) != null) {
-                                        placeTypeMap.put(School.SPECIAL_SCHOOL, true);
-                                    }
-                                    if (model.getType().equals(PlaceTypes.MUSIC.getValue())) {
-                                        placeTypeMap.put(School.MUSIC_SCHOOL, true);
-                                    }
-                                    if (model.getType().equals(PlaceTypes.ART.getValue())) {
-                                        placeTypeMap.put(School.ART_SCHOOL, true);
-                                    }
-                                    if (model.getType().equals(PlaceTypes.SPORTS.getValue())) {
-                                        placeTypeMap.put(School.SPORTS_SCHOOL, true);
-                                    }
-                                    if (model.getType().equals(PlaceTypes.COACHING.getValue())) {
-                                        placeTypeMap.put(School.COACHING_CLASS_SCHOOL, true);
-                                    }
-                                    if (model.getType().equals(PlaceTypes.PrivateTutors.getValue())) {
-                                        placeTypeMap.put(School.PRIVATE_TUTOR_SCHOOL, true);
-                                    }
-                                    model.setPlaceType(placeTypeMap);
-                                    db.collection(School.SCHOOL_DATABASE).document(model.getId()).set(model);
-                                }
-                            }
-                        });
-
-
-                final CollectionReference firebaseFirestore = FirebaseFirestore.getInstance().collection("categories");
+                final CollectionReference firebaseFirestore = FirebaseFirestore.getInstance().collection("users");
                 mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for (DataSnapshot category: dataSnapshot.getChildren()) {
-                            CategoryModel cat = category.getValue(CategoryModel.class);
-                            firebaseFirestore.document().set(cat);
+                            HashMap<String,HashMap<String,String>> map = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
+
+                            map.forEach((k,v)->{
+                                firebaseFirestore.document(k).set(v);
+                            });
                         }
+
+                        mProgressDialog.dismiss();
 
                     }
 
