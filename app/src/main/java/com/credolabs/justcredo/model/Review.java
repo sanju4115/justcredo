@@ -34,6 +34,9 @@ public class Review implements Serializable{
     public static final String ADDRESS_CITY = "addressCity";
     public static final String TIMESTAMP = "timestamp";
 
+    public static final String USER_ID = "userID";
+
+
 
 
 

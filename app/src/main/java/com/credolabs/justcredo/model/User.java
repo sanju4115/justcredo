@@ -10,9 +10,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Sanjay kumar on 4/28/2017.
@@ -23,8 +27,6 @@ public class User {
     private ArrayList<String> following,follower;
     private ArrayList<Review> post;
     private HashMap<String,String> address;
-    public static final DatabaseReference USERREFERENCE = FirebaseDatabase.getInstance().getReference().child("users");
-
     public static final String DB_REF = "users";
 
     public User() {
@@ -56,74 +58,49 @@ public class User {
     }
 
     public void buildUser(final TextView no_follower, final TextView no_following, final TextView no_post){
-        DatabaseReference mFollowing = FirebaseDatabase.getInstance().getReference().child("following");
+        CollectionReference followingCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_FOLLOWING);
         final ArrayList<String> list = new ArrayList<>();
-        mFollowing.child(this.uid).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+        followingCollectionReference.document(this.uid).addSnapshotListener((documentSnapshot, e) -> {
+            if (documentSnapshot.exists()){
+                Map<String, Object> map = documentSnapshot.getData();
+                no_following.setText(String.valueOf(map.size()));
                 list.clear();
-                for (DataSnapshot object: dataSnapshot.getChildren()) {
-                    String uid  = object.getKey();
-                    list.add(uid);
-                }
-
-                if (no_following!=null){
-                    no_following.setText(String.valueOf(list.size()));
-
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+                map.forEach((k,v)-> list.add(k));
+            }else {
+                no_following.setText(String.valueOf("0"));
             }
         });
-        this.following = list;
 
-        DatabaseReference mFollower = FirebaseDatabase.getInstance().getReference().child("follower");
+        this.following=list;
+
+        CollectionReference followerCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_FOLLOWER);
         final ArrayList<String> followerList = new ArrayList<>();
-        mFollower.child(this.uid).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+        followerCollectionReference.document(this.uid).addSnapshotListener((documentSnapshot, e) -> {
+            if (documentSnapshot.exists()){
+                Map<String, Object> map = documentSnapshot.getData();
+                no_follower.setText(String.valueOf(map.size()));
                 followerList.clear();
-                for (DataSnapshot object: dataSnapshot.getChildren()) {
-                    String uid  = object.getKey();
-                    followerList.add(uid);
-                }
-                if (no_follower!=null){
-                    no_follower.setText(String.valueOf(followerList.size()));
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+                map.forEach((k,v)-> followerList.add(k));
+            }else {
+                no_follower.setText(String.valueOf("0"));
             }
         });
-        this.following = followerList;
+        this.follower=followerList;
 
-        DatabaseReference mPost = FirebaseDatabase.getInstance().getReference().child("reviews");
+        CollectionReference reviewsCollectionReference = FirebaseFirestore.getInstance().collection(Review.DB_REVIEWS_REF);
         final ArrayList<Review> postList = new ArrayList<>();
-        mPost.orderByChild("userID").equalTo(this.uid).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                postList.clear();
-                for (DataSnapshot object: dataSnapshot.getChildren()) {
-                    Review uid  = object.getValue(Review.class);
-                    postList.add(uid);
-                }
-
-                if (no_post!=null){
-                    no_post.setText(String.valueOf(postList.size()));
-                }
+        reviewsCollectionReference.whereEqualTo(Review.USER_ID,this.uid).addSnapshotListener((documentSnapshots, e) ->{
+            postList.clear();
+            for (DocumentSnapshot documentSnapshot : documentSnapshots){
+                Review review = documentSnapshot.toObject(Review.class);
+                postList.add(review);
             }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+            if (no_post!=null){
+                no_post.setText(String.valueOf(postList.size()));
             }
         });
         this.post = postList;
+
     }
 
     public boolean equals(Object obj) {
@@ -225,6 +202,8 @@ public class User {
     public void setAddress(HashMap<String, String> address) {
         this.address = address;
     }
+
+
 
 
 }

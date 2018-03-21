@@ -104,17 +104,59 @@ public class CategoryFragment extends Fragment {
 
         final LinearLayout searchLayout = view.findViewById(R.id.search_bar_view);
         EditText editText = view.findViewById(R.id.adressText);
-        editText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), SearchActivity.class);
-                ActivityOptionsCompat options = ActivityOptionsCompat.
-                        makeSceneTransitionAnimation(getActivity(), (View)searchLayout, "search_bar");
-                startActivity(intent, options.toBundle());
-            }
+        editText.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), SearchActivity.class);
+            ActivityOptionsCompat options = ActivityOptionsCompat.
+                    makeSceneTransitionAnimation(getActivity(), (View)searchLayout, "search_bar");
+            startActivity(intent, options.toBundle());
         });
+        if (categoryModelArrayList==null) {
+            categoryModelArrayList = new ArrayList<>();
+            FirebaseFirestore.getInstance().collection(CategoryModel.DB_REF).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    categoryModelArrayList.clear();
+                    for (DocumentSnapshot document : task.getResult()) {
+                        CategoryModel model = document.toObject(CategoryModel.class);
+                        categoryModelArrayList.add(model);
+                    }
+
+                    if (!categoryModelArrayList.isEmpty()) {
+                        final ExpandableHeightGridView categoryListView = view.findViewById(R.id.category_list);
+                        CategoryAdapter categoryAdapter = new CategoryAdapter(getActivity(), CategoryFragment.this, categoryModelArrayList);
+                        categoryListView.setAdapter(categoryAdapter);
+                        categoryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(AdapterView<?> parent, View view1, int position, long id) {
+                                Intent intent = new Intent(getActivity(), ObjectListActivity.class);
+                                intent.putExtra("category", categoryModelArrayList.get(position).getKey());
+                                startActivity(intent);
+                                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+                            }
+                        });
+                        buildHorizontalListSection();
+                    }
+                } else {
+                    new CustomeToastFragment().Show_Toast(getActivity(), view,
+                            "Something went wrong.");
+                }
+            });
+        }else if (!categoryModelArrayList.isEmpty()) {
+            final ExpandableHeightGridView categoryListView = view.findViewById(R.id.category_list);
+            CategoryAdapter categoryAdapter = new CategoryAdapter(getActivity(), CategoryFragment.this, categoryModelArrayList);
+            categoryListView.setAdapter(categoryAdapter);
+            categoryListView.setOnItemClickListener((parent, view12, position, id) -> {
+                Intent intent = new Intent(getActivity(), ObjectListActivity.class);
+                intent.putExtra("category", categoryModelArrayList.get(position).getName());
+                startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+            });
+
+            buildHorizontalListSection();
+
+        }
+
         MobileAds.initialize(getActivity(), "ca-app-pub-3940256099942544~3347511713");
-        AdView mAdView = (AdView) view.findViewById(R.id.adView);
+        AdView mAdView = view.findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().addTestDevice("79824E5B159FF8F9CEE8BBF2FFEF89AC").build();
         mAdView.loadAd(adRequest);
         final ProgressBar progress_ad = view.findViewById(R.id.progress_ad);
@@ -124,56 +166,6 @@ public class CategoryFragment extends Fragment {
                 progress_ad.setVisibility(View.GONE);
             }
         });
-
-        if (categoryModelArrayList==null) {
-            categoryModelArrayList = new ArrayList<>();
-            FirebaseFirestore.getInstance().collection(CategoryModel.DB_REF).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    if (task.isSuccessful()) {
-                        categoryModelArrayList.clear();
-                        for (DocumentSnapshot document : task.getResult()) {
-                            CategoryModel model = document.toObject(CategoryModel.class);
-                            categoryModelArrayList.add(model);
-                        }
-
-                        if (!categoryModelArrayList.isEmpty()) {
-                            final ExpandableHeightGridView categoryListView = view.findViewById(R.id.category_list);
-                            CategoryAdapter categoryAdapter = new CategoryAdapter(getActivity(), CategoryFragment.this, categoryModelArrayList);
-                            categoryListView.setAdapter(categoryAdapter);
-                            categoryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                                @Override
-                                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                    Intent intent = new Intent(getActivity(), ObjectListActivity.class);
-                                    intent.putExtra("category", categoryModelArrayList.get(position).getKey());
-                                    startActivity(intent);
-                                    getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
-                                }
-                            });
-                            buildHorizontalListSection();
-                        }
-                    } else {
-                        new CustomeToastFragment().Show_Toast(getActivity(), view,
-                                "Something went wrong.");
-                    }
-                }
-            });
-        }else if (!categoryModelArrayList.isEmpty()) {
-            final ExpandableHeightGridView categoryListView = view.findViewById(R.id.category_list);
-            CategoryAdapter categoryAdapter = new CategoryAdapter(getActivity(), CategoryFragment.this, categoryModelArrayList);
-            categoryListView.setAdapter(categoryAdapter);
-            categoryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Intent intent = new Intent(getActivity(), ObjectListActivity.class);
-                    intent.putExtra("category", categoryModelArrayList.get(position).getName());
-                    startActivity(intent);
-                    getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
-                }
-            });
-
-            buildHorizontalListSection();
-        }
 
         /*top_rated_school = HorizontalListViewFragment
                 .newInstance("Top Schools", PlaceTypes.SCHOOLS.getValue());

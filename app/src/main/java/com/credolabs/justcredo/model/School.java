@@ -1,23 +1,33 @@
 package com.credolabs.justcredo.model;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.nfc.Tag;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.newplace.PlaceTypes;
 import com.credolabs.justcredo.notifications.Notification;
+import com.credolabs.justcredo.utility.CustomeToastFragment;
+import com.credolabs.justcredo.utility.Util;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.io.Serializable;
@@ -290,68 +300,75 @@ public class School implements Serializable, ObjectModel, Comparable, Parcelable
 
 
     public static void onBookmark(final School model, final FirebaseUser user, final Context activity, final ImageView bookmarkImage){
-        mBookmarkReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.child(user.getUid()).hasChild(model.getId())){
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
-                    alertDialogBuilder.setMessage("Do you want to remove bookmark ?");
-                    alertDialogBuilder.setPositiveButton("Yes",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface arg0, int arg1) {
-                                    mBookmarkReference.child(user.getUid()).child(model.getId()).removeValue();
-                                    bookmarkImage.setImageResource(R.drawable.ic_bookmark_secondary);
-                                    schoolReference.child(model.getId()+"/bookmarks").child(user.getUid()).removeValue();
-                                    if (model.getNoOfBookmarks()!=null){
-                                        Long x = model.getNoOfBookmarks();
-                                        schoolReference.child(model.getId()+"/noOfBookmarks").setValue(x-1);
-                                        model.setNoOfBookmarks(x-1);
-                                    }else {
-                                        schoolReference.child(model.getId()+"/noOfBookmarks").setValue(0);
-                                        model.setNoOfBookmarks((long) 0);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference bookmarkRef = db.collection(DbConstants.DB_REF_BOOKMARK);
+        CollectionReference schoolRef = db.collection(School.SCHOOL_DATABASE);
+        bookmarkRef.document(user.getUid()).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists() && task.getResult().contains(model.getId())){
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
+                alertDialogBuilder.setMessage("Do you want to remove bookmark ?");
+                alertDialogBuilder.setPositiveButton("Yes",
+                        (arg0, arg1) -> {
+                            ProgressDialog mProgress = Util.prepareProcessingDialogue(activity);
+                            if (model.getBookmarks()!=null) {
+                                model.getBookmarks().remove(user.getUid());
+                            }
+                            WriteBatch batch = db.batch();
+                            batch.update(bookmarkRef.document(user.getUid()),model.getId(), FieldValue.delete());
+                            batch.update(schoolRef.document(model.getId()),
+                                    School.BOOKMARKS, model.getBookmarks());
+                            if (model.getNoOfBookmarks()!=null){
+                                Long x = model.getNoOfBookmarks();
+                                batch.update(schoolRef.document(model.getId()), School.NO_OF_BOOKMARKS, x-1);
+                                model.setNoOfBookmarks(x-1);
+                            }else {
+                                batch.update(schoolRef.document(model.getId()), School.NO_OF_BOOKMARKS, 0);
+                                model.setNoOfBookmarks((long) 0);
 
-                                    }
-                                    FirebaseMessaging.getInstance().unsubscribeFromTopic(model.getId());
-                                }
+                            }
+
+                            batch.commit().addOnCompleteListener(batchTask -> {
+                                bookmarkImage.setImageResource(R.drawable.ic_bookmark_secondary);
+                                FirebaseMessaging.getInstance().unsubscribeFromTopic(model.getId());
+                                Util.removeProcessDialogue(mProgress);
                             });
+                        });
 
-                    alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
+                alertDialogBuilder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
-                    AlertDialog alertDialog = alertDialogBuilder.create();
-                    alertDialogBuilder.show();
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialogBuilder.show();
+            }else {
+                ProgressDialog mProgress = Util.prepareProcessingDialogue(activity);
+                if (model.getBookmarks() !=null) {
+                    model.getBookmarks().put(user.getUid(), user.getUid());
                 }else {
-                    mBookmarkReference.child(user.getUid()).child(model.getId()).setValue(model.getName());
-                    bookmarkImage.setImageResource(R.drawable.ic_bookmark_green_24dp);
-                    schoolReference.child(model.getId()+"/bookmarks").child(user.getUid()).setValue(user.getUid());
-                    if (model.getNoOfBookmarks()!=null){
-                        Long x = model.getNoOfBookmarks();
-                        schoolReference.child(model.getId()+"/noOfBookmarks").setValue(x+1);
-                        model.setNoOfBookmarks(x+1);
-                    }else {
-                        schoolReference.child(model.getId()+"/noOfBookmarks").setValue(1);
-                        model.setNoOfBookmarks((long) 1);
-
-                    }
-                    FirebaseMessaging.getInstance().subscribeToTopic(model.getId());
-                    //School.prepareBookMarkNotification(model,user);
+                    HashMap<String,String> map = new HashMap<>();
+                    map.put(user.getUid(), user.getUid());
+                    model.setBookmarks(map);
+                }
+                WriteBatch batch = db.batch();
+                batch.update(bookmarkRef.document(user.getUid()),model.getId(), model.getName());
+                batch.update(schoolRef.document(model.getId()),
+                        School.BOOKMARKS, model.getBookmarks());
+                if (model.getNoOfBookmarks()!=null){
+                    Long x = model.getNoOfBookmarks();
+                    batch.update(schoolRef.document(model.getId()), School.NO_OF_BOOKMARKS, x+1);
+                    model.setNoOfBookmarks(x-1);
+                }else {
+                    batch.update(schoolRef.document(model.getId()), School.NO_OF_BOOKMARKS, 1);
+                    model.setNoOfBookmarks((long) 0);
 
                 }
 
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+                batch.commit().addOnCompleteListener(batchTask -> {
+                    bookmarkImage.setImageResource(R.drawable.ic_bookmark_green_24dp);
+                    FirebaseMessaging.getInstance().subscribeToTopic(model.getId());
+                    //School.prepareBookMarkNotification(model,user);
+                    Util.removeProcessDialogue(mProgress);
+                });
             }
         });
-
-
     }
 
 

@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.ReviewDetailsActivity;
+import com.credolabs.justcredo.model.DbConstants;
 import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
@@ -30,8 +31,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Sanjay kumar on 10/1/2017.
@@ -40,164 +45,133 @@ import java.util.ArrayList;
 
 public class FeedViewHolder extends RecyclerView.ViewHolder{
     private final AppCompatImageView bookmark;
-    View mView;
-    TextView like,comment_count,like_count;
-    DatabaseReference mLikeReference;
-    DatabaseReference mCommentReference,mFollowingReference,mBookmarkReference;
-    FirebaseAuth mAuth;
-    AppCompatImageView follow;
-    String uid;
-    FirebaseUser user;
-    CardView comment_section;
+    private View mView;
+    private TextView comment_count,like_count;
+    private FirebaseAuth mAuth;
+    private String uid;
+    private FirebaseUser user;
+    private CardView comment_section;
+    private TextView user_followers ;
+    private TextView user_following ;
+    private Context context;
     RelativeLayout complete_profile_layout;
-    TextView user_followers ;
-    TextView user_following ;
-    Context context;
+    TextView like;
+    AppCompatImageView follow;
+
+
+    private CollectionReference likeCollectionRefernce;
+    private CollectionReference followingCollectionReference;
+    private CollectionReference commentCollectionReference;
+    private CollectionReference bookmarkCollectionRef;
 
 
     public FeedViewHolder(View itemView, String parent,Context context) {
         super(itemView);
         mView = itemView;
         this.context=context;
-        like = (TextView) mView.findViewById(R.id.like);
-        follow = (AppCompatImageView) mView.findViewById(R.id.follow);
-        like_count = (TextView) mView.findViewById(R.id.like_count);
-        comment_count = (TextView)mView.findViewById(R.id.comment_count);
-        bookmark = (AppCompatImageView) mView.findViewById(R.id.bookmark);
-        if (parent.equals("blogs")){
-            mLikeReference = FirebaseDatabase.getInstance().getReference().child("blogs/likes");
-            mCommentReference = FirebaseDatabase.getInstance().getReference().child("blogs/comments");
+        like = mView.findViewById(R.id.like);
+        follow = mView.findViewById(R.id.follow);
+        like_count = mView.findViewById(R.id.like_count);
+        comment_count = mView.findViewById(R.id.comment_count);
+        bookmark = mView.findViewById(R.id.bookmark);
+        if (parent.equals(Review.DB_BLOG_REF)){
+            likeCollectionRefernce = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_BLOG_LIKE);
+            commentCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_BLOG_Comment);
         }else {
-            mLikeReference = FirebaseDatabase.getInstance().getReference().child("likes");
-            mCommentReference = FirebaseDatabase.getInstance().getReference().child("comments");
+            likeCollectionRefernce = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_REVIEW_LIKE);
+            commentCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_REVIEW_Comment);
         }
 
-        mFollowingReference = FirebaseDatabase.getInstance().getReference().child("following");
-        mBookmarkReference = FirebaseDatabase.getInstance().getReference().child("bookmarks");
-        mLikeReference.keepSynced(true);mCommentReference.keepSynced(true);mFollowingReference.keepSynced(true);
-        mBookmarkReference.keepSynced(true);
+        followingCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_FOLLOWING);
+        bookmarkCollectionRef = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_BOOKMARK);
+
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
-        uid = user.getUid();
-        comment_section = (CardView) mView.findViewById(R.id.comment_section);
-        complete_profile_layout = (RelativeLayout) mView.findViewById(R.id.complete_profile_layout);
-        user_followers = (TextView)  mView.findViewById(R.id.user_followers);
-        user_following = (TextView)  mView.findViewById(R.id.user_following);
+        if (user!=null) {
+            uid = user.getUid();
+        }
+        comment_section = mView.findViewById(R.id.comment_section);
+        this.complete_profile_layout = mView.findViewById(R.id.complete_profile_layout);
+        user_followers =  mView.findViewById(R.id.user_followers);
+        user_following =  mView.findViewById(R.id.user_following);
     }
 
     public void setHeadingBlog(String heading){
-        TextView blog_heading_txt = (TextView) mView.findViewById(R.id.blog_heading_txt);
+        TextView blog_heading_txt = mView.findViewById(R.id.blog_heading_txt);
         blog_heading_txt.setVisibility(View.VISIBLE);
         blog_heading_txt.setText(heading);
     }
 
     public void setFollow(final String reviewUser){
-        if (reviewUser.equals(mAuth.getCurrentUser().getUid())){
+        if (reviewUser.equals(uid)){
             follow.setVisibility(View.GONE);
         }else {
             follow.setVisibility(View.VISIBLE);
-            mFollowingReference.child(mAuth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.hasChild(reviewUser)){
-                        follow.setImageResource(R.drawable.ic_person_black_24dp);
-                    }else{
-                        follow.setImageResource(R.drawable.ic_person_add);
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
+            followingCollectionReference.document(uid).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult().exists() && task.getResult().contains(reviewUser)){
+                    follow.setImageResource(R.drawable.ic_person_black_24dp);
+                }else {
+                    follow.setImageResource(R.drawable.ic_person_add);
                 }
             });
         }
     }
 
     public void setLikeCommentLayout(String reviewKey){
-        mCommentReference.child(reviewKey).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                comment_count.setText(String.valueOf(dataSnapshot.getChildrenCount()));
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+        commentCollectionReference.document(reviewKey).addSnapshotListener((documentSnapshot, e) -> {
+            if (documentSnapshot.exists()){
+                comment_count.setText(String.valueOf(documentSnapshot.getData().size()));
+            }else {
+                comment_count.setText("0");
             }
         });
 
-        mLikeReference.child(reviewKey).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                like_count.setText(String.valueOf(dataSnapshot.getChildrenCount()));
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+        likeCollectionRefernce.document(reviewKey).addSnapshotListener((documentSnapshot, e) -> {
+            if (documentSnapshot.exists()){
+                like_count.setText(String.valueOf(documentSnapshot.getData().size()));
+            }else {
+                like_count.setText("0");
             }
         });
     }
 
     public void setLikeButton(final String reviewKey, final Context context){
-        mLikeReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.child(reviewKey).hasChild(mAuth.getCurrentUser().getUid())){
-                    like.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
-                    like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary,0,0,0);
-                }else{
-                    like.setTextColor(ContextCompat.getColor(context, R.color.colorSecondaryText));
-                    like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up,0,0,0);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+        likeCollectionRefernce.document(reviewKey).addSnapshotListener((documentSnapshot, e) -> {
+            if (documentSnapshot.exists() && documentSnapshot.getData().containsKey(mAuth.getCurrentUser().getUid())){
+                like.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
+                like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary,0,0,0);
+            }else {
+                like.setTextColor(ContextCompat.getColor(context, R.color.colorSecondaryText));
+                like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up,0,0,0);
             }
         });
-
     }
 
     public void setUSerLayout(final Context applicationContext, String UID){
-        final User[] user = new User[1];
-        DatabaseReference mReferenceUser  = FirebaseDatabase.getInstance().getReference().child("users").child(UID);
-        mReferenceUser.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                user[0] = dataSnapshot.getValue(User.class);
-                if (user[0] !=null) {
-                    ImageView user_image = (ImageView) mView.findViewById(R.id.user_image);
-                    //Util.loadImageVolley(user[0].getProfilePic(), user_image);
-                    Util.loadCircularImageWithGlide(applicationContext,user[0].getProfilePic(),user_image);
-                    TextView user_name = (TextView) mView.findViewById(R.id.user_name);
-                    user_name.setText(user[0].getName());
-                    user[0].buildUser( user_followers,user_following,null);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+        FirebaseFirestore.getInstance().collection(User.DB_REF).document(UID).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()){
+                User user = task.getResult().toObject(User.class);
+                ImageView user_image = mView.findViewById(R.id.user_image);
+                Util.loadCircularImageWithGlide(applicationContext,user.getProfilePic(),user_image);
+                TextView user_name = mView.findViewById(R.id.user_name);
+                user_name.setText(user.getName());
+                user.buildUser( user_followers,user_following,null);
             }
         });
-
     }
 
     public void setRatingLayout(int rating){
-        TextView user_rating = (TextView) mView.findViewById(R.id.user_rating);
+        TextView user_rating = mView.findViewById(R.id.user_rating);
         user_rating.setVisibility(View.VISIBLE);
         user_rating.setText(String.valueOf(rating));
-        CustomRatingBar bar = (CustomRatingBar) mView.findViewById(R.id.rating_bar);
+        CustomRatingBar bar = mView.findViewById(R.id.rating_bar);
         bar.setVisibility(View.VISIBLE);
         bar.setScore(rating);
     }
 
 
     public void setReviewText(Review review){
-        TextView review_text = (TextView) mView.findViewById(R.id.review_text);
+        TextView review_text = mView.findViewById(R.id.review_text);
         if (review.getReview() !=null){                        ///for reviews
             review_text.setVisibility(View.VISIBLE);
             review_text.setText(review.getReview());
@@ -210,16 +184,16 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
     }
 
     public void setTime(String time){
-        TextView time_text = (TextView) mView.findViewById(R.id.time);
+        TextView time_text = mView.findViewById(R.id.time);
         time_text.setText(time);
     }
 
     public void setImages(final Review model, final Context applicationContext){
-        ImageView image1 = (ImageView) mView.findViewById(R.id.review_image1);
-        ImageView image2 = (ImageView) mView.findViewById(R.id.review_image2);
-        ImageView image3 = (ImageView) mView.findViewById(R.id.review_image3);
-        ImageView image4 = (ImageView) mView.findViewById(R.id.review_image4);
-        TextView noOfImages = (TextView) mView.findViewById(R.id.no_of_images);
+        ImageView image1 = mView.findViewById(R.id.review_image1);
+        ImageView image2 = mView.findViewById(R.id.review_image2);
+        ImageView image3 = mView.findViewById(R.id.review_image3);
+        ImageView image4 = mView.findViewById(R.id.review_image4);
+        TextView noOfImages = mView.findViewById(R.id.no_of_images);
         noOfImages.setVisibility(View.GONE);
         image1.setVisibility(View.GONE);
         image2.setVisibility(View.GONE);
@@ -227,7 +201,7 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
         image4.setVisibility(View.GONE);
         if (model.getImages()!=null){
             final ArrayList<String> images = new ArrayList<String>(model.getImages().values());
-            LinearLayout feeSection = (LinearLayout) mView.findViewById(R.id.images_layout);
+            LinearLayout feeSection = mView.findViewById(R.id.images_layout);
             feeSection.setVisibility(View.VISIBLE);
             if (images.size()==0){
                 feeSection.setVisibility(View.GONE);
@@ -273,77 +247,43 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
     }
 
     public void setHeader(final String reviewKey, final Context activity, final Review review) {
-        final TextView school_name = (TextView)mView.findViewById(R.id.school_name);
-        final TextView school_address = (TextView)mView.findViewById(R.id.school_address);
-        final CardView header = (CardView) mView.findViewById(R.id.header);
-        final ImageView school_image = (ImageView)mView.findViewById(R.id.school_image);
+        final TextView school_name = mView.findViewById(R.id.school_name);
+        final TextView school_address = mView.findViewById(R.id.school_address);
+        final CardView header = mView.findViewById(R.id.header);
+        final ImageView school_image = mView.findViewById(R.id.school_image);
 
-        final DatabaseReference mObjectReference = FirebaseDatabase.getInstance().getReference().child(review.getType()).child(review.getSchoolID());
-        mObjectReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                try {
-                    if (review.getType().equals("schools")){
-                        final School model = (School) dataSnapshot.getValue(Class.forName("com.credolabs.justcredo.model.School"));
-                        school_name.setText(model.getName());
-                        school_address.setText(Util.getAddress(model.getAddress()));
-                        Util.loadImageWithGlide(Glide.with(activity),Util.getFirstImage(model.getImages()),school_image);
-                        setBookmark(model.getId());
-                        header.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Intent intent = new Intent(activity,SchoolDetailActivity.class);
-                                intent.putExtra("SchoolDetail",model.getId());
-                                activity.startActivity(intent);
-                            }
-                        });
+        final CollectionReference schoolRef = FirebaseFirestore.getInstance().collection(review.getType());
+        schoolRef.document(review.getSchoolID()).get().addOnCompleteListener(task -> {
+           if (task.isSuccessful() && task.getResult().exists()){
+               School model = task.getResult().toObject(School.class);
+               school_name.setText(model.getName());
+               school_address.setText(Util.getAddress(model.getAddress()));
+               Util.loadImageWithGlide(Glide.with(activity),Util.getFirstImage(model.getImages()),school_image);
+               setBookmark(model.getId());
+               header.setOnClickListener(v -> {
+                   Intent intent = new Intent(activity,SchoolDetailActivity.class);
+                   intent.putExtra("SchoolDetail",model.getId());
+                   activity.startActivity(intent);
+               });
 
-                        comment_section.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Intent intent = new Intent(activity,ReviewDetailsActivity.class);
-                                intent.putExtra("review",review);
-                                intent.putExtra("review_key",reviewKey);
-                                activity.startActivity(intent);
-                                //activity.overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
-                            }
-                        });
+               comment_section.setOnClickListener(v -> {
+                   Intent intent = new Intent(activity,ReviewDetailsActivity.class);
+                   intent.putExtra("review",review);
+                   intent.putExtra("review_key",reviewKey);
+                   activity.startActivity(intent);
+               });
 
-                        bookmark.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                School.onBookmark(model,user,context,bookmark);
-                            }
-                        });
-
-                    }
-
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
+               bookmark.setOnClickListener(v -> School.onBookmark(model,user,context,bookmark));
+           }
         });
     }
 
     private void setBookmark(final String id) {
-        mBookmarkReference.child(uid).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChild(id)){
-                    bookmark.setImageResource(R.drawable.ic_bookmark_green_24dp);
-                }else{
-                    bookmark.setImageResource(R.drawable.ic_bookmark_secondary);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+        bookmarkCollectionRef.document(uid).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists() && task.getResult().contains(id)){
+                bookmark.setImageResource(R.drawable.ic_bookmark_green_24dp);
+            }else{
+                bookmark.setImageResource(R.drawable.ic_bookmark_secondary);
             }
         });
     }

@@ -1,5 +1,7 @@
 package com.credolabs.justcredo.utility;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -309,5 +311,27 @@ public class Util {
         }
 
         return false;
+    }
+
+    public static void showErrorMessage(Context context, String msg){
+        new CustomToast().Show_Toast(context, msg);
+    }
+
+    public static void showErrorMessage(Context context){
+        new CustomToast().Show_Toast(context,"Something went wrong.");
+    }
+
+    public static ProgressDialog prepareProcessingDialogue(Context activity){
+        final ProgressDialog mProgressDialog = new ProgressDialog(activity);
+        mProgressDialog.setMessage("Processing request...");
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.show();
+        return mProgressDialog;
+    }
+
+    public static void removeProcessDialogue(ProgressDialog mProgressDialog){
+        mProgressDialog.dismiss();
     }
 }
