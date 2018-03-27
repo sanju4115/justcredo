@@ -7,8 +7,9 @@ import android.view.View;
  */
 
 public class RecyclerViewOnClickListener {
-    /** Interface for Item Click over Recycler View Items **/
+
+    @FunctionalInterface
     public interface OnClickListener {
-        public void OnItemClick(View view, int position);
+        void OnItemClick(View view, int position);
     }
 }

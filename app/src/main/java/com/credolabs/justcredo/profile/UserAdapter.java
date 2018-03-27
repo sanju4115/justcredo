@@ -1,8 +1,10 @@
 package com.credolabs.justcredo.profile;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.RecyclerView;
@@ -19,7 +21,9 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.adapters.RecyclerViewOnClickListener;
+import com.credolabs.justcredo.model.DbConstants;
 import com.credolabs.justcredo.model.ObjectModel;
+import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.school.SchoolDetailActivity;
 import com.credolabs.justcredo.utility.NearByPlaces;
@@ -30,6 +34,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
@@ -40,122 +49,104 @@ import java.util.ArrayList;
 
 
 public class UserAdapter extends RecyclerView.Adapter<UserViewHolder> {
-    Context context;
-    private ArrayList<User> modelArrayList;
+    private Context context;
+    private ArrayList<String> modelArrayList;
 
-    public UserAdapter(Context context, ArrayList<User> modelsArrayList) {
+    public UserAdapter(Context context, ArrayList<String> modelsArrayList) {
         this.context = context;
         this.modelArrayList = modelsArrayList;
     }
 
+    @NonNull
     @Override
-    public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // create a new view
+    public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.user_list_entry, parent, false);
-        UserViewHolder holder = new UserViewHolder(view);
-        return holder;
+        return new UserViewHolder(view);
     }
     @Override
-    public void onBindViewHolder(final UserViewHolder holder, int position) {
-        final User model = modelArrayList.get(position);
-        holder.profile_divider.setVisibility(View.GONE);
-        holder.user_name.setText(model.getName());
-        model.buildUser( holder.user_followers,holder.user_following,null);
-        Util.loadCircularImageWithGlide(context,model.getProfilePic(),holder.user_image);
-        final FirebaseAuth auth = FirebaseAuth.getInstance();
-        final String uid = auth.getCurrentUser().getUid();
-        if (model.getUid().equals(uid)){
-            holder.follow.setVisibility(View.GONE);
-        }else {
-            holder.follow.setVisibility(View.VISIBLE);
-            holder.setClickListener(new RecyclerViewOnClickListener.OnClickListener() {
-                @Override
-                public void OnItemClick(View view, int position) {
-                    Intent intent = new Intent(context,UserActivity.class);
-                    intent.putExtra("uid",modelArrayList.get(position).getUid());
-                    context.startActivity(intent);
-                    //context.overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
+    public void onBindViewHolder(@NonNull final UserViewHolder holder, int position) {
+        FirebaseFirestore.getInstance().collection(User.DB_REF).document(modelArrayList.get(position)).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult()!=null){
+                final User model = task.getResult().toObject(User.class);
+                holder.profile_divider.setVisibility(View.GONE);
+                holder.user_name.setText(model.getName());
+                model.buildUser( holder.user_followers,holder.user_following,null);
+                Util.loadCircularImageWithGlide(context,model.getProfilePic(),holder.user_image);
+                final FirebaseAuth auth = FirebaseAuth.getInstance();
+
+                final String uid = (auth.getCurrentUser()!=null)?auth.getCurrentUser().getUid():"";
+                if (model.getUid().equals(uid)){
+                    holder.follow.setVisibility(View.GONE);
+                }else {
+                    holder.follow.setVisibility(View.VISIBLE);
+                    holder.setClickListener((view, userPosition) -> {
+                        Intent intent = new Intent(context,UserActivity.class);
+                        intent.putExtra(User.UID,modelArrayList.get(userPosition));
+                        context.startActivity(intent);
+                    });
                 }
-            });
-        }
-        final DatabaseReference mFollowingReference = FirebaseDatabase.getInstance().getReference().child("following");
-        mFollowingReference.child(uid).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChild(model.getUid())){
-                    holder.follow.setImageResource(R.drawable.ic_person_black_24dp);
-                }else{
-                    holder.follow.setImageResource(R.drawable.ic_person_add);
-                }
-            }
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                CollectionReference followingColRef = db.collection(DbConstants.DB_REF_FOLLOWING);
+                CollectionReference followerColRef = db.collection(DbConstants.DB_REF_FOLLOWER);
+                CollectionReference userCollectionRef = db.collection(User.DB_REF);
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        final DatabaseReference mFollowerReference = FirebaseDatabase.getInstance().getReference().child("follower");
-
-        holder.follow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mFollowingReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-
-                        if (dataSnapshot.child(uid).hasChild(model.getUid())){
+                followingColRef.document(uid).addSnapshotListener((documentSnapshot, e) -> {
+                    if (documentSnapshot.contains(model.getUid())){
+                        holder.follow.setImageResource(R.drawable.ic_person_black_24dp);
+                        holder.follow.setOnClickListener(v -> {
                             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
                             alertDialogBuilder.setMessage("Do you want to unfollow ?");
                             alertDialogBuilder.setPositiveButton("Yes",
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface arg0, int arg1) {
-                                            mFollowingReference.child(uid).child(model.getUid()).removeValue();
-                                            mFollowerReference.child(model.getUid()).child(uid).removeValue();
+                                    (arg0, arg1) -> {
+                                        ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(context);
+                                        WriteBatch batch = db.batch();
+                                        DocumentReference followingRef = followingColRef.document(uid);
+                                        batch.update(followingRef,model.getUid(), FieldValue.delete());
+
+                                        DocumentReference followerRef = followerColRef.document(model.getUid());
+                                        batch.update(followerRef, uid, FieldValue.delete());
+
+                                        batch.commit().addOnCompleteListener(batchTask -> {
                                             holder.follow.setImageResource(R.drawable.ic_person_add);
                                             FirebaseMessaging.getInstance().unsubscribeFromTopic(model.getUid());
-                                        }
+                                            Util.removeProcessDialogue(mProgredialogue);
+                                        });
                                     });
 
-                            alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
-
-                            AlertDialog alertDialog = alertDialogBuilder.create();
+                            alertDialogBuilder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
+                            alertDialogBuilder.create();
                             alertDialogBuilder.show();
-                        }else {
-                            DatabaseReference mReferenceUser  = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
-                            mReferenceUser.addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    User user = dataSnapshot.getValue(User.class);
-                                    mFollowingReference.child(uid).child(model.getUid()).setValue(model.getName());
-                                    mFollowerReference.child(model.getUid()).child(uid).setValue(user.getName());
-                                    holder.follow.setImageResource(R.drawable.ic_person_black_24dp);
-                                    FirebaseMessaging.getInstance().subscribeToTopic(model.getUid());
-                                    User.prepareNotificationFollow(model,user);
-                                }
+                        });
+                    }else {
+                        holder.follow.setImageResource(R.drawable.ic_person_add);
+                        holder.follow.setOnClickListener(v -> {
+                            ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(context);
+                            WriteBatch batch = db.batch();
+                            DocumentReference followingRef = followingColRef.document(uid);
+                            batch.update(followingRef,model.getUid(),true);
 
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
+                            DocumentReference followerRef = followerColRef.document(model.getUid());
+                            batch.update(followerRef, uid, true);
 
+                            userCollectionRef.document(uid).get().addOnCompleteListener(userTask -> {
+                                if (userTask.isSuccessful()){
+                                    final User user = userTask.getResult().toObject(User.class);
+                                    batch.commit().addOnCompleteListener(batchTask -> {
+                                        holder.follow.setImageResource(R.drawable.ic_person_black_24dp);
+                                        FirebaseMessaging.getInstance().subscribeToTopic(model.getUid());
+                                        User.prepareNotificationFollow(model,user);
+                                        Util.removeProcessDialogue(mProgredialogue);
+                                    });
                                 }
                             });
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
+                        });
                     }
                 });
             }
+
         });
+
 
 
 
@@ -172,27 +163,25 @@ public class UserAdapter extends RecyclerView.Adapter<UserViewHolder> {
 
 class UserViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-    public TextView user_name,user_followers,user_following;
-    public ImageView user_image;
-    public AppCompatImageView follow;
-    public View profile_divider;
-    public RelativeLayout listLayout;
+    TextView user_name,user_followers,user_following;
+    ImageView user_image;
+    AppCompatImageView follow;
+    View profile_divider;
+    RelativeLayout listLayout;
 
     private RecyclerViewOnClickListener.OnClickListener onClickListener;
 
 
 
-    public UserViewHolder(View convertView) {
+     UserViewHolder(View convertView) {
         super(convertView);
-        user_name = (TextView) convertView.findViewById(R.id.user_name);
-        user_followers = (TextView) convertView.findViewById(R.id.user_followers);
-        user_following = (TextView) convertView.findViewById(R.id.user_following);
-        user_image = (ImageView) convertView.findViewById(R.id.user_image);
-        follow = (AppCompatImageView) convertView.findViewById(R.id.follow);
+        user_name = convertView.findViewById(R.id.user_name);
+        user_followers = convertView.findViewById(R.id.user_followers);
+        user_following = convertView.findViewById(R.id.user_following);
+        user_image = convertView.findViewById(R.id.user_image);
+        follow = convertView.findViewById(R.id.follow);
         profile_divider = convertView.findViewById(R.id.profile_divider);
-        this.listLayout = (RelativeLayout) convertView.findViewById(R.id.complete_profile_layout);
-
-        // Implement click listener over views that we need
+        this.listLayout = convertView.findViewById(R.id.complete_profile_layout);
 
         this.listLayout.setOnClickListener(this);
 
@@ -207,8 +196,7 @@ class UserViewHolder extends RecyclerView.ViewHolder implements View.OnClickList
 
     }
 
-    // Setter for listener
-    public void setClickListener(
+     void setClickListener(
             RecyclerViewOnClickListener.OnClickListener onClickListener) {
         this.onClickListener = onClickListener;
     }

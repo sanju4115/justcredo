@@ -27,6 +27,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class BlogFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
@@ -51,7 +53,7 @@ public class BlogFragment extends Fragment {
     private RecyclerView reviewRecyclerView;
     private FeedListViewRecyclerAdapter adapter;
     private ArrayList<Review> reviewArrayList;
-    private ProgressBar progress;
+    private ProgressBar progress, progress_more;
     private LinearLayout not_found;
 
     private boolean loading=false,isLastPage=false;
@@ -59,8 +61,8 @@ public class BlogFragment extends Fragment {
     private Query next;
     private String addressCity="";
     private LinearLayoutManager mLayoutManager;
-    private RelativeLayout loading_more;
-
+    private RelativeLayout loading_more, load_more;
+    private HashSet<String> blogSet;
     public BlogFragment() {
     }
 
@@ -96,6 +98,13 @@ public class BlogFragment extends Fragment {
         not_found.setVisibility(View.GONE);
 
         loading_more = view.findViewById(R.id.loading_more);
+
+        load_more = view.findViewById(R.id.load_more);
+        TextView more_text = view.findViewById(R.id.more_text);
+        more_text.setText("Load latest posts...");
+
+        progress_more = view.findViewById(R.id.progress_more);
+
 
         reviewRecyclerView = (RecyclerView) view.findViewById(R.id.review_list);
         reviewRecyclerView.setHasFixedSize(true);
@@ -149,8 +158,29 @@ public class BlogFragment extends Fragment {
     public void onResume() {
         super.onResume();
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-        //new CustomToast().Show_Toast(getActivity(), "onResume() Called");
-        buildContent();
+    }
+
+    private void buildEventListener(Query first){
+
+        load_more.setOnClickListener(v -> {
+            progress_more.setVisibility(View.VISIBLE);
+            adapter.notifyDataSetChanged();
+            progress_more.setVisibility(View.GONE);
+            load_more.setVisibility(View.GONE);
+        });
+
+        first.addSnapshotListener((queryDocumentSnapshots, e) -> {
+            for (DocumentChange documentChange : queryDocumentSnapshots.getDocumentChanges()){
+                if (documentChange.getType() == DocumentChange.Type.ADDED) {
+                    Review model = documentChange.getDocument().toObject(Review.class);
+                    if (!blogSet.contains(model.getId())){
+                        reviewArrayList.add(0, model);
+                        load_more.setVisibility(View.VISIBLE);
+                        blogSet.add(model.getId());
+                    }
+                }
+            }
+        });
     }
 
     private void buildContent(){
@@ -170,13 +200,21 @@ public class BlogFragment extends Fragment {
                 .whereEqualTo(Review.ADDRESS_CITY, addressCity)
                 .orderBy(Review.TIMESTAMP, Query.Direction.DESCENDING).limit(LIMIT);
 
+        blogSet = new HashSet<>();
+
+
         first.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 reviewArrayList.clear();
                 for (DocumentSnapshot document : task.getResult()) {
                     Review model = document.toObject(Review.class);
-                    reviewArrayList.add(model);
+                    if (!blogSet.contains(model.getId())){
+                        reviewArrayList.add(model);
+                        blogSet.add(model.getId());
+                    }
                 }
+
+                buildEventListener(first);
 
                 if (task.getResult() != null) {
                     if (!(task.getResult().size() < 1)) {

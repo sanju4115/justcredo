@@ -1,6 +1,7 @@
 package com.credolabs.justcredo;
 
 import android.*;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -44,6 +45,9 @@ import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.internet.ConnectivityReceiver;
 import com.credolabs.justcredo.location.LocationResolver;
 import com.credolabs.justcredo.model.CategoryModel;
+import com.credolabs.justcredo.model.Comment;
+import com.credolabs.justcredo.model.DbConstants;
+import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.newplace.PlaceTypes;
@@ -82,22 +86,25 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.DoubleAdder;
 
 import static android.content.ContentValues.TAG;
 
 public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFragmentInteractionListener,CategoryFragment.OnFragmentInteractionListener,
         ProfileFragment.OnFragmentInteractionListener, CategoryGridFragment.OnFragmentInteractionListener,
-        ProfileHomeFragment.OnFragmentInteractionListener,ProfileBookmarksFragment.OnFragmentInteractionListener,
-        ProfileReviewFragment.OnFragmentInteractionListener,ProfileFollowerFragment.OnFragmentInteractionListener,
-        ProfileFollowingFragment.OnFragmentInteractionListener, ProfilePlaceFragment.OnFragmentInteractionListener,
         DashboardFragment.OnFragmentInteractionListener,BlogFragment.OnFragmentInteractionListener, NotificationsFragment.OnFragmentInteractionListener,
         GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -128,41 +135,58 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
         setContentView(R.layout.activity_home);
         final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                /*final ProgressDialog mProgressDialog = new ProgressDialog(HomeActivity.this);
-                mProgressDialog.setMessage("Loading Experiences");
-                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                mProgressDialog.setIndeterminate(true);
-                mProgressDialog.setCancelable(false);
-                mProgressDialog.show();
-                DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("users");
-                mReferenceCategories.keepSynced(true);
+        toolbar.setOnClickListener(view -> {
+            /*final ProgressDialog mProgressDialog = new ProgressDialog(HomeActivity.this);
+            mProgressDialog.setMessage("Loading Experiences");
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            mProgressDialog.setIndeterminate(true);
+            mProgressDialog.setCancelable(false);
+            mProgressDialog.show();
+            DatabaseReference mReferenceCategories = FirebaseDatabase.getInstance().getReference().child("users");
+            mReferenceCategories.keepSynced(true);
 
-                final CollectionReference firebaseFirestore = FirebaseFirestore.getInstance().collection("users");
-                mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot category: dataSnapshot.getChildren()) {
-                            HashMap<String,HashMap<String,String>> map = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            WriteBatch batch = db.batch();
 
-                            map.forEach((k,v)->{
-                                firebaseFirestore.document(k).set(v);
-                            });
+            final CollectionReference firebaseFirestore = FirebaseFirestore.getInstance().collection(Review.DB_BLOG_REF);
+            firebaseFirestore.get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()){
+                    QuerySnapshot querySnapshot = task.getResult();
+                    querySnapshot.forEach(documentSnapshot -> {
+                        Review review = documentSnapshot.toObject(Review.class);
+                        if (review.getImages()!=null) {
+                            ArrayList<String> images = new ArrayList<>(review.getImages().values());
+                            batch.update(documentSnapshot.getReference(), "images", FieldValue.delete());
+                            batch.update(documentSnapshot.getReference(), "imagesList", images);
                         }
+                    });
 
-                        mProgressDialog.dismiss();
+                    batch.commit().addOnCompleteListener(batchTask -> {
+                       mProgressDialog.dismiss();
+                    });
+                }
+            });*/
 
+            /*mReferenceCategories.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot category: dataSnapshot.getChildren()) {
+                        HashMap<String,HashMap<String,String>> map = (HashMap<String, HashMap<String, String>>) dataSnapshot.getValue();
+
+                        map.forEach((k,v)->{
+                            firebaseFirestore.document(k).set(v);
+                        });
                     }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+                    mProgressDialog.dismiss();
 
-                    }
-                });*/
-            }
+                }
 
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });*/
         });
         //Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
         bottomNavigation = findViewById(R.id.navigation);
@@ -388,6 +412,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
         Log.i(TAG, "Connection Suspended");
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void onConnected(Bundle arg0) {
         // Once connected with google api, get the location

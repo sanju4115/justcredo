@@ -11,25 +11,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.internet.ConnectionUtil;
-import com.credolabs.justcredo.model.User;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.credolabs.justcredo.model.DbConstants;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-
-import static com.facebook.FacebookSdk.getApplicationContext;
 
 
 public class ProfileFollowingFragment extends Fragment {
@@ -41,8 +31,6 @@ public class ProfileFollowingFragment extends Fragment {
     private String userName;
     private String uid;
 
-
-    private OnFragmentInteractionListener mListener;
 
     public ProfileFollowingFragment() {
     }
@@ -72,10 +60,10 @@ public class ProfileFollowingFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_profile_following, container, false);
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-        final ProgressBar progressBar = (ProgressBar)view.findViewById(R.id.progress);
-        final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
-        TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
-        TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
+        final ProgressBar progressBar = view.findViewById(R.id.progress);
+        final LinearLayout not_found =  view.findViewById(R.id.not_found);
+        TextView not_found_text1 =  view.findViewById(R.id.not_found_text1);
+        TextView not_found_text2 =  view.findViewById(R.id.not_found_text2);
 
 
 
@@ -87,7 +75,7 @@ public class ProfileFollowingFragment extends Fragment {
             not_found_text2.setText("Explore places and share your experience so that people can know you.");
         }
 
-        final RecyclerView searched_items = (RecyclerView) view.findViewById(R.id.follower_items);
+        final RecyclerView searched_items = view.findViewById(R.id.follower_items);
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         searched_items.setHasFixedSize(true);
         DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(searched_items.getContext(),
@@ -96,91 +84,30 @@ public class ProfileFollowingFragment extends Fragment {
         searched_items.setLayoutManager(mLayoutManager);
         searched_items.setVisibility(View.GONE);
 
-        final ArrayList<User> usersList = new ArrayList<>();
+        ArrayList<String> usersList = new ArrayList<>();
         final UserAdapter userAdapter = new UserAdapter(getActivity(), usersList);
         searched_items.setAdapter(userAdapter);
         not_found.setVisibility(View.GONE);
-        DatabaseReference followerReference = FirebaseDatabase.getInstance().getReference().child("following");
 
-        followerReference.child(uid).addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String key = dataSnapshot.getKey();
-                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users");
-                databaseReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
-                        if (!usersList.contains(user)) {
-                            usersList.add(user);
-                            if (usersList.size() > 0 ) {
-                                searched_items.setVisibility(View.VISIBLE);
-                                not_found.setVisibility(View.GONE);
-                                userAdapter.notifyDataSetChanged();
-                            }
-                        }
-                        progressBar.setVisibility(View.GONE);
-                    }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        progressBar.setVisibility(View.GONE);
-
-                    }
-                });
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                progressBar.setVisibility(View.GONE);
-
+        FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_FOLLOWING).document(uid).addSnapshotListener((documentSnapshot, e) -> {
+            progressBar.setVisibility(View.GONE);
+            usersList.clear();
+            usersList.addAll(new ArrayList<>(documentSnapshot.getData().keySet()));
+            if (usersList.size() > 0 ) {
+                searched_items.setVisibility(View.VISIBLE);
+                not_found.setVisibility(View.GONE);
+                userAdapter.notifyDataSetChanged();
+            }else {
+                not_found.setVisibility(View.VISIBLE);
             }
         });
-
         return view;
-    }
-
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
-    }
-
-
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
     }
 
     @Override

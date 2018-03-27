@@ -2,7 +2,6 @@ package com.credolabs.justcredo;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -13,6 +12,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -20,13 +20,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.android.volley.toolbox.ImageLoader;
 import com.bumptech.glide.Glide;
+import com.credolabs.justcredo.adapters.CommentAdapter;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.Comment;
+import com.credolabs.justcredo.model.DbConstants;
 import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
@@ -36,24 +38,30 @@ import com.credolabs.justcredo.utility.CustomRatingBar;
 import com.credolabs.justcredo.school.SchoolDetailActivity;
 import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.Util;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 
 public class ReviewDetailsActivity extends AppCompatActivity {
 
-    private String id,schoolName,schoolAddress,schoolCoverImage,reviewKey;
-    private ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
-    private DatabaseReference mDatabaseReference,mLikeReference,mCommentReference,
-            mFollowerReference,mFollowingReference,mUserReference,mBookmarkReference;
+    private String reviewKey;
     private FirebaseAuth mAuth;
     private TextView like;
     private String uid;
@@ -67,11 +75,28 @@ public class ReviewDetailsActivity extends AppCompatActivity {
     private User reviewUser;
     private School school;
     private FirebaseUser firebaseUser;
+
+    private CollectionReference likeCollectionReference, reviewCollectionReference, commentCollectionReference,
+                                followingCollectionReference, followerCollectionReference,
+                                userCollectionRef, bookmarkCollectionRef;
+
+    private ProgressBar progress;
+
+    private boolean loading=false,isLastPage=false;
+    private static final int LIMIT = 10;
+    private Query next;
+    private RelativeLayout load_more;
+    private ArrayList<Comment> commentsList;
+
+    private CommentAdapter adapter;
+    private HashSet<String> commentSet;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_review_details);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -82,389 +107,325 @@ public class ReviewDetailsActivity extends AppCompatActivity {
         myIntent = new Intent(this, FullZoomImageViewActivity.class);
 
         review = (Review) getIntent().getSerializableExtra("review");
-        //reviewKey = getIntent().getStringExtra("review_key");
         reviewKey = review.getId();
-        if (review.getReview_type()!=null && review.getReview_type().equals("blogs")){
-            TextView name_review = (TextView) findViewById(R.id.name_review);
+        if (review.getReview_type()!=null && review.getReview_type().equals(Review.DB_BLOG_REF)){
+            TextView name_review = findViewById(R.id.name_review);
             name_review.setText("Blog Details");
         }
 
-        final TextView remove_review = (TextView) findViewById(R.id.remove_review);
-        reviewRecyclerView = (RecyclerView) findViewById(R.id.comments);
-        //reviewRecyclerView.setHasFixedSize(true);
+        final TextView remove_review = findViewById(R.id.remove_review);
+        progress = findViewById(R.id.progress);
+        load_more= findViewById(R.id.load_more);
+
+        reviewRecyclerView = findViewById(R.id.comments);
         reviewRecyclerView.setNestedScrollingEnabled(false);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager( this );
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation( LinearLayoutManager.VERTICAL );
+        reviewRecyclerView.setHasFixedSize(true);
         linearLayoutManager.setAutoMeasureEnabled( true );
         reviewRecyclerView.setLayoutManager(linearLayoutManager);
-        //reviewRecyclerView.requestFocus();
 
-        final TextView school_name = (TextView) findViewById(R.id.school_name);
-        final TextView school_address = (TextView) findViewById(R.id.school_address);
-        //school_address.setText(schoolAddress);
-        final ImageView school_image = (ImageView) findViewById(R.id.school_image);
-        final CardView header = (CardView)findViewById(R.id.header);
-        //Util.loadImageWithGlide(Glide.with(getApplicationContext()),schoolCoverImage,school_image);
-        final DatabaseReference mObjectReference = FirebaseDatabase.getInstance().getReference().child(review.getType()).child(review.getSchoolID());
-        mObjectReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                try {
-                    if (review.getType().equals("schools")){
-                        school = (School) dataSnapshot.getValue(Class.forName("com.credolabs.justcredo.model.School"));
-                        school_name.setText(school.getName());
-                        zoomObject.setLogo(Util.getFirstImage(school.getImages()));
-                        zoomObject.setName(school.getName());
-                        zoomObject.setAddress(Util.getAddress(school.getAddress()));
-                        school_address.setText(Util.getAddress(school.getAddress()));
-                        Util.loadImageWithGlide(Glide.with(ReviewDetailsActivity.this),Util.getFirstImage(school.getImages()),school_image);
-                        setBookmark(school.getId());
-                        schoolName = school.getName();
-                        id = school.getId();
-                        schoolAddress = Util.getAddress(school.getAddress());
-                        header.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Intent intent = new Intent(ReviewDetailsActivity.this,SchoolDetailActivity.class);
-                                intent.putExtra("SchoolDetail",school.getId());
-                                ReviewDetailsActivity.this.startActivity(intent);
-                            }
-                        });
+        final TextView school_name = findViewById(R.id.school_name);
+        final TextView school_address = findViewById(R.id.school_address);
+        final ImageView school_image = findViewById(R.id.school_image);
+        final CardView header = findViewById(R.id.header);
+        final CollectionReference schoolRef = FirebaseFirestore.getInstance().collection(review.getType());
+        //final ImageView current_user_image = findViewById(R.id.current_user_image);
+        //final TextView current_user_name = findViewById(R.id.current_user_name);
 
-                    }
+        final TextView like_count = findViewById(R.id.like_count);
+        final TextView comment_count = findViewById(R.id.comment_count);
 
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
+        final RelativeLayout complete_profile_layout=findViewById(R.id.complete_profile_layout);
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+        mAuth = FirebaseAuth.getInstance();
+        firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser != null) {
+            uid = firebaseUser.getUid();
+        }
+
+        like = findViewById(R.id.like);
+        follow = findViewById(R.id.follow);
+        bookmark = findViewById(R.id.bookmark);
+
+
+        final EditText comment_text = findViewById(R.id.comment_text);
+
+        schoolRef.document(review.getSchoolID()).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()){
+                school = task.getResult().toObject(School.class);
+                school_name.setText(school.getName());
+                zoomObject.setLogo(Util.getFirstImage(school.getImages()));
+                zoomObject.setName(school.getName());
+                zoomObject.setAddress(Util.getAddress(school.getAddress()));
+                school_address.setText(Util.getAddress(school.getAddress()));
+                Util.loadImageWithGlide(Glide.with(ReviewDetailsActivity.this),Util.getFirstImage(school.getImages()),school_image);
+                setBookmark(school.getId());
+
+                header.setOnClickListener(v -> {
+                    Intent intent = new Intent(ReviewDetailsActivity.this,SchoolDetailActivity.class);
+                    intent.putExtra("SchoolDetail",school.getId());
+                    ReviewDetailsActivity.this.startActivity(intent);
+                });
+
+                bookmark.setOnClickListener(v -> School.onBookmark(school,firebaseUser,ReviewDetailsActivity.this,bookmark));
+
 
             }
         });
 
 
-        final ImageView current_user_image = (ImageView) findViewById(R.id.current_user_image);
-        final TextView current_user_name = (TextView) findViewById(R.id.current_user_name);
 
-        final TextView like_count = (TextView) findViewById(R.id.like_count);
-        final TextView comment_count = (TextView) findViewById(R.id.comment_count);
-
-        // in case blogs
-        if (review.getReview_type()!=null && review.getReview_type().equals("blogs")){
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("blogs/school_blogs");
-            mLikeReference = FirebaseDatabase.getInstance().getReference().child("blogs/likes");
-            mCommentReference = FirebaseDatabase.getInstance().getReference().child("blogs/comments").child(reviewKey);
+        // in case blog
+        if (review.getReview_type()!=null && review.getReview_type().equals(Review.DB_BLOG_REF)){
+            commentCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_BLOG_Comment);
+            likeCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_BLOG_LIKE);
+            reviewCollectionReference = FirebaseFirestore.getInstance().collection(Review.DB_BLOG_REF);
         }else { //for reviews
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("reviews");
-            mLikeReference = FirebaseDatabase.getInstance().getReference().child("likes");
-            mCommentReference = FirebaseDatabase.getInstance().getReference().child("comments").child(reviewKey);
+            commentCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_REVIEW_Comment);
+            likeCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_REVIEW_LIKE);
+            reviewCollectionReference = FirebaseFirestore.getInstance().collection(Review.REVIEW_DATABASE);
         }
 
-        mFollowerReference = FirebaseDatabase.getInstance().getReference().child("follower");
-        mFollowingReference = FirebaseDatabase.getInstance().getReference().child("following");
-        mUserReference = FirebaseDatabase.getInstance().getReference().child("users");
-        mBookmarkReference = FirebaseDatabase.getInstance().getReference().child("bookmarks");
-        mDatabaseReference.keepSynced(true);
-        mLikeReference.keepSynced(true);
-        mFollowingReference.keepSynced(true);
-        mFollowerReference.keepSynced(true);
-        mUserReference.keepSynced(true);
-        mBookmarkReference.keepSynced(true);
+        followingCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_FOLLOWING);
+        followerCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_FOLLOWER);
+        userCollectionRef = FirebaseFirestore.getInstance().collection(User.DB_REF);
+        bookmarkCollectionRef = FirebaseFirestore.getInstance().collection(School.BOOKMARKS);
 
-        mAuth = FirebaseAuth.getInstance();
-        firebaseUser = mAuth.getCurrentUser();
-        uid = firebaseUser.getUid();
-        mLikeReference.keepSynced(true);
-        mDatabaseReference.keepSynced(true);
-        mCommentReference.keepSynced(true);
-
-
-        //reading for blogs
-        final RelativeLayout complete_profile_layout= (RelativeLayout)findViewById(R.id.complete_profile_layout);
-        if (review.getReview_type()!=null && review.getReview_type().equals("blogs")){
+        //reading for blog
+        if (review.getReview_type()!=null && review.getReview_type().equals(Review.DB_BLOG_REF)){
             complete_profile_layout.setVisibility(View.GONE);
-            TextView blog_heading_txt = (TextView) findViewById(R.id.blog_heading_txt);
+            TextView blog_heading_txt = findViewById(R.id.blog_heading_txt);
             blog_heading_txt.setVisibility(View.VISIBLE);
             blog_heading_txt.setText(review.getHeading());
         }
 
 
 
-        remove_review.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ReviewDetailsActivity.this);
-                alertDialogBuilder.setMessage("Do you want to remove the post ?");
-                alertDialogBuilder.setPositiveButton("Yes",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface arg0, int arg1) {
-                                mDatabaseReference.child(reviewKey).removeValue();
-                            }
+        remove_review.setOnClickListener(v -> {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ReviewDetailsActivity.this);
+            alertDialogBuilder.setMessage("Do you want to remove the post ?");
+            alertDialogBuilder.setPositiveButton("Yes",
+                    (arg0, arg1) -> {
+                        ProgressDialog progressDialog = Util.prepareProcessingDialogue(this);
+                        reviewCollectionReference.document(reviewKey).delete().addOnCompleteListener(task -> {
+                            Util.removeProcessDialogue(progressDialog);
+                            finish();
                         });
-
-                alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-
-                AlertDialog alertDialog = alertDialogBuilder.create();
-                alertDialogBuilder.show();
-            }
-        });
-        mCommentReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                comment_count.setText(String.valueOf(dataSnapshot.getChildrenCount()));
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        mLikeReference.child(reviewKey).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                like_count.setText(String.valueOf(dataSnapshot.getChildrenCount()));
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        final DatabaseReference mReferenceUser  = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
-        mReferenceUser.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                user = dataSnapshot.getValue(User.class);
-                if (user!=null){
-                    if (user.getProfilePic()!=null)
-                    //Util.loadImageVolley(user.getProfilePic(),current_user_image);
-                    Util.loadCircularImageWithGlide(getApplicationContext(),user.getProfilePic(),current_user_image);
-                    if (user.getName()!=null)
-                    current_user_name.setText(user.getName());
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-        mReferenceUser.keepSynced(true);
-
-
-        like = (TextView) findViewById(R.id.like);
-        follow = (AppCompatImageView)findViewById(R.id.follow);
-        bookmark = (AppCompatImageView) findViewById(R.id.bookmark);
-
-
-        final EditText comment_text = (EditText) findViewById(R.id.comment_text);
-
-        DatabaseReference currentReview = mDatabaseReference.child(reviewKey);
-        currentReview.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                final Review model = dataSnapshot.getValue(Review.class);
-                if (model.getReview()!=null){
-                    setReviewText(model.getReview());
-                }else if (model.getDetail()!=null){
-                    setReviewText(model.getDetail());
-                }
-                setTime(model.getTime());
-                if (model.getImages()!= null ) {
-                    zoomObject.setImages(new ArrayList<String>(model.getImages().values()));
-                    setImages(new ArrayList<String>(model.getImages().values()));
-                }
-
-                if (model.getUserID()!=null && model.getUserID().equals(uid)){
-                    remove_review.setVisibility(View.VISIBLE);
-                }
-
-                if (!uid.equals(model.getUserID())){
-                    complete_profile_layout.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent = new Intent(ReviewDetailsActivity.this,UserActivity.class);
-                            intent.putExtra("uid",model.getUserID());
-                            startActivity(intent);
-                        }
                     });
+
+            alertDialogBuilder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
+
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialogBuilder.show();
+        });
+
+
+        commentCollectionReference.whereEqualTo(Comment.DB_REVIEW_ID, reviewKey).
+                addSnapshotListener((documentSnapshot, e) -> comment_count.setText(String.valueOf(documentSnapshot.getDocuments().size())));
+
+        likeCollectionReference.document(reviewKey).addSnapshotListener((documentSnapshot, e) -> {
+            if (documentSnapshot.exists()){
+                like_count.setText(String.valueOf(documentSnapshot.getData().size()));
+            }else {
+                like_count.setText("0");
+            }
+        });
+
+        ProgressBar progress_review = findViewById(R.id.progress_review);
+        progress_review.setVisibility(View.VISIBLE);
+        userCollectionRef.document(uid).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()){
+                user = task.getResult().toObject(User.class);
+                if (user.getProfilePic()!=null)
+                    //Util.loadCircularImageWithGlide(getApplicationContext(),user.getProfilePic(),current_user_image);
+                if (user.getName()!=null) {
+                    //current_user_name.setText(user.getName());
                 }
+                reviewCollectionReference.document(reviewKey).get().addOnCompleteListener(reviewTask -> {
+                    progress_review.setVisibility(View.GONE);
+                    if (reviewTask.isSuccessful() && reviewTask.getResult().exists()){
+                        final Review model = reviewTask.getResult().toObject(Review.class);
+                        if (model.getReview()!=null){
+                            setReviewText(model.getReview());
+                        }else if (model.getDetail()!=null){
+                            setReviewText(model.getDetail());
+                        }
+                        setTime(model.getTime());
+                        if (model.getImagesList()!= null ) {
+                            zoomObject.setImages(model.getImagesList());
+                            setImages(model.getImagesList());
+                        }
 
-                if (review.getReview_type()!=null && review.getReview_type().equals("blogs")) {
-                }else {
-                    setRatingLayout(model.getRating());
-                    setFollow(model.getUserID());
-                    if (model.getUserID()!=null){
-                        setUSerLayout(getApplicationContext(),model.getUserID());
-                    }
-                }
-                //setBookmark(model.getSchoolID());
-                setLikeButton(reviewKey,ReviewDetailsActivity.this);
+                        if (model.getUserID()!=null && model.getUserID().equals(uid)){
+                            remove_review.setVisibility(View.VISIBLE);
+                        }
 
-                bookmark.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        School.onBookmark(school,firebaseUser,ReviewDetailsActivity.this,bookmark);
-                    }
-                });
+                        if (!uid.equals(model.getUserID())){
+                            complete_profile_layout.setOnClickListener(v -> {
+                                Intent intent = new Intent(ReviewDetailsActivity.this,UserActivity.class);
+                                intent.putExtra("uid",model.getUserID());
+                                startActivity(intent);
+                            });
+                        }
 
-                follow.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mFollowingReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
+                        setLikeButton(reviewKey,ReviewDetailsActivity.this);
 
-                                if (dataSnapshot.child(uid).hasChild(model.getUserID())){
-                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ReviewDetailsActivity.this);
-                                    alertDialogBuilder.setMessage("Do you want to unfollow ?");
-                                    alertDialogBuilder.setPositiveButton("Yes",
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface arg0, int arg1) {
-                                                    mFollowingReference.child(uid).child(model.getUserID()).removeValue();
-                                                    mFollowerReference.child(model.getUserID()).child(uid).removeValue();
-                                                    follow.setImageResource(R.drawable.ic_person_add);
-                                                    FirebaseMessaging.getInstance().unsubscribeFromTopic(model.getUserID());
-                                                }
+
+                        follow.setOnClickListener(view -> followerCollectionReference.document(uid).get().addOnCompleteListener(followTask -> {
+                            if (followTask.isSuccessful() && followTask.getResult().exists() && followTask.getResult().contains(model.getUserID())){
+                                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                                alertDialogBuilder.setMessage("Do you want to unfollow ?");
+                                alertDialogBuilder.setPositiveButton("Yes",
+                                        (arg0, arg1) -> {
+                                            ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(this);
+                                            FirebaseFirestore db = FirebaseFirestore.getInstance();
+                                            WriteBatch batch = db.batch();
+                                            DocumentReference followingRef = followingCollectionReference.document(uid);
+                                            batch.update(followingRef,model.getUserID(), FieldValue.delete());
+
+                                            DocumentReference followerRef = followerCollectionReference.document(model.getUserID());
+                                            batch.update(followerRef, uid, FieldValue.delete());
+
+                                            batch.commit().addOnCompleteListener(batchTask -> {
+                                                follow.setImageResource(R.drawable.ic_person_add);
+                                                FirebaseMessaging.getInstance().unsubscribeFromTopic(model.getUserID());
+                                                Util.removeProcessDialogue(mProgredialogue);
                                             });
+                                        });
 
-                                    alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                        }
-                                    });
+                                alertDialogBuilder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
-                                    AlertDialog alertDialog = alertDialogBuilder.create();
-                                    alertDialogBuilder.show();
-                                }else {
+                                AlertDialog alertDialog = alertDialogBuilder.create();
+                                alertDialogBuilder.show();
+                            }else {
+                                ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(this);
+                                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                                WriteBatch batch = db.batch();
+                                DocumentReference followingRef = followingCollectionReference.document(uid);
+                                batch.update(followingRef,model.getUserID(),true);
 
-                                    mUserReference.child(model.getUserID()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            User reviewUser = dataSnapshot.getValue(User.class);
-                                            mFollowingReference.child(uid).child(model.getUserID()).setValue(reviewUser.getName());
-                                            mFollowerReference.child(model.getUserID()).child(uid).setValue(user.getName());
+                                DocumentReference followerRef = followerCollectionReference.document(model.getUserID());
+                                batch.update(followerRef, uid, true);
+
+                                userCollectionRef.document(model.getUserID()).get().addOnCompleteListener(userTask -> {
+                                    if (userTask.isSuccessful()){
+                                        final User reviewUser = userTask.getResult().toObject(User.class);
+                                        batch.commit().addOnCompleteListener(batchTask -> {
                                             follow.setImageResource(R.drawable.ic_person_black_24dp);
                                             FirebaseMessaging.getInstance().subscribeToTopic(reviewUser.getUid());
                                             User.prepareNotificationFollow(reviewUser,user);
-                                        }
+                                            Util.removeProcessDialogue(mProgredialogue);
+                                        });
+                                    }
+                                });
+                            }
+                        }));
 
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {
 
-                                        }
+                        like.setOnClickListener(v -> likeCollectionReference.document(reviewKey).get().addOnCompleteListener(likeTask -> {
+                            if (likeTask.isSuccessful()){
+                                if (likeTask.getResult().exists() && likeTask.getResult().contains(uid)){
+                                    Map<String, Object> updates = new HashMap<>();
+                                    updates.put(uid, FieldValue.delete());
+                                    likeTask.getResult().getReference().update(updates).addOnCompleteListener(task1 -> {
+                                        like.setTextColor(ContextCompat.getColor(this, R.color.colorSecondaryText));
+                                        like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up,0,0,0);
                                     });
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-                    }
-                });
-
-                like.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mLikeReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                if (dataSnapshot.child(reviewKey).hasChild(uid)){
-                                    mLikeReference.child(reviewKey).child(uid).removeValue();
-                                    like.setTextColor(ContextCompat.getColor(ReviewDetailsActivity.this, R.color.colorSecondaryText));
-                                    like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up,0,0,0);
                                 }else {
-                                    mLikeReference.child(reviewKey).child(uid).setValue(user.getName());
-                                    like.setTextColor(ContextCompat.getColor(ReviewDetailsActivity.this, R.color.colorPrimary));
+                                    Map<String, Object> updates = new HashMap<>();
+                                    updates.put(uid,user.getName());
+                                    likeCollectionReference.document(reviewKey)
+                                            .set(updates, SetOptions.merge());
+                                    like.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
                                     like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary,0,0,0);
                                     Review.prepareNotificationLike(model,user);
-
                                 }
+                            }else {
+                                Map<String, Object> updates = new HashMap<>();
+                                updates.put(uid,user.getName());
+                                likeCollectionReference.document(reviewKey).set(updates);
+                                like.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+                                like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary,0,0,0);
+                                Review.prepareNotificationLike(model,user);
                             }
+                        }));
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
+
+                        FirebaseFirestore.getInstance().collection(User.DB_REF).document(model.getUserID()).get().addOnCompleteListener(userTask -> {
+                            if (userTask.isSuccessful() && userTask.getResult().exists()){
+                                reviewUser = userTask.getResult().toObject(User.class);
+                                if (review.getReview_type()!=null && review.getReview_type().equals(Review.DB_BLOG_REF)) {
+                                }else {
+                                    setRatingLayout(model.getRating());
+                                    setFollow(model.getUserID());
+                                    if (model.getUserID()!=null){
+                                        setUSerLayout(getApplicationContext(), reviewUser);
+                                    }
+                                }
+
+                                Button post_comment = findViewById(R.id.post_comment);
+                                post_comment.setOnClickListener(v -> {
+                                    if (!comment_text.getText().toString().trim().equals("")) {
+                                        mProgressDialog.setMessage("Posting Comment");
+                                        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                                        mProgressDialog.setIndeterminate(true);
+                                        mProgressDialog.setCancelable(false);
+                                        mProgressDialog.show();
+                                        String commentText = comment_text.getText().toString().trim();
+                                        DocumentReference documentReference = commentCollectionReference.document();
+                                        Comment comment = new Comment(documentReference.getId(),commentText,uid,reviewKey);
+                                        documentReference.set(comment).addOnCompleteListener(commentTaks -> {
+                                            if (commentTaks.isSuccessful()) {
+                                                comment_text.setText("");
+                                                FirebaseMessaging.getInstance().subscribeToTopic(reviewKey);
+                                                Review.prepareNotificationComment(review, user, reviewUser, commentText);
+                                                mProgressDialog.dismiss();
+                                            }
+                                        });
+                                    }else {
+                                        new CustomToast().Show_Toast(ReviewDetailsActivity.this,
+                                                "Please write something to comment!");
+                                    }
+
+                                });
 
                             }
                         });
+
+
                     }
                 });
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
             }
         });
 
 
-        Button post_comment = (Button) findViewById(R.id.post_comment);
-            post_comment.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (!comment_text.getText().toString().trim().equals("")) {
-                        mProgressDialog.setMessage("Posting Comment");
-                        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                        mProgressDialog.setIndeterminate(true);
-                        mProgressDialog.setCancelable(false);
-                        mProgressDialog.show();
-                        String commentText = comment_text.getText().toString().trim();
-                        DatabaseReference newComment = mCommentReference.push();
-                        newComment.child("comment").setValue(commentText);
-                        newComment.child("uid").setValue(uid);
-                        comment_text.setText(" ");
-                        FirebaseMessaging.getInstance().subscribeToTopic(reviewKey);
-                        Review.prepareNotificationComment(review, user, reviewUser, commentText);
-                        mProgressDialog.dismiss();
-                    }else {
-                     new CustomToast().Show_Toast(ReviewDetailsActivity.this,
-                            "Please write something to comment!");
-                    }
-
-                }
-            });
-
-        TextView comment = (TextView) findViewById(R.id.comment);
-        comment.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                comment_text.requestFocus();
-                final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        TextView comment = findViewById(R.id.comment);
+        comment.setOnClickListener(v -> {
+            comment_text.requestFocus();
+            final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
                 imm.showSoftInput(comment_text, InputMethodManager.SHOW_IMPLICIT);
             }
         });
 
+
+        commentsList = new ArrayList<>();
+        commentSet = new HashSet<>();
+
+        adapter = new CommentAdapter(this, commentsList);
+        reviewRecyclerView.setAdapter(adapter);
+
+        buildContent();
+
     }
 
     public void setBookmark(final String schoolID){
-        mBookmarkReference.child(uid).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChild(schoolID)){
-                    bookmark.setImageResource(R.drawable.ic_bookmark_green_24dp);
-                }else{
-                    bookmark.setImageResource(R.drawable.ic_bookmark_secondary);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+        bookmarkCollectionRef.document(uid).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists() && task.getResult().contains(schoolID)){
+                bookmark.setImageResource(R.drawable.ic_bookmark_green_24dp);
+            }else{
+                bookmark.setImageResource(R.drawable.ic_bookmark_secondary);
             }
         });
     }
@@ -475,19 +436,11 @@ public class ReviewDetailsActivity extends AppCompatActivity {
         }else {
             follow.setVisibility(View.VISIBLE);
             if (mAuth.getCurrentUser()!=null) {
-                mFollowingReference.child(mAuth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.hasChild(reviewUser)) {
-                            follow.setImageResource(R.drawable.ic_person_black_24dp);
-                        } else {
-                            follow.setImageResource(R.drawable.ic_person_add);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
+                followingCollectionReference.document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().exists() && task.getResult().contains(reviewUser)) {
+                        follow.setImageResource(R.drawable.ic_person_black_24dp);
+                    } else {
+                        follow.setImageResource(R.drawable.ic_person_add);
                     }
                 });
             }
@@ -495,92 +448,65 @@ public class ReviewDetailsActivity extends AppCompatActivity {
     }
 
     public void setLikeButton(final String reviewKey, final Context context){
-        mLikeReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (mAuth.getCurrentUser()!=null) {
-                    if (dataSnapshot.child(reviewKey).hasChild(mAuth.getCurrentUser().getUid())) {
-                        like.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
-                        like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary, 0, 0, 0);
-                    }
+        likeCollectionReference.document(reviewKey).addSnapshotListener((documentSnapshot, e) -> {
+            if (mAuth.getCurrentUser()!=null) {
+                if (documentSnapshot.exists() && documentSnapshot.getData().containsKey(mAuth.getCurrentUser().getUid())) {
+                    like.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
+                    like.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_thumb_up_primary, 0, 0, 0);
                 }
             }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
         });
-
     }
 
-    public void setUSerLayout(final Context applicationContext, String UID){
-        //final User[] user = new User[1];
-        DatabaseReference mReferenceUser  = FirebaseDatabase.getInstance().getReference().child("users").child(UID);
-        mReferenceUser.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                reviewUser = dataSnapshot.getValue(User.class);
-                if (reviewUser !=null) {
-                    ImageView user_image = (ImageView) findViewById(R.id.user_image);
-                    if (reviewUser.getName()!=null){
-                        zoomObject.setName(reviewUser.getName());
-                    }
-                    if (reviewUser.getProfilePic()!=null){
-                        zoomObject.setLogo(reviewUser.getProfilePic());
-                    }
-                    if (reviewUser.getAddress()!=null){
-                        zoomObject.setAddress(Util.getAddress(reviewUser.getAddress()));
-                    }
-                    Util.loadCircularImageWithGlide(applicationContext,reviewUser.getProfilePic(),user_image);
-                    TextView user_name = (TextView) findViewById(R.id.user_name);
-                    user_name.setText(reviewUser.getName());
-                    final TextView user_followers = (TextView) findViewById(R.id.user_followers);
-                    final TextView user_following = (TextView) findViewById(R.id.user_following);
-                    reviewUser.buildUser( user_followers,user_following,null);
-                }
+    public void setUSerLayout(final Context applicationContext, User reviewUser){
+            ImageView user_image = findViewById(R.id.user_image);
+            if (reviewUser.getName()!=null){
+                zoomObject.setName(reviewUser.getName());
             }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+            if (reviewUser.getProfilePic()!=null){
+                zoomObject.setLogo(reviewUser.getProfilePic());
             }
-        });
+            if (reviewUser.getAddress()!=null){
+                zoomObject.setAddress(Util.getAddress(reviewUser.getAddress()));
+            }
+            Util.loadCircularImageWithGlide(applicationContext,reviewUser.getProfilePic(),user_image);
+            TextView user_name = findViewById(R.id.user_name);
+            user_name.setText(reviewUser.getName());
+            final TextView user_followers = findViewById(R.id.user_followers);
+            final TextView user_following = findViewById(R.id.user_following);
+            reviewUser.buildUser( user_followers,user_following,null);
 
     }
 
     public void setRatingLayout(int rating){
-        TextView user_rating = (TextView) findViewById(R.id.user_rating);
+        TextView user_rating = findViewById(R.id.user_rating);
         user_rating.setVisibility(View.VISIBLE);
         user_rating.setText(String.valueOf(rating));
-        CustomRatingBar bar = (CustomRatingBar) findViewById(R.id.rating_bar);
+        CustomRatingBar bar = findViewById(R.id.rating_bar);
         bar.setVisibility(View.VISIBLE);
         bar.setScore(rating);
     }
 
 
     public void setReviewText(String reviewText){
-        TextView review_text = (TextView) findViewById(R.id.review_text);
+        TextView review_text = findViewById(R.id.review_text);
         review_text.setText(reviewText);
     }
 
     public void setTime(String time){
-        TextView time_text = (TextView) findViewById(R.id.time);
+        TextView time_text = findViewById(R.id.time);
         time_text.setText(time);
     }
 
     public void setImages(ArrayList<String> images){
-        ImageView image1 = (ImageView) findViewById(R.id.review_image1);
-        ImageView image2 = (ImageView) findViewById(R.id.review_image2);
-        ImageView image3 = (ImageView) findViewById(R.id.review_image3);
-        ImageView image4 = (ImageView) findViewById(R.id.review_image4);
-        LinearLayout feeSection = (LinearLayout) findViewById(R.id.images_layout);
-        feeSection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myIntent.putExtra("zoom_object",zoomObject);
-                ReviewDetailsActivity.this.startActivity(myIntent);
-            }
+        ImageView image1 = findViewById(R.id.review_image1);
+        ImageView image2 = findViewById(R.id.review_image2);
+        ImageView image3 = findViewById(R.id.review_image3);
+        ImageView image4 = findViewById(R.id.review_image4);
+        LinearLayout feeSection = findViewById(R.id.images_layout);
+        feeSection.setOnClickListener(v -> {
+            myIntent.putExtra("zoom_object",zoomObject);
+            ReviewDetailsActivity.this.startActivity(myIntent);
         });
         if (images.size()==0){
 
@@ -619,7 +545,7 @@ public class ReviewDetailsActivity extends AppCompatActivity {
             Util.loadImageWithGlide(Glide.with(ReviewDetailsActivity.this),images.get(2),image3);
             image4.setVisibility(View.VISIBLE);
             Util.loadImageWithGlide(Glide.with(ReviewDetailsActivity.this),images.get(3),image4);
-            TextView noOfImages = (TextView)findViewById(R.id.no_of_images);
+            TextView noOfImages = findViewById(R.id.no_of_images);
             noOfImages.setVisibility(View.VISIBLE);
             noOfImages.setText("+"+(images.size()-4)+" Photos");
         }
@@ -637,70 +563,108 @@ public class ReviewDetailsActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        FirebaseRecyclerAdapter<Comment,ReviewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Comment, ReviewHolder>(
-                Comment.class,
-                R.layout.comment_list_entry,
-                ReviewHolder.class,
-                mCommentReference
-        ) {
-            @Override
-            protected void populateViewHolder(final ReviewHolder viewHolder, Comment model, final int position) {
-                final String commentKey = getRef(position).getKey();
-                viewHolder.setCommentLayout(getApplicationContext(),model);
-            }
-        };
 
-        reviewRecyclerView.setAdapter(firebaseRecyclerAdapter);
     }
 
 
-    private static class ReviewHolder extends RecyclerView.ViewHolder{
-        View mView;
-        FirebaseAuth mAuth;
-        ImageView comment_user_image;
-        TextView comment_user_name,comment_user_text;
+    private void buildContent(){
+        Query first = commentCollectionReference
+                .whereEqualTo(Comment.DB_REVIEW_ID, reviewKey)
+                .orderBy(Comment.DB_TIMESTAMP, Query.Direction.DESCENDING).limit(LIMIT);
 
-        public ReviewHolder(View itemView) {
-            super(itemView);
-            mView = itemView;
-            mAuth = FirebaseAuth.getInstance();
-            comment_user_image = (ImageView) mView.findViewById(R.id.comment_user_image);
-            comment_user_name = (TextView) mView.findViewById(R.id.comment_user_name);
-            comment_user_text = (TextView) mView.findViewById(R.id.comment_user_text);
-
-        }
-
-        public void setCommentLayout(final Context applicationContext, final Comment model) {
-            if (model.getUid()!=null && model.getComment()!=null) {
-                DatabaseReference mReferenceUser = FirebaseDatabase.getInstance().getReference().child("users").child(model.getUid());
-                mReferenceUser.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
-                        if (user.getProfilePic() != null){
-                            Util.loadCircularImageWithGlide(applicationContext,user.getProfilePic(),comment_user_image);
-                        }
-                        if (user.getName() != null)
-                            comment_user_name.setText(user.getName());
-                        if (model.getComment() != null)
-                            comment_user_text.setText(model.getComment());
+        first.addSnapshotListener((queryDocumentSnapshots, e) -> {
+            progress.setVisibility(View.VISIBLE);
+            ArrayList<Comment> newLoaded = new ArrayList<>();
+            for (DocumentChange documentChange : queryDocumentSnapshots.getDocumentChanges()){
+                if (documentChange.getType() == DocumentChange.Type.ADDED) {
+                    Comment model = documentChange.getDocument().toObject(Comment.class);
+                    if (!commentSet.contains(model.getId())) {
+                        commentSet.add(model.getId());
+                        newLoaded.add(model);
                     }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
+                }
             }
 
+            List<DocumentSnapshot> documentSnapshotList = queryDocumentSnapshots.getDocuments();
+            newLoaded.sort(Comparator.comparing(Comment::getTimeStamp));
 
-        }
+            if (!(documentSnapshotList.size() < 1)) {
+                DocumentSnapshot lastVisible = documentSnapshotList
+                        .get(documentSnapshotList.size() - 1);
+
+                next = commentCollectionReference
+                        .whereEqualTo(Comment.DB_REVIEW_ID, reviewKey)
+                        .orderBy(Comment.DB_TIMESTAMP, Query.Direction.DESCENDING)
+                        .startAfter(lastVisible)
+                        .limit(LIMIT);
+            }
+
+            if (documentSnapshotList.size() < LIMIT) {
+                isLastPage = true;
+                load_more.setVisibility(View.GONE);
+            }else {
+                load_more.setVisibility(View.VISIBLE);
+            }
+            progress.setVisibility(View.GONE);
+            if (!newLoaded.isEmpty() && reviewRecyclerView != null) {
+                commentsList.addAll(newLoaded);
+                adapter.notifyDataSetChanged();
+            }
+        });
+
+
+        load_more.setOnClickListener(v -> {
+            if (!loading && !isLastPage) {
+                loading = true;
+                progress.setVisibility(View.VISIBLE);
+                load_more.setVisibility(View.GONE);
+                next.get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            Comment model = document.toObject(Comment.class);
+                            if (!commentSet.contains(model.getId())) {
+                                commentsList.add(0, model);
+                                commentSet.add(model.getId());
+                            }
+                        }
+                        if (task.getResult().size()<LIMIT){
+                            isLastPage = true;
+                            load_more.setVisibility(View.GONE);
+                        }else{
+                            load_more.setVisibility(View.VISIBLE);
+                        }
+                        if (task.getResult()!=null) {
+                            if (!(task.getResult().size() < 1)) {
+                                DocumentSnapshot lastVisible = task.getResult().getDocuments()
+                                        .get(task.getResult().size() - 1);
+
+                                next = commentCollectionReference
+                                        .whereEqualTo(Comment.DB_REVIEW_ID, reviewKey)
+                                        .orderBy(Comment.DB_TIMESTAMP, Query.Direction.DESCENDING)
+                                        .startAfter(lastVisible)
+                                        .limit(LIMIT);
+                            }
+                        }
+
+                        if (!commentsList.isEmpty()) {
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                    progress.setVisibility(View.GONE);
+                    loading =false;
+                });
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         ConnectionUtil.checkConnection(findViewById(R.id.placeSnackBar));
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
     }
 }

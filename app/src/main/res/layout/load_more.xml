@@ -6,22 +6,25 @@
     android:background="#AA000000"
     android:gravity="center"
     android:padding="5dp"
-    android:id="@+id/loading_more"
-    android:layout_gravity="bottom"
+    android:id="@+id/load_more"
     android:visibility="gone">
 
-    <ProgressBar
+    <ImageView
         android:id="@+id/more_progress"
+        android:src="@drawable/ic_load_more"
+        android:layout_centerVertical="true"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/load_previous_comments" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
+        android:id="@+id/more_text"
         android:layout_toEndOf="@+id/more_progress"
         android:padding="5dp"
-        android:text="@string/loadmore"
+        android:text="@string/load_previous_comments"
         android:textColor="#ffffff"
         android:textSize="15sp" />
 

@@ -8,6 +8,7 @@ import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -46,10 +47,6 @@ public class ProfileFragment extends Fragment {
     private static final String ARG_PARAM2 = "param2";
     private String parent;
     private String uid;
-    private OnFragmentInteractionListener mListener;
-    private DatabaseReference mReferenceUser;
-    private TabLayout tabLayout;
-    private ViewPager viewPager;
     private String userName;
 
 
@@ -75,79 +72,80 @@ public class ProfileFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_profile, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null)
+            ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+
         FirebaseAuth auth = FirebaseAuth.getInstance();
         final FirebaseUser currentUserUser = auth.getCurrentUser();
-        if (parent.equals("other_user")){
-            mReferenceUser = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
-        }else {
-            mReferenceUser = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserUser.getUid());
+        if (!parent.equals("other_user") && currentUserUser !=null){
             uid = currentUserUser.getUid();
         }
 
+        TabLayout tabLayout = view.findViewById(R.id.profile_tablayout);
 
-        tabLayout = (TabLayout) view.findViewById(R.id.profile_tablayout);
-
-        viewPager = (ViewPager) view.findViewById(R.id.profile_viewPager);
+        ViewPager viewPager = view.findViewById(R.id.profile_viewPager);
         ViewPagerAdapter adapter = new ViewPagerAdapter(getChildFragmentManager());
         if (!parent.equals("other_user")){ //for other user profile
-            adapter.addFragment(ProfileHomeFragment.newInstance("",""), ""); //Menu
-            adapter.addFragment(ProfileReviewFragment.newInstance(uid,"",userName), ""); //Post
-            adapter.addFragment(ProfileBookmarksFragment.newInstance(uid,"",userName), "");//ProfileBookmarksFragment
-            adapter.addFragment(ProfileFollowerFragment.newInstance(uid,"",userName), "");//Followers
-            adapter.addFragment(ProfileFollowingFragment.newInstance(uid,"",userName), "");//Following
-            adapter.addFragment(ProfilePlaceFragment.newInstance(uid,"",userName), "");//My Place
+            adapter.addFragment(ProfileHomeFragment.newInstance("",""), "Menu"); //Menu
+            adapter.addFragment(ProfileReviewFragment.newInstance(uid,"",userName), "Post"); //Post
+            adapter.addFragment(ProfileBookmarksFragment.newInstance(uid,"",userName), "Bookmarks");//ProfileBookmarksFragment
+            adapter.addFragment(ProfileFollowerFragment.newInstance(uid,"",userName), "Followers");//Followers
+            adapter.addFragment(ProfileFollowingFragment.newInstance(uid,"",userName), "Following");//Following
+            adapter.addFragment(ProfilePlaceFragment.newInstance(uid,"",userName), "Places");//My Place
             viewPager.setAdapter(adapter);
             tabLayout.setupWithViewPager(viewPager);
 
-
-            tabLayout.getTabAt(0).setIcon(R.drawable.ic_menu);
-            tabLayout.getTabAt(0).getIcon().setColorFilter(Color.parseColor("#009688"), PorterDuff.Mode.SRC_IN);
-            tabLayout.getTabAt(1).setIcon(R.drawable.ic_rate_review_black);
-            tabLayout.getTabAt(1).getIcon().setColorFilter(Color.parseColor("#a8a8a8"), PorterDuff.Mode.SRC_IN);
-            tabLayout.getTabAt(2).setIcon(R.drawable.ic_bookmark_black);
-            tabLayout.getTabAt(2).getIcon().setColorFilter(Color.parseColor("#a8a8a8"), PorterDuff.Mode.SRC_IN);
-            tabLayout.getTabAt(3).setIcon(R.drawable.ic_people);
-            tabLayout.getTabAt(3).getIcon().setColorFilter(Color.parseColor("#a8a8a8"), PorterDuff.Mode.SRC_IN);
-            tabLayout.getTabAt(4).setIcon(R.drawable.ic_following);
-            tabLayout.getTabAt(4).getIcon().setColorFilter(Color.parseColor("#a8a8a8"), PorterDuff.Mode.SRC_IN);
-            tabLayout.getTabAt(5).setIcon(R.drawable.ic_business);
-            tabLayout.getTabAt(5).getIcon().setColorFilter(Color.parseColor("#a8a8a8"), PorterDuff.Mode.SRC_IN);
-            tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-                @Override
-                public void onTabSelected(TabLayout.Tab tab) {
-                    if (tab.getIcon()!=null){
-                        tab.getIcon().setColorFilter(Color.parseColor("#009688"), PorterDuff.Mode.SRC_IN);
-
-                    }
-                }
-
-                @Override
-                public void onTabUnselected(TabLayout.Tab tab) {
-                    if (tab.getIcon()!=null){
-                        tab.getIcon().setColorFilter(Color.parseColor("#a8a8a8"), PorterDuff.Mode.SRC_IN);
-                    }
-                }
-
-                @Override
-                public void onTabReselected(TabLayout.Tab tab) {
-
-                }
-            });
         }else {//for my profile
-            adapter.addFragment(ProfileHomeFragment.newInstance(parent,uid), ""); //Menu
-            adapter.addFragment(ProfileReviewFragment.newInstance(uid, parent, userName), ""); //Post
-            adapter.addFragment(ProfileBookmarksFragment.newInstance(uid, parent, userName), "");//ProfileBookmarksFragment
-            adapter.addFragment(ProfileFollowerFragment.newInstance(uid, parent, userName), "");//Followers
-            adapter.addFragment(ProfileFollowingFragment.newInstance(uid, parent, userName), "");//Following
-            adapter.addFragment(ProfilePlaceFragment.newInstance(uid, parent, userName), "");//My Place
+            adapter.addFragment(ProfileHomeFragment.newInstance(parent,uid), "Menu"); //Menu
+            adapter.addFragment(ProfileReviewFragment.newInstance(uid, parent, userName), "Post"); //Post
+            adapter.addFragment(ProfileBookmarksFragment.newInstance(uid, parent, userName), "Bookmarks");//ProfileBookmarksFragment
+            adapter.addFragment(ProfileFollowerFragment.newInstance(uid, parent, userName), "Followers");//Followers
+            adapter.addFragment(ProfileFollowingFragment.newInstance(uid, parent, userName), "Following");//Following
+            adapter.addFragment(ProfilePlaceFragment.newInstance(uid, parent, userName), "Places");//My Place
             viewPager.setAdapter(adapter);
             tabLayout.setupWithViewPager(viewPager);
+        }
+        return view;
+    }
 
-            tabLayout.getTabAt(0).setIcon(R.drawable.ic_menu);
+    public interface OnFragmentInteractionListener {
+        void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ /*tabLayout.getTabAt(0).setIcon(R.drawable.ic_menu);
             tabLayout.getTabAt(0).getIcon().setColorFilter(Color.parseColor("#009688"), PorterDuff.Mode.SRC_IN);
             tabLayout.getTabAt(1).setIcon(R.drawable.ic_rate_review_black);
             tabLayout.getTabAt(1).getIcon().setColorFilter(Color.parseColor("#a8a8a8"), PorterDuff.Mode.SRC_IN);
@@ -174,53 +172,4 @@ public class ProfileFragment extends Fragment {
                 public void onTabReselected(TabLayout.Tab tab) {
 
                 }
-            });
-        }
-        return view;
-    }
-
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-        //tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getIcon().setTint(getResources().getColor(R.color.black,null));
-    }
-
-
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
-}
+            });*/

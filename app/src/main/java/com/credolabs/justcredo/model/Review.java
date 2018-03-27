@@ -14,6 +14,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -24,7 +25,9 @@ public class Review implements Serializable{
     private String review,time,schoolID,userID, type, id, timestamp,heading,detail,review_type;
     private int rating;
     private String addressCity,addressState;
-    private HashMap<String, String> images;
+
+    private ArrayList<String> imagesList;
+
     public static final String REVIEW_DATABASE = "reviews";
 
     public static final String DB_REVIEWS_REF = "reviews";
@@ -208,11 +211,11 @@ public class Review implements Serializable{
         this.addressState = addressState;
     }
 
-    public HashMap<String, String> getImages() {
-        return images;
+    public ArrayList<String> getImagesList() {
+        return imagesList;
     }
 
-    public void setImages(HashMap<String, String> images) {
-        this.images = images;
+    public void setImagesList(ArrayList<String> imagesList) {
+        this.imagesList = imagesList;
     }
 }

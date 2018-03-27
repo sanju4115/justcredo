@@ -51,8 +51,7 @@ public class FacilitiesAdapter extends ArrayAdapter<String> {
             holder.facility = (TextView) convertView.findViewById(R.id.facility_text);
             holder.img = (ImageView) convertView.findViewById(R.id.facility_image);
             convertView.setTag(holder);
-        }
-        else {
+        } else {
             holder = (FacilitiesAdapter.Holder) convertView.getTag();
         }
 

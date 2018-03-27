@@ -1,57 +1,154 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout android:layout_width="wrap_content"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/border"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    android:id="@+id/listLayout"
+    android:background="@drawable/border">
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/imageFrame">
 
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:id="@+id/image_progress"
-        style="?android:attr/progressBarStyleSmall"
-        />
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/image_progress"
+            style="?android:attr/progressBarStyleSmall"
+            />
 
         <ImageView
             android:id="@+id/grid_image"
+            android:layout_width="wrap_content"
+            android:layout_height="100dp"
+            android:contentDescription="@string/cover_image"
             android:scaleType="centerCrop"
-            android:layout_width="150dp"
-            android:layout_height="100dp">
-        </ImageView>
+            />
 
     </FrameLayout>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="5dp">
 
         <TextView
             android:id="@+id/grid_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:paddingStart="5dp"
-            android:paddingEnd="5dp"
-            android:text="School Name"
-            android:textSize="10sp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textStyle="bold"
             android:textColor="@color/colorPrimaryText"
-            android:ellipsize="end"
-            android:maxLines="1"/>
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/grid_address"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="0dp"
-            android:paddingStart="5dp"
-            android:paddingEnd="5dp"
-            android:layout_marginBottom="2dp"
-            android:text="School Address"
-            android:textSize="10sp"
             android:ellipsize="end"
-            android:maxLines="1"/>
+            android:maxLines="1"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:id="@+id/mobileNumberLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:visibility="gone"
+            android:orientation="horizontal">
+
+            <android.support.v7.widget.AppCompatImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginEnd="@dimen/dimen_2dp"
+                android:layout_marginTop="@dimen/dimen_2dp"
+                app:srcCompat="@drawable/ic_local_phone_green_24dp" />
+
+            <TextView
+                android:id="@+id/mobileNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/websiteLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="horizontal">
+
+            <android.support.v7.widget.AppCompatImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginEnd="@dimen/dimen_2dp"
+                android:layout_marginTop="@dimen/dimen_4dp"
+                app:srcCompat="@drawable/ic_web" />
+
+            <TextView
+                android:id="@+id/website"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Secondary School"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <com.credolabs.justcredo.utility.CustomRatingBar
+            android:id="@+id/rating"
+            android:layout_width="60dp"
+            android:visibility="gone"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:layout_marginTop="@dimen/dimen_4dp"
+            app:halfStars="true"
+            app:onlyForDisplay="true"
+            app:stars="0" />
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dimen_4dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/school_review"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="2dp"
+                android:text="0"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reviews"
+                android:textSize="12sp" />
+
+            <android.support.v7.widget.AppCompatImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_gravity="center"
+                android:layout_margin="2dp"
+                app:srcCompat="@drawable/ic_location_on_green" />
+
+            <TextView
+                android:id="@+id/distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp" />
+
+        </LinearLayout>
 
     </LinearLayout>
+
+</LinearLayout>

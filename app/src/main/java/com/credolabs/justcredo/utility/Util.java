@@ -1,14 +1,8 @@
 package com.credolabs.justcredo.utility;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.Nullable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -20,7 +14,6 @@ import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.target.Target;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
@@ -58,25 +51,24 @@ public class Util {
     public static final String ForgotPassword_Fragment = "ForgotPasswordFragment";
 
 
-
-    public static long getMinutesDifference(long timeStart,long timeStop){
+    public static long getMinutesDifference(long timeStart, long timeStop) {
         long diff = timeStop - timeStart;
         long diffMinutes = diff / (60 * 1000);
 
-        return  diffMinutes;
+        return diffMinutes;
     }
 
     public static String getMonthForInt(int num) {
         String month = "wrong";
         DateFormatSymbols dfs = new DateFormatSymbols();
         String[] months = dfs.getMonths();
-        if (num >= 0 && num <= 11 ) {
+        if (num >= 0 && num <= 11) {
             month = months[num];
         }
         return month;
     }
 
-    public static void loadImage(Context context, String url, ImageView imageView){
+    public static void loadImage(Context context, String url, ImageView imageView) {
         Picasso.with(context)
                 .load(url)
                 .placeholder((R.drawable.image_downloading))
@@ -85,16 +77,15 @@ public class Util {
     }
 
 
-
-    public static void loadImageVolley(String URL, NetworkImageView img){
+    public static void loadImageVolley(String URL, NetworkImageView img) {
         ImageLoader imgLoader = MyApplication.getInstance().getImageLoader();
 
         imgLoader.get(URL, ImageLoader.getImageListener(img,
-                R.drawable.image_downloading,R.drawable.image_not_available));
-        img.setImageUrl(URL,imgLoader);
+                R.drawable.image_downloading, R.drawable.image_not_available));
+        img.setImageUrl(URL, imgLoader);
     }
 
-    public static void loadImageWithGlideProgress(RequestManager glide, String internetUrl, ImageView targetImageView, final ProgressBar progressBar){
+    public static void loadImageWithGlideProgress(RequestManager glide, String internetUrl, ImageView targetImageView, final ProgressBar progressBar) {
         glide.load(internetUrl)
                 .listener(new RequestListener<String, GlideDrawable>() {
                     @Override
@@ -113,7 +104,7 @@ public class Util {
                 .error(R.drawable.ic_nocover).into(targetImageView);
     }
 
-    public static void loadImageWithGlide(RequestManager glide, String internetUrl, ImageView targetImageView){
+    public static void loadImageWithGlide(RequestManager glide, String internetUrl, ImageView targetImageView) {
         glide.load(internetUrl)
                 .listener(new RequestListener<String, GlideDrawable>() {
                     @Override
@@ -131,7 +122,7 @@ public class Util {
                 .error(R.drawable.ic_nocover).into(targetImageView);
     }
 
-    public static void loadCircularImageWithGlide(Context context, String internetUrl, final ImageView targetImageView){
+    public static void loadCircularImageWithGlide(Context context, String internetUrl, final ImageView targetImageView) {
         Glide.with(context)
                 .load(internetUrl) // add your image url
                 .transform(new CircleTransform(context)) // applying the image transformer
@@ -141,11 +132,10 @@ public class Util {
     }
 
 
-
-    public static User getUserFromUid(String uid){
+    public static User getUserFromUid(String uid) {
 
         final User[] user = new User[1];
-        DatabaseReference mReferenceUser  = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
+        DatabaseReference mReferenceUser = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
         mReferenceUser.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -162,29 +152,29 @@ public class Util {
 
     }
 
-    public static String getAddress(HashMap<String,String> address){
+    public static String getAddress(HashMap<String, String> address) {
         String subLocality = address.get("addressLine1"),
                 locality = address.get("addressLine2"),
                 city = address.get("addressCity"),
                 state = address.get("addressState");
         String addressString = "";
-        if (locality!= null && !locality.equals("")){
+        if (locality != null && !locality.equals("")) {
             addressString = addressString.concat(locality);
         }
-        if (subLocality!= null && !subLocality.equals("")){
-            if (!addressString.equals("")){
+        if (subLocality != null && !subLocality.equals("")) {
+            if (!addressString.equals("")) {
                 addressString = addressString.concat(", ");
             }
             addressString = addressString.concat(subLocality);
         }
-        if (city!= null && !city.equals("")){
-            if (!addressString.equals("")){
+        if (city != null && !city.equals("")) {
+            if (!addressString.equals("")) {
                 addressString = addressString.concat(", ");
             }
             addressString = addressString.concat(city);
         }
-        if (state!= null && !state.equals("")){
-            if (!addressString.equals("")){
+        if (state != null && !state.equals("")) {
+            if (!addressString.equals("")) {
                 addressString = addressString.concat(", ");
             }
             addressString = addressString.concat(state);
@@ -192,35 +182,35 @@ public class Util {
         return addressString;
     }
 
-    public static String getFirstImage(HashMap<String, String> images){
+    public static String getFirstImage(HashMap<String, String> images) {
         String key = " ";
         String value = " ";
-        if (images !=null){
-            Map.Entry<String,String> entry=images.entrySet().iterator().next();
-            key= entry.getKey();
-            value=entry.getValue();
+        if (images != null) {
+            Map.Entry<String, String> entry = images.entrySet().iterator().next();
+            key = entry.getKey();
+            value = entry.getValue();
         }
         return value;
     }
 
-    public static HashMap<String,String> getCurrentUSerAddress(SharedPreferences sharedPreferences){
-        String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
-        String[] str= location.split(",");
+    public static HashMap<String, String> getCurrentUSerAddress(SharedPreferences sharedPreferences) {
+        String location = sharedPreferences.getString(Constants.MAIN_TEXT, " ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT, " ");
+        String[] str = location.split(",");
         HashMap<String, String> currentAddress = new HashMap<>();
         int j = 1;
-        for(int i=str.length-1; i >=0 ; i--){
-            if(j==1){
-                currentAddress.put("addressCountry",str[i].trim());
-            }else if (j==2){
-                currentAddress.put("addressState",str[i].trim());
-            }else if (j==3){
-                currentAddress.put("addressCity",str[i].trim());
-            }else if (j==4){
-                currentAddress.put("addressLine2",str[i].trim());
-            }else if (j==5){
-                currentAddress.put("addressLine1",str[i].trim());
-            }else {
-                currentAddress.put("addressLine1",currentAddress.get("addressLine1").concat(" "+str[i].trim()));
+        for (int i = str.length - 1; i >= 0; i--) {
+            if (j == 1) {
+                currentAddress.put("addressCountry", str[i].trim());
+            } else if (j == 2) {
+                currentAddress.put("addressState", str[i].trim());
+            } else if (j == 3) {
+                currentAddress.put("addressCity", str[i].trim());
+            } else if (j == 4) {
+                currentAddress.put("addressLine2", str[i].trim());
+            } else if (j == 5) {
+                currentAddress.put("addressLine1", str[i].trim());
+            } else {
+                currentAddress.put("addressLine1", currentAddress.get("addressLine1").concat(" " + str[i].trim()));
             }
             j++;
         }
@@ -228,34 +218,34 @@ public class Util {
     }
 
 
-    public static HashMap<String,String> getCurrentUSerAddress(Context context){
+    public static HashMap<String, String> getCurrentUSerAddress(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.MYPREFERENCES, MODE_PRIVATE);
-        String location = sharedPreferences.getString(Constants.MAIN_TEXT," ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT," ");
-        String[] str= location.split(",");
+        String location = sharedPreferences.getString(Constants.MAIN_TEXT, " ") + ", " + sharedPreferences.getString(Constants.SECONDARY_TEXT, " ");
+        String[] str = location.split(",");
         HashMap<String, String> currentAddress = new HashMap<>();
         int j = 1;
-        for(int i=str.length-1; i >=0 ; i--){
-            if(j==1){
-                currentAddress.put("addressCountry",str[i].trim());
-            }else if (j==2){
-                currentAddress.put("addressState",str[i].trim());
-            }else if (j==3){
-                currentAddress.put("addressCity",str[i].trim());
-            }else if (j==4){
-                currentAddress.put("addressLine2",str[i].trim());
-            }else if (j==5){
-                currentAddress.put("addressLine1",str[i].trim());
-            }else {
-                currentAddress.put("addressLine1",currentAddress.get("addressLine1").concat(" "+str[i].trim()));
+        for (int i = str.length - 1; i >= 0; i--) {
+            if (j == 1) {
+                currentAddress.put("addressCountry", str[i].trim());
+            } else if (j == 2) {
+                currentAddress.put("addressState", str[i].trim());
+            } else if (j == 3) {
+                currentAddress.put("addressCity", str[i].trim());
+            } else if (j == 4) {
+                currentAddress.put("addressLine2", str[i].trim());
+            } else if (j == 5) {
+                currentAddress.put("addressLine1", str[i].trim());
+            } else {
+                currentAddress.put("addressLine1", currentAddress.get("addressLine1").concat(" " + str[i].trim()));
             }
             j++;
         }
-        currentAddress.put(Constants.LATITUDE,sharedPreferences.getString(Constants.LATITUDE,""));
-        currentAddress.put(Constants.LONGIITUDE,sharedPreferences.getString(Constants.LONGIITUDE,""));
+        currentAddress.put(Constants.LATITUDE, sharedPreferences.getString(Constants.LATITUDE, ""));
+        currentAddress.put(Constants.LONGIITUDE, sharedPreferences.getString(Constants.LONGIITUDE, ""));
         return currentAddress;
     }
 
-    public static String timeDifference(String dateStart, String time){
+    public static String timeDifference(String dateStart, String time) {
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
         String dateStop = format.format(new java.util.Date());
@@ -278,23 +268,23 @@ public class Util {
             System.out.print(diffHours + " hours, ");
             System.out.print(diffMinutes + " minutes, ");
             System.out.print(diffSeconds + " seconds.");
-            if (diffDays > 7){
-                return "on "+ time;
-            }else if (diffDays <= 7 && diffDays >1){
+            if (diffDays > 7) {
+                return "on " + time;
+            } else if (diffDays <= 7 && diffDays > 1) {
                 return diffDays + " days ago";
-            }else if (diffDays == 1){
+            } else if (diffDays == 1) {
                 return diffDays + " day ago";
-            }else if (diffHours > 1){
+            } else if (diffHours > 1) {
                 return diffHours + " hrs ago";
-            }else if (diffHours == 1){
+            } else if (diffHours == 1) {
                 return diffHours + " hr ago";//
-            }else if (diffMinutes > 1){
+            } else if (diffMinutes > 1) {
                 return diffMinutes + " mins ago";
-            }else if (diffMinutes == 1){
+            } else if (diffMinutes == 1) {
                 return diffMinutes + " min ago";
-            }else if (diffSeconds > 1){
+            } else if (diffSeconds > 1) {
                 return diffSeconds + " secs ago";
-            }else if (diffSeconds == 1){
+            } else if (diffSeconds == 1) {
                 return diffSeconds + " sec ago";
             }
 
@@ -306,22 +296,22 @@ public class Util {
 
     public static boolean checkSchoolAdmin(School school) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (school.getUserID().equals(user.getUid())){
+        if (school.getUserID().equals(user.getUid())) {
             return true;
         }
 
         return false;
     }
 
-    public static void showErrorMessage(Context context, String msg){
+    public static void showErrorMessage(Context context, String msg) {
         new CustomToast().Show_Toast(context, msg);
     }
 
-    public static void showErrorMessage(Context context){
-        new CustomToast().Show_Toast(context,"Something went wrong.");
+    public static void showErrorMessage(Context context) {
+        new CustomToast().Show_Toast(context, "Something went wrong.");
     }
 
-    public static ProgressDialog prepareProcessingDialogue(Context activity){
+    public static ProgressDialog prepareProcessingDialogue(Context activity) {
         final ProgressDialog mProgressDialog = new ProgressDialog(activity);
         mProgressDialog.setMessage("Processing request...");
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -331,7 +321,8 @@ public class Util {
         return mProgressDialog;
     }
 
-    public static void removeProcessDialogue(ProgressDialog mProgressDialog){
+    public static void removeProcessDialogue(ProgressDialog mProgressDialog) {
         mProgressDialog.dismiss();
     }
+
 }

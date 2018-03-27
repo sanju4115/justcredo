@@ -488,8 +488,8 @@ public class SchoolReviewFragment extends Fragment {
             ImageView image4 = (ImageView) mView.findViewById(R.id.review_image4);
             TextView noOfImages = (TextView) mView.findViewById(R.id.no_of_images);
             noOfImages.setVisibility(View.GONE);
-            if (model.getImages()!=null){
-                final ArrayList<String> images = new ArrayList<>(model.getImages().values());
+            if (model.getImagesList()!=null){
+                final ArrayList<String> images = model.getImagesList();
                 LinearLayout feeSection = (LinearLayout) mView.findViewById(R.id.images_layout);
                 feeSection.setVisibility(View.VISIBLE);
                 if (images.size()==0){

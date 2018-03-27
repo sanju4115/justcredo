@@ -64,7 +64,7 @@ public class ObjectListViewHolder extends RecyclerView.ViewHolder implements Vie
     }
 
     // Setter for listener
-    public void setClickListener(RecyclerViewOnClickListener.OnClickListener onClickListener) {
+    void setClickListener(RecyclerViewOnClickListener.OnClickListener onClickListener) {
         this.onClickListener = onClickListener;
     }
 

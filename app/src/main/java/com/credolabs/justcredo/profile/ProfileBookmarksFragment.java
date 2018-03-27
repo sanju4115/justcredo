@@ -1,10 +1,9 @@
 package com.credolabs.justcredo.profile;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,17 +13,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.credolabs.justcredo.R;
-import com.credolabs.justcredo.adapters.ObjectListViewRecyclerAdapter;
+import com.credolabs.justcredo.adapters.CategoryGridAdapter;
 import com.credolabs.justcredo.internet.ConnectionUtil;
-import com.credolabs.justcredo.model.School;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.credolabs.justcredo.model.DbConstants;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
@@ -34,19 +26,12 @@ public class ProfileBookmarksFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
-
     private String parent;
     private String userName;
     private String uid;
-
-
-    private  RecyclerView listRecyclerView;
-    private  ObjectListViewRecyclerAdapter adapter;
-    private  LinearLayoutManager mLayoutManager;
     private ProgressBar progressBar;
-
-
-    private OnFragmentInteractionListener mListener;
+    private RecyclerView grid;
+    private CategoryGridAdapter adapter;
 
     public ProfileBookmarksFragment() {
     }
@@ -72,15 +57,16 @@ public class ProfileBookmarksFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_bookmarks, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null)
+            ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
-        DatabaseReference mBookmarksReference = FirebaseDatabase.getInstance().getReference().child("bookmarks");
-        TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
-        TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
-
+        TextView not_found_text1 = view.findViewById(R.id.not_found_text1);
+        TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
+        final LinearLayout not_found = view.findViewById(R.id.not_found);
+        not_found.setVisibility(View.GONE);
         if (parent.equals("other_user")){
             not_found_text1.setText(userName + " has not bookmarked any place yet.");
             not_found_text2.setVisibility(View.GONE);
@@ -88,91 +74,32 @@ public class ProfileBookmarksFragment extends Fragment {
             not_found_text1.setText("You have not bookmarked any place yet.");
             not_found_text2.setText("Explore places to bookmark places..");
         }
-        progressBar = (ProgressBar)view.findViewById(R.id.progress);
-        final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
-        mLayoutManager = new LinearLayoutManager(getActivity());
-        listRecyclerView = (RecyclerView)view.findViewById(R.id.linear_recyclerview);
-        listRecyclerView.setHasFixedSize(true);
-        listRecyclerView.setLayoutManager(mLayoutManager);
-        final ArrayList<School> schoolsList = new ArrayList<>();
-        adapter = new ObjectListViewRecyclerAdapter(getActivity(), schoolsList);
-        listRecyclerView.setAdapter(adapter);
-        listRecyclerView.setVisibility(View.GONE);
-        mBookmarksReference.child(uid).addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String key = dataSnapshot.getKey();
-                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("schools");
-                databaseReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        School school = dataSnapshot.getValue(School.class);
-                        schoolsList.add(school);
-                        if (schoolsList.size() > 0 & listRecyclerView != null) {
-                            not_found.setVisibility(View.GONE);
-                            listRecyclerView.setVisibility(View.VISIBLE);
-                            adapter.notifyDataSetChanged();
-                        }
-                    }
+        progressBar = view.findViewById(R.id.progress);
+        progressBar.setVisibility(View.VISIBLE);
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        progressBar.setVisibility(View.GONE);
+        final ArrayList<String> schoolsList = new ArrayList<>();
+        grid= view.findViewById(R.id.category_grid);
+        grid.setLayoutManager(new GridLayoutManager(getActivity(), 2));
+        grid.setVisibility(View.GONE);
+        adapter = new CategoryGridAdapter(getActivity(), schoolsList);
+        grid.setAdapter(adapter);
 
-                    }
-                });
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                progressBar.setVisibility(View.GONE);
-
+        FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_BOOKMARK).document(uid).get().addOnCompleteListener(task -> {
+            progressBar.setVisibility(View.GONE);
+            if (task.isSuccessful() && task.getResult()!=null){
+                schoolsList.addAll(new ArrayList<>(task.getResult().getData().keySet()));
+                if (schoolsList.size() > 0 & grid != null) {
+                    not_found.setVisibility(View.GONE);
+                    grid.setVisibility(View.VISIBLE);
+                    adapter.notifyDataSetChanged();
+                }else {
+                    not_found.setVisibility(View.VISIBLE);
+                }
+            }else {
+                not_found.setVisibility(View.VISIBLE);
             }
         });
-
         return view;
-    }
-
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
     }
 
     @Override

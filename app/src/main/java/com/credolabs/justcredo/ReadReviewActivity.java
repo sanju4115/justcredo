@@ -437,8 +437,8 @@ public class ReadReviewActivity extends AppCompatActivity {
             ImageView image4 = (ImageView) mView.findViewById(R.id.review_image4);
             TextView noOfImages = (TextView) mView.findViewById(R.id.no_of_images);
             noOfImages.setVisibility(View.GONE);
-            if (model.getImages()!=null){
-                final ArrayList<String> images = new ArrayList<>(model.getImages().values());
+            if (model.getImagesList()!=null){
+                final ArrayList<String> images = model.getImagesList();
                 LinearLayout feeSection = (LinearLayout) mView.findViewById(R.id.images_layout);
                 feeSection.setVisibility(View.VISIBLE);
                 if (images.size()==0){
@@ -515,8 +515,8 @@ public class ReadReviewActivity extends AppCompatActivity {
 
             mainHolder.review_text.setText(model.getReview());
             mainHolder.time.setText(model.getTime());
-            if (model.getImages()!= null && model.getImages().values()!=null) {
-                ArrayList<String> images = new ArrayList<String>(model.getImages().values());
+            if (model.getImagesList()!= null) {
+                ArrayList<String> images = model.getImagesList();
 
                 if (images.size()==0){
                     mainHolder.images_layout.setVisibility(View.GONE);

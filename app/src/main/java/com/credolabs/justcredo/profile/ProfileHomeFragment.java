@@ -1,16 +1,12 @@
 package com.credolabs.justcredo.profile;
 
+import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -27,8 +23,8 @@ import android.widget.TextView;
 import com.credolabs.justcredo.AccountSetupActivity;
 import com.credolabs.justcredo.EditProfileActivity;
 import com.credolabs.justcredo.R;
-import com.credolabs.justcredo.adapters.ViewPagerAdapter;
 import com.credolabs.justcredo.internet.ConnectionUtil;
+import com.credolabs.justcredo.model.DbConstants;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.newplace.NewPlace;
@@ -37,27 +33,21 @@ import com.credolabs.justcredo.utility.Constants;
 import com.credolabs.justcredo.utility.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class ProfileHomeFragment extends Fragment {
-
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
     private String parent;
     private String uid;
-    private DatabaseReference mReferenceUser;
-    private String userName;
-
-
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
-
-    private OnFragmentInteractionListener mListener;
+    private String userId;
 
     public ProfileHomeFragment() {
     }
@@ -79,184 +69,147 @@ public class ProfileHomeFragment extends Fragment {
             uid = getArguments().getString(ARG_PARAM2);
         }
         mAuth = FirebaseAuth.getInstance();
-        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+        mAuthStateListener = firebaseAuth -> {
 
-            }
         };
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_profile_home, container, false);
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
         if (parent.equals("other_user")) {
-            LinearLayout information_container = (LinearLayout) view.findViewById(R.id.information_container);
+            LinearLayout information_container = view.findViewById(R.id.information_container);
             information_container.setVisibility(View.GONE);
         }
-        final TextView name = (TextView) view.findViewById(R.id.profile_name);
-        final ImageView profilePic = (ImageView) view.findViewById(R.id.profile_pic);
-        //final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.image_progress);
-        final TextView profile_description = (TextView) view.findViewById(R.id.profile_description);
-        final TextView no_follower = (TextView) view.findViewById(R.id.no_follower);
-        final TextView no_following = (TextView) view.findViewById(R.id.no_following);
-        final TextView no_post = (TextView) view.findViewById(R.id.no_post);
+        final TextView name = view.findViewById(R.id.profile_name);
+        final ImageView profilePic = view.findViewById(R.id.profile_pic);
+        final TextView profile_description = view.findViewById(R.id.profile_description);
+        final TextView no_follower = view.findViewById(R.id.no_follower);
+        final TextView no_following = view.findViewById(R.id.no_following);
+        final TextView no_post = view.findViewById(R.id.no_post);
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         final FirebaseUser currentUserUser = auth.getCurrentUser();
         if (parent.equals("other_user")){
-            mReferenceUser = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
+            userId = uid;
         }else {
             if (currentUserUser != null) {
-                mReferenceUser = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserUser.getUid());
+                userId = currentUserUser.getUid();
                 uid = currentUserUser.getUid();
             }
         }
 
-        mReferenceUser.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                final User user = dataSnapshot.getValue(User.class);
-                if (user != null) {
-                    user.buildUser(no_follower,no_following,no_post);
-                    userName = user.getName();
-                    if (user.getName()!=null) name.setText(user.getName());
-                    if (user.getDescription()!=null){
-                        profile_description.setText(user.getDescription());
-                    }
-                    if (user.getProfilePic()!=null && getActivity()!=null){
-                        Util.loadCircularImageWithGlide(getActivity(),user.getProfilePic(),profilePic);
-                    }else{
-                        Util.loadCircularImageWithGlide(getActivity(), Constants.NO_COVER_PIC_URL,profilePic);
-                    }
+        db.collection(User.DB_REF).document(userId).addSnapshotListener((documentSnapshot, e) -> {
+            final User user = documentSnapshot.toObject(User.class);
+            if (user != null) {
+                user.buildUser(no_follower,no_following,no_post);
+                if (user.getName()!=null) name.setText(user.getName());
+                if (user.getDescription()!=null){
+                    profile_description.setText(user.getDescription());
                 }
-                TextView editProfile = (TextView) view.findViewById(R.id.edit_profile);
-                final Button profile_follow = (Button) view.findViewById(R.id.profile_follow);
-                final DatabaseReference mFollowingReference = FirebaseDatabase.getInstance().getReference().child("following");
-                final DatabaseReference mFollowerReference = FirebaseDatabase.getInstance().getReference().child("follower");
-                if (parent.equals("other_user")){
-                    editProfile.setVisibility(View.GONE);
-                    profile_follow.setVisibility(View.VISIBLE);
+                if (user.getProfilePic()!=null && getActivity()!=null){
+                    Util.loadCircularImageWithGlide(getActivity(),user.getProfilePic(),profilePic);
+                }else{
+                    Util.loadCircularImageWithGlide(getActivity(), Constants.NO_COVER_PIC_URL,profilePic);
+                }
+            }
+            TextView editProfile = view.findViewById(R.id.edit_profile);
+            final Button profile_follow =view.findViewById(R.id.profile_follow);
+            CollectionReference followingcollectionReference = db.collection(DbConstants.DB_REF_FOLLOWING);
+            CollectionReference followercollectionReference = db.collection(DbConstants.DB_REF_FOLLOWER);
+            if (parent.equals("other_user")){
+                editProfile.setVisibility(View.GONE);
+                profile_follow.setVisibility(View.VISIBLE);
+                if (currentUserUser!=null) {
+                    followingcollectionReference.document(currentUserUser.getUid()).addSnapshotListener((documentSnapshot1, e1) -> {
+                        if (documentSnapshot.contains(uid)){
+                            profile_follow.setText("Following");
+                        }else {
+                            profile_follow.setText("Follow");
+                        }
+                    });
+                }
+                profile_follow.setOnClickListener(v -> {
                     if (currentUserUser!=null) {
-                        mFollowingReference.child(currentUserUser.getUid()).addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                if (dataSnapshot.hasChild(uid)) {
-                                    profile_follow.setText("Following");
-                                } else {
-                                    profile_follow.setText("Follow");
+                        followingcollectionReference.document(currentUserUser.getUid()).get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful() && task.getResult()!=null){
+                                if (task.getResult().contains(uid)){
+                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                                    alertDialogBuilder.setMessage("Do you want to unfollow ?");
+                                    alertDialogBuilder.setPositiveButton("Yes",
+                                            (arg0, arg1) -> {
+                                                ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(getActivity());
+                                                WriteBatch batch = db.batch();
+                                                DocumentReference followingRef = followingcollectionReference.document(currentUserUser.getUid());
+                                                batch.update(followingRef,uid, FieldValue.delete());
+
+                                                DocumentReference followerRef = followercollectionReference.document(uid);
+                                                batch.update(followerRef, currentUserUser.getUid(), FieldValue.delete());
+
+                                                batch.commit().addOnCompleteListener(batchTask -> {
+                                                    profile_follow.setText("Follow");
+                                                    FirebaseMessaging.getInstance().unsubscribeFromTopic(uid);
+                                                    Util.removeProcessDialogue(mProgredialogue);
+                                                });
+                                            });
+
+                                    alertDialogBuilder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
+
+                                    AlertDialog alertDialog = alertDialogBuilder.create();
+                                    alertDialogBuilder.show();
+                                }else {
+                                    ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(getActivity());
+                                    WriteBatch batch = db.batch();
+                                    DocumentReference followingRef = followingcollectionReference.document(currentUserUser.getUid());
+                                    batch.update(followingRef,uid,true);
+
+                                    DocumentReference followerRef = followercollectionReference.document(uid);
+                                    batch.update(followerRef, currentUserUser.getUid(), true);
+
+                                    db.collection(User.DB_REF).document(uid).get().addOnCompleteListener(userTask -> {
+                                        if (userTask.isSuccessful()){
+                                            final User reviewUser = userTask.getResult().toObject(User.class);
+                                            batch.commit().addOnCompleteListener(batchTask -> {
+                                                profile_follow.setText("Following");
+                                                FirebaseMessaging.getInstance().subscribeToTopic(reviewUser.getUid());
+                                                User.prepareNotificationFollow(reviewUser,user);
+                                                Util.removeProcessDialogue(mProgredialogue);
+                                            });
+                                        }
+                                    });
+
                                 }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
                             }
                         });
                     }
-                    profile_follow.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (currentUserUser!=null) {
-                                mFollowingReference.child(currentUserUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                        if (dataSnapshot.hasChild(uid)) {
-                                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                                            alertDialogBuilder.setMessage("Do you want to unfollow ?");
-                                            alertDialogBuilder.setPositiveButton("Yes",
-                                                    new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface arg0, int arg1) {
-                                                            mFollowingReference.child(currentUserUser.getUid()).child(uid).removeValue();
-                                                            mFollowerReference.child(uid).child(currentUserUser.getUid()).removeValue();
-                                                            profile_follow.setText("Follow");
-                                                        }
-                                                    });
-
-                                            alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    dialog.dismiss();
-                                                }
-                                            });
-
-                                            AlertDialog alertDialog = alertDialogBuilder.create();
-                                            alertDialogBuilder.show();
-                                        } else {
-                                            DatabaseReference mReferenceUser = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserUser.getUid());
-                                            mReferenceUser.addListenerForSingleValueEvent(new ValueEventListener() {
-                                                @Override
-                                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                                    User user = dataSnapshot.getValue(User.class);
-                                                    if (user != null) {
-                                                        mFollowingReference.child(user.getUid()).child(uid).setValue(user.getName());
-                                                        mFollowerReference.child(uid).child(user.getUid()).setValue(user.getName());
-
-                                                    }
-                                                    profile_follow.setText("Following");
-
-                                                }
-
-                                                @Override
-                                                public void onCancelled(DatabaseError databaseError) {
-
-                                                }
-                                            });
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {
-
-                                    }
-                                });
-                            }
-                        }
-                    });
-                }else {
-                    editProfile.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent = new Intent(getActivity(),EditProfileActivity.class);
-                            startActivity(intent);
-                            //getActivity().finish();
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+                });
+            }else {
+                editProfile.setOnClickListener(v -> {
+                    Intent intent = new Intent(getActivity(),EditProfileActivity.class);
+                    startActivity(intent);
+                });
             }
         });
 
-        LinearLayout logoutLayout = (LinearLayout) view.findViewById(R.id.layout_logout);
-        logoutLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mAuth.signOut();
-                Intent intent = new Intent(getActivity(),AccountSetupActivity.class);
-                startActivity(intent);
-                getActivity().finish();
-            }
+        LinearLayout logoutLayout = view.findViewById(R.id.layout_logout);
+        logoutLayout.setOnClickListener(v -> {
+            mAuth.signOut();
+            Intent intent = new Intent(getActivity(),AccountSetupActivity.class);
+            startActivity(intent);
+            getActivity().finish();
         });
 
 
 
-        final LinearLayout layout_add_place = (LinearLayout) view.findViewById(R.id.layout_add_place);
-        layout_add_place.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Intent intent = new Intent(getActivity(),AddPlaceActivity.class);
-                registerForContextMenu(layout_add_place);
-                getActivity().openContextMenu(layout_add_place);
+        final LinearLayout layout_add_place = view.findViewById(R.id.layout_add_place);
+        layout_add_place.setOnClickListener(v -> {
+            registerForContextMenu(layout_add_place);
+            getActivity().openContextMenu(layout_add_place);
 
-            }
         });
 
         return view;
@@ -310,34 +263,6 @@ public class ProfileHomeFragment extends Fragment {
             default:
                 return super.onContextItemSelected(item);
         }
-    }
-
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
     }
 
     @Override

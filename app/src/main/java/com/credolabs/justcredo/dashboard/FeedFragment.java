@@ -1,53 +1,36 @@
 package com.credolabs.justcredo.dashboard;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.AppCompatImageView;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.R;
-import com.credolabs.justcredo.ReviewDetailsActivity;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.Review;
-import com.credolabs.justcredo.model.School;
-import com.credolabs.justcredo.model.User;
-import com.credolabs.justcredo.utility.CustomRatingBar;
-import com.credolabs.justcredo.utility.CustomToast;
-import com.credolabs.justcredo.utility.NearByPlaces;
 import com.credolabs.justcredo.utility.Util;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 
 public class FeedFragment extends Fragment {
@@ -60,7 +43,7 @@ public class FeedFragment extends Fragment {
     private RecyclerView reviewRecyclerView;
     private FeedListViewRecyclerAdapter adapter;
     private ArrayList<Review> reviewArrayList;
-    private ProgressBar progress;
+    private ProgressBar progress, progress_more;
     private LinearLayout not_found;
 
 
@@ -69,7 +52,8 @@ public class FeedFragment extends Fragment {
     private Query next;
     private String addressCity="";
     private LinearLayoutManager mLayoutManager;
-    private RelativeLayout loading_more;
+    private RelativeLayout loading_more, load_more;
+    private HashSet<String> reviewSet;
 
 
     public FeedFragment() {
@@ -94,20 +78,25 @@ public class FeedFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_feed, container, false);
-        progress = (ProgressBar) view.findViewById(R.id.progress);
-        not_found = (LinearLayout) view.findViewById(R.id.not_found);
-        final TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
+        progress = view.findViewById(R.id.progress);
+        not_found = view.findViewById(R.id.not_found);
+        final TextView not_found_text1 = view.findViewById(R.id.not_found_text1);
         not_found_text1.setText("No Feed In Your Area !");
-        final TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
+        final TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
         not_found_text2.setText("May be try to change the location...");
         not_found.setVisibility(View.GONE);
 
         loading_more = view.findViewById(R.id.loading_more);
+        load_more = view.findViewById(R.id.load_more);
+        TextView more_text = view.findViewById(R.id.more_text);
+        more_text.setText("Load latest posts...");
 
-        reviewRecyclerView = (RecyclerView) view.findViewById(R.id.review_list);
+        progress_more = view.findViewById(R.id.progress_more);
+
+        reviewRecyclerView = view.findViewById(R.id.review_list);
         reviewRecyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(getActivity());
 
@@ -159,8 +148,30 @@ public class FeedFragment extends Fragment {
     public void onResume() {
         super.onResume();
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-        //new CustomToast().Show_Toast(getActivity(), "onResume() Called");
-        buildContent();
+    }
+
+
+    private void buildEventListener(Query first){
+
+        load_more.setOnClickListener(v -> {
+            progress_more.setVisibility(View.VISIBLE);
+            adapter.notifyDataSetChanged();
+            progress_more.setVisibility(View.GONE);
+            load_more.setVisibility(View.GONE);
+        });
+
+        first.addSnapshotListener((queryDocumentSnapshots, e) -> {
+            for (DocumentChange documentChange : queryDocumentSnapshots.getDocumentChanges()){
+                if (documentChange.getType() == DocumentChange.Type.ADDED) {
+                    Review model = documentChange.getDocument().toObject(Review.class);
+                    if (!reviewSet.contains(model.getId())){
+                        reviewArrayList.add(0, model);
+                        load_more.setVisibility(View.VISIBLE);
+                        reviewSet.add(model.getId());
+                    }
+                }
+            }
+        });
     }
 
     private void buildContent(){
@@ -175,21 +186,26 @@ public class FeedFragment extends Fragment {
             }
         }
 
-
-
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         Query first = db.collection(Review.DB_REVIEWS_REF)
                 .whereEqualTo(Review.ADDRESS_CITY, addressCity)
                 .orderBy(Review.TIMESTAMP, Query.Direction.DESCENDING).limit(LIMIT);
 
+        reviewSet = new HashSet<>();
+
         first.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 reviewArrayList.clear();
                 for (DocumentSnapshot document : task.getResult()) {
                     Review model = document.toObject(Review.class);
-                    reviewArrayList.add(model);
+                    if (!reviewSet.contains(model.getId())){
+                        reviewArrayList.add(model);
+                        reviewSet.add(model.getId());
+                    }
                 }
+
+                buildEventListener(first);
 
                 if (task.getResult() != null) {
                     if (!(task.getResult().size() < 1)) {

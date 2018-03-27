@@ -11,7 +11,10 @@
             android:id="@+id/profile_tablayout"
             app:tabIndicatorColor="@color/colorPrimaryDark"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            app:tabMode="scrollable"
+            app:tabTextColor="#a8a8a8"
+            app:tabSelectedTextColor="@color/colorPrimary"/>
 
         <android.support.v4.view.ViewPager
             android:id="@+id/profile_viewPager"

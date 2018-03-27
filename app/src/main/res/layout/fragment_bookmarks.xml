@@ -31,15 +31,12 @@
         android:text="@string/places_bookmarked"/>
 
 
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/category_grid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/tag_line"/>
 
-    <!-- Recycler View -->
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/linear_recyclerview"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_below="@+id/tag_line"
-        />
 
     </RelativeLayout>
 

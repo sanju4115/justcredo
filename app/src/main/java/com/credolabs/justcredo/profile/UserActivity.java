@@ -11,47 +11,41 @@ import android.view.MenuItem;
 
 import com.credolabs.justcredo.ProfileFragment;
 import com.credolabs.justcredo.R;
+import com.credolabs.justcredo.model.DbConstants;
 import com.credolabs.justcredo.model.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-public class UserActivity extends AppCompatActivity implements ProfileFragment.OnFragmentInteractionListener,
-        ProfileHomeFragment.OnFragmentInteractionListener,ProfileBookmarksFragment.OnFragmentInteractionListener,
-        ProfileReviewFragment.OnFragmentInteractionListener,ProfileFollowerFragment.OnFragmentInteractionListener,
-        ProfileFollowingFragment.OnFragmentInteractionListener, ProfilePlaceFragment.OnFragmentInteractionListener{
-
-    private Fragment fragment;
-    private FragmentManager fragmentManager;
+public class UserActivity extends AppCompatActivity implements ProfileFragment.OnFragmentInteractionListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar()!=null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_action_close);
 
-        fragmentManager = getSupportFragmentManager();
-        String uid = getIntent().getStringExtra("uid");
-        DatabaseReference userReference = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
-        userReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
-                getSupportActionBar().setTitle(user.getName());
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        String uid = getIntent().getStringExtra(User.UID);
 
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+        FirebaseFirestore.getInstance().collection(User.DB_REF).document(uid).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult()!=null){
+                User user = task.getResult().toObject(User.class);
+                if (user != null) {
+                    getSupportActionBar().setTitle(user.getName());
+                }
             }
         });
-        fragment = ProfileFragment.newInstance("other_user",uid);
+
+        Fragment fragment = ProfileFragment.newInstance("other_user", uid);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.content, fragment).commit();
     }

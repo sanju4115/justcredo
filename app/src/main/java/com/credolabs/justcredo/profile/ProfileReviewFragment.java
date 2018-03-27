@@ -3,6 +3,7 @@ package com.credolabs.justcredo.profile;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -11,35 +12,37 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.dashboard.FeedListViewRecyclerAdapter;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.Review;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 public class ProfileReviewFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
-
+    private static final int LIMIT = 3;
     private String parent;
     private String userName;
-
     private RecyclerView reviewRecyclerView;
     private FeedListViewRecyclerAdapter adapter;
     private String uid;
+    private RelativeLayout loading_more;
+    private ArrayList<Review> reviewArrayList;
+    private Query next;
+    private boolean loading=false,isLastPage=false;
+    private ProgressBar progress;
+    private LinearLayoutManager mLayoutManager;
+    private LinearLayout not_found;
 
-    private OnFragmentInteractionListener mListener;
 
     public ProfileReviewFragment() {
 
@@ -66,16 +69,16 @@ public class ProfileReviewFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View view =  inflater.inflate(R.layout.fragment_profile_review, container, false);
         ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
-        final ProgressBar progress = (ProgressBar) view.findViewById(R.id.progress);
-        final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
-        final TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
-        final TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
+        progress = view.findViewById(R.id.progress);
+        not_found = view.findViewById(R.id.not_found);
+        final TextView not_found_text1 = view.findViewById(R.id.not_found_text1);
+        final TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
         if (parent.equals("other_user")){
             not_found_text1.setText(userName + " has not written any rating/review yet!");
             not_found_text2.setVisibility(View.GONE);
@@ -84,79 +87,119 @@ public class ProfileReviewFragment extends Fragment {
             not_found_text2.setText("Please explore places and share your experieces with them.");
         }
 
+        loading_more = view.findViewById(R.id.loading_more);
 
         not_found.setVisibility(View.GONE);
-        reviewRecyclerView = (RecyclerView) view.findViewById(R.id.review_list);
+        reviewRecyclerView = view.findViewById(R.id.review_list);
         reviewRecyclerView.setHasFixedSize(true);
-        reviewRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        reviewRecyclerView.setVisibility(View.GONE);
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        reviewRecyclerView.setLayoutManager(mLayoutManager);
         progress.setVisibility(View.VISIBLE);
-        final ArrayList<Review> reviewArrayList = new ArrayList<>();
+        reviewArrayList = new ArrayList<>();
         adapter = new FeedListViewRecyclerAdapter(getActivity(), reviewArrayList,"own_profile");
         reviewRecyclerView.setAdapter(adapter);
-        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("reviews");
-        mDatabaseReference.orderByChild("userID").equalTo(uid).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
-                    Review review = noteDataSnapshot.getValue(Review.class);
-                    reviewArrayList.add(review);
-                }
-
-                Collections.sort(reviewArrayList, new Comparator<Review>(){
-                    public int compare(Review o1, Review o2){
-                        return o2.getTimestamp().compareTo(o1.getTimestamp());
-                    }
-                });
-
-                if (reviewArrayList.size() > 0 & reviewRecyclerView != null) {
-                    reviewRecyclerView.setVisibility(View.VISIBLE);
-                    progress.setVisibility(View.GONE);
-                    adapter.notifyDataSetChanged();
-                }else{
-                    progress.setVisibility(View.GONE);
-                    not_found.setVisibility(View.VISIBLE);
-                }
-
-                }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
+        buildContent();
         return view;
     }
 
 
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
+    private void buildContent(){
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        Query first = db.collection(Review.DB_REVIEWS_REF)
+                .whereEqualTo(Review.USER_ID,uid)
+                .orderBy(Review.TIMESTAMP, Query.Direction.DESCENDING).limit(LIMIT);
+
+        first.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                reviewArrayList.clear();
+                for (DocumentSnapshot document : task.getResult()) {
+                    Review model = document.toObject(Review.class);
+                    reviewArrayList.add(model);
+                }
+
+                if (task.getResult() != null) {
+                    if (!(task.getResult().size() < 1)) {
+                        DocumentSnapshot lastVisible = task.getResult().getDocuments()
+                                .get(task.getResult().size() - 1);
+
+                        next = db.collection(Review.DB_REVIEWS_REF)
+                                .whereEqualTo(Review.USER_ID,uid)
+                                .orderBy(Review.TIMESTAMP, Query.Direction.DESCENDING)
+                                .startAfter(lastVisible)
+                                .limit(LIMIT);
+                    }
+                }
+                if (reviewArrayList.size() < LIMIT) {
+                    isLastPage = true;
+                }
+                progress.setVisibility(View.GONE);
+                if (reviewArrayList.size() > 0 & reviewRecyclerView != null) {
+                    not_found.setVisibility(View.GONE);
+                    adapter.notifyDataSetChanged();
+
+                } else {
+                    not_found.setVisibility(View.VISIBLE);
+                }
+            }else {
+                progress.setVisibility(View.GONE);
+                not_found.setVisibility(View.VISIBLE);
+            }
+        });
+
+
+        reviewRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                int lastvisibleitemposition = mLayoutManager.findLastVisibleItemPosition();
+
+                if (lastvisibleitemposition == adapter.getItemCount() - 1) {
+
+                    if (!loading && !isLastPage) {
+
+                        loading = true;
+                        loading_more.setVisibility(View.VISIBLE);
+                        ArrayList<Review> newLoaded = new ArrayList<>();
+                        next.get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                int count = 0;
+                                for (DocumentSnapshot document : task.getResult()) {
+                                    Review model = document.toObject(Review.class);
+                                    newLoaded.add(model);
+                                    count++;
+                                }
+                                if (count<LIMIT){
+                                    isLastPage = true;
+                                }
+                                if (task.getResult()!=null) {
+                                    if (!(task.getResult().size() < 1)) {
+                                        DocumentSnapshot lastVisible = task.getResult().getDocuments()
+                                                .get(task.getResult().size() - 1);
+
+                                        next = db.collection(Review.DB_REVIEWS_REF)
+                                                .whereEqualTo(Review.USER_ID,uid)
+                                                .orderBy(Review.TIMESTAMP, Query.Direction.DESCENDING)
+                                                .startAfter(lastVisible)
+                                                .limit(LIMIT);
+                                    }
+                                }
+
+                                if (!newLoaded.isEmpty()) {
+                                    reviewArrayList.addAll(newLoaded);
+                                    adapter.notifyDataSetChanged();
+                                }
+                            }
+                            loading_more.setVisibility(View.GONE);
+                            loading =false;
+                        });
+                    }
+                }
+            }
+        });
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
-    }
 
     @Override
     public void onResume() {

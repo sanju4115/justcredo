@@ -1,26 +1,49 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.credolabs.justcredo.dashboard.FeedFragment">
-
-    <android.support.v7.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/review_list"/>
 
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progress"
+        android:id="@+id/progress_more"
         android:layout_gravity="center"
+        android:layout_marginTop="10dp"
         android:indeterminate="true"
-        style="?android:attr/progressBarStyleLarge"
+        android:visibility="gone"
+        style="?android:attr/progressBarStyleSmall"
         />
 
-    <include layout="@layout/search_not_found" />
+    <include layout="@layout/load_more" />
 
-    <include layout="@layout/progress_layout" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
 
-</FrameLayout>
+        <android.support.v7.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/review_list"/>
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progress"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            style="?android:attr/progressBarStyleLarge"
+            />
+
+        <include layout="@layout/search_not_found" />
+
+        <include layout="@layout/progress_layout" />
+
+
+    </FrameLayout>
+
+</LinearLayout>
+
+

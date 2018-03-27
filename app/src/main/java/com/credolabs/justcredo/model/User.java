@@ -29,6 +29,8 @@ public class User {
     private HashMap<String,String> address;
     public static final String DB_REF = "users";
 
+    public static final String UID = "uid";
+
     public User() {
     }
 

@@ -2,6 +2,7 @@ package com.credolabs.justcredo.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,8 +23,7 @@ import java.util.Map;
  * Created by Sanjay kumar on 4/1/2017.
  */
 
-public class ObjectListViewRecyclerAdapter extends
-        RecyclerView.Adapter<ObjectListViewHolder> {// Recyclerview will extend to
+public class ObjectListViewRecyclerAdapter extends RecyclerView.Adapter<ObjectListViewHolder> {// Recyclerview will extend to
     // recyclerview adapter
     private ArrayList<School> arrayList;
     private Context context;
@@ -121,8 +121,9 @@ public class ObjectListViewRecyclerAdapter extends
 
     }
 
+    @NonNull
     @Override
-    public ObjectListViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+    public ObjectListViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
 
         // This method will inflate the custom layout and return as viewholder
         LayoutInflater mInflater = LayoutInflater.from(viewGroup.getContext());

@@ -1,10 +1,8 @@
 package com.credolabs.justcredo.dashboard;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -17,6 +15,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.ReviewDetailsActivity;
+import com.credolabs.justcredo.model.Comment;
 import com.credolabs.justcredo.model.DbConstants;
 import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.School;
@@ -26,17 +25,11 @@ import com.credolabs.justcredo.school.SchoolDetailActivity;
 import com.credolabs.justcredo.utility.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+
 
 /**
  * Created by Sanjay kumar on 10/1/2017.
@@ -118,13 +111,8 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
     }
 
     public void setLikeCommentLayout(String reviewKey){
-        commentCollectionReference.document(reviewKey).addSnapshotListener((documentSnapshot, e) -> {
-            if (documentSnapshot.exists()){
-                comment_count.setText(String.valueOf(documentSnapshot.getData().size()));
-            }else {
-                comment_count.setText("0");
-            }
-        });
+        commentCollectionReference.whereEqualTo(Comment.DB_REVIEW_ID, reviewKey).
+                addSnapshotListener((documentSnapshot, e) -> comment_count.setText(String.valueOf(documentSnapshot.getDocuments().size())));
 
         likeCollectionRefernce.document(reviewKey).addSnapshotListener((documentSnapshot, e) -> {
             if (documentSnapshot.exists()){
@@ -199,8 +187,8 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
         image2.setVisibility(View.GONE);
         image3.setVisibility(View.GONE);
         image4.setVisibility(View.GONE);
-        if (model.getImages()!=null){
-            final ArrayList<String> images = new ArrayList<String>(model.getImages().values());
+        if (model.getImagesList()!=null){
+            final ArrayList<String> images = model.getImagesList();
             LinearLayout feeSection = mView.findViewById(R.id.images_layout);
             feeSection.setVisibility(View.VISIBLE);
             if (images.size()==0){

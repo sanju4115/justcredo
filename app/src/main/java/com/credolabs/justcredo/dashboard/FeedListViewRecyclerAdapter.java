@@ -3,6 +3,7 @@ package com.credolabs.justcredo.dashboard;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
@@ -79,8 +80,9 @@ public class FeedListViewRecyclerAdapter extends RecyclerView.Adapter<FeedViewHo
     }
 
 
+    @NonNull
     @Override
-    public FeedViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+    public FeedViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
         LayoutInflater mInflater = LayoutInflater.from(viewGroup.getContext());
 
         ViewGroup mainGroup = (ViewGroup) mInflater.inflate(
@@ -89,7 +91,7 @@ public class FeedListViewRecyclerAdapter extends RecyclerView.Adapter<FeedViewHo
     }
 
     @Override
-    public void onBindViewHolder(final FeedViewHolder viewHolder, int position) {
+    public void onBindViewHolder(@NonNull final FeedViewHolder viewHolder, int position) {
         final Review model = arrayList.get(position);
         final String reviewKey = model.getId();
 
@@ -104,9 +106,7 @@ public class FeedListViewRecyclerAdapter extends RecyclerView.Adapter<FeedViewHo
         }
 
 
-        if (model!=null){
-            viewHolder.setHeader(reviewKey, context, model);
-        }
+        viewHolder.setHeader(reviewKey, context, model);
 
         if (parent.equals("blogs")){
             viewHolder.setHeadingBlog(model.getHeading());
