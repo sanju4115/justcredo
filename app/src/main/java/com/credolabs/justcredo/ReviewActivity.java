@@ -68,7 +68,7 @@ public class ReviewActivity extends AppCompatActivity implements SmileRating.OnS
         setContentView(R.layout.activity_review);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar()!=null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_action_close);
         String name = getIntent().getStringExtra(School.NAME);

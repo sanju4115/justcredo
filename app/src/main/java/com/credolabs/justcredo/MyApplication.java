@@ -19,8 +19,6 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.credolabs.justcredo.internet.ConnectivityReceiver;
 import com.credolabs.justcredo.utility.VolleySingleton;
-import com.facebook.FacebookSdk;
-import com.firebase.client.Firebase;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -39,6 +37,8 @@ public class MyApplication extends MultiDexApplication{
     private RequestQueue mRequestQueue;
     private ImageLoader mImageLoader;
 
+    private static Context applicationContext;
+
     public static synchronized MyApplication getInstance() {
         return mInstance;
     }
@@ -50,11 +50,10 @@ public class MyApplication extends MultiDexApplication{
         instantiateVolleyQueue();
         mImageLoader= VolleySingleton.getInstance(mInstance).getImageLoader();
         printHashKey();
-        //FacebookSdk.sdkInitialize(getApplicationContext());
 
-        if (!FirebaseApp.getApps(this).isEmpty()){
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-        }
+        applicationContext = getApplicationContext();
+
+
 
     }
 
@@ -120,6 +119,10 @@ public class MyApplication extends MultiDexApplication{
         } catch (NoSuchAlgorithmException e) {
 
         }
+    }
+
+    public static Context getAppContext(){
+        return applicationContext;
     }
 
 }

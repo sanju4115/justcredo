@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
@@ -13,12 +14,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.R;
-import com.credolabs.justcredo.adapters.FacilitiesAdapter;
 import com.credolabs.justcredo.adapters.TextViewAdapter;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.School;
@@ -77,24 +75,23 @@ public class SchoolFacilitiesFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_school_facilities, container, false);
+        if(getActivity() !=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
-        final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
-        final TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
-        final TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
+        final LinearLayout not_found = view.findViewById(R.id.not_found);
+        final TextView not_found_text1 = view.findViewById(R.id.not_found_text1);
+        final TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
 
         not_found_text1.setText("No facility added yet !");
         not_found_text2.setVisibility(View.GONE);
 
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-
         // Facilites section
-        progress = (ProgressBar)view.findViewById(R.id.progress);
+        progress = view.findViewById(R.id.progress);
 
-        specialFacilities_section = (LinearLayout) view.findViewById(R.id.specialFacilities_section);
-        ExpandableHeightGridView linear_layout_specialFacilities = (ExpandableHeightGridView) view.findViewById(R.id.linear_layout_specialFacilities);
+        specialFacilities_section = view.findViewById(R.id.specialFacilities_section);
+        ExpandableHeightGridView linear_layout_specialFacilities = view.findViewById(R.id.linear_layout_specialFacilities);
         if (model.getSpecialFacilities()!=null){
             not_found.setVisibility(View.GONE);
             ArrayList<String> classList = new ArrayList<>(model.getSpecialFacilities().values());
@@ -104,8 +101,8 @@ public class SchoolFacilitiesFragment extends Fragment {
             specialFacilities_section.setVisibility(View.GONE);
         }
 
-        facilities_section = (LinearLayout) view.findViewById(R.id.facilities_section);
-        ExpandableHeightGridView expandableHeightGridView = (ExpandableHeightGridView) view.findViewById(R.id.linear_layout_facilities);
+        facilities_section = view.findViewById(R.id.facilities_section);
+        ExpandableHeightGridView expandableHeightGridView = view.findViewById(R.id.linear_layout_facilities);
         if (model.getFacilities()!=null){
             not_found.setVisibility(View.GONE);
             ArrayList<String> classList = new ArrayList<>(model.getFacilities().values());
@@ -115,8 +112,8 @@ public class SchoolFacilitiesFragment extends Fragment {
             facilities_section.setVisibility(View.GONE);
         }
 
-        curricular_section = (LinearLayout) view.findViewById(R.id.curricular_section);
-        ExpandableHeightGridView linear_layout_curriculumn = (ExpandableHeightGridView) view.findViewById(R.id.linear_layout_curriculumn);
+        curricular_section = view.findViewById(R.id.curricular_section);
+        ExpandableHeightGridView linear_layout_curriculumn = view.findViewById(R.id.linear_layout_curriculumn);
         if (model.getExtracurricular()!=null){
             not_found.setVisibility(View.GONE);
             ArrayList<String> classList = new ArrayList<>(model.getExtracurricular().values());
@@ -127,183 +124,143 @@ public class SchoolFacilitiesFragment extends Fragment {
         }
 
         if (Util.checkSchoolAdmin(model)) { // edit section only for admin
-            fragContainer = (LinearLayout) view.findViewById(R.id.container);
+            fragContainer = view.findViewById(R.id.container);
 
-            save_cancel_facilities = (LinearLayout) view.findViewById(R.id.save_cancel);
-            edit_facilities_section = (LinearLayout) view.findViewById(R.id.edit_facilities_section);
-            Button cancel_facilities = (Button) view.findViewById(R.id.cancel_facilities);
-            edit_facilities = (Button) view.findViewById(R.id.edit_facilities);
-            Button save_facilities = (Button) view.findViewById(R.id.save_facilities);
+            save_cancel_facilities = view.findViewById(R.id.save_cancel);
+            edit_facilities_section = view.findViewById(R.id.edit_facilities_section);
+            Button cancel_facilities = view.findViewById(R.id.cancel_facilities);
+            edit_facilities = view.findViewById(R.id.edit_facilities);
+            Button save_facilities = view.findViewById(R.id.save_facilities);
 
-            save_cancel_extra = (LinearLayout) view.findViewById(R.id.save_cancel_extra);
-            edit_extra_section = (LinearLayout) view.findViewById(R.id.edit_extra_section);
-            Button cancel_extra = (Button) view.findViewById(R.id.cancel_extra);
-            edit_extra = (Button) view.findViewById(R.id.edit_extra);
-            Button save_extra = (Button) view.findViewById(R.id.save_extra);
+            save_cancel_extra = view.findViewById(R.id.save_cancel_extra);
+            edit_extra_section = view.findViewById(R.id.edit_extra_section);
+            Button cancel_extra = view.findViewById(R.id.cancel_extra);
+            edit_extra = view.findViewById(R.id.edit_extra);
+            Button save_extra = view.findViewById(R.id.save_extra);
             edit_facilities_section.setVisibility(View.VISIBLE);
             edit_extra_section.setVisibility(View.VISIBLE);
             final PlaceFacilitiesFragment placeFacilitiesFragment = PlaceFacilitiesFragment.newInstance(
                     PlaceTypes.Action.EDIT.getValue(), model);
-            edit_facilities.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    progress.setVisibility(View.VISIBLE);
-                    not_found.setVisibility(View.GONE);
-                    FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-                    transaction.replace(R.id.container, placeFacilitiesFragment);
-                    transaction.addToBackStack(null);
-                    transaction.commit();
-                    hideContent();
-                    fragContainer.setVisibility(View.VISIBLE);
-                    edit_facilities.setVisibility(View.GONE);
-                    save_cancel_facilities.setVisibility(View.VISIBLE);
-                    edit_extra_section.setVisibility(View.GONE);
-                    progress.setVisibility(View.GONE);
-                }
+            edit_facilities.setOnClickListener(v -> {
+                progress.setVisibility(View.VISIBLE);
+                not_found.setVisibility(View.GONE);
+                FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+                transaction.replace(R.id.container, placeFacilitiesFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                hideContent();
+                fragContainer.setVisibility(View.VISIBLE);
+                edit_facilities.setVisibility(View.GONE);
+                save_cancel_facilities.setVisibility(View.VISIBLE);
+                edit_extra_section.setVisibility(View.GONE);
+                progress.setVisibility(View.GONE);
             });
 
-            cancel_facilities.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    fragContainer.setVisibility(View.GONE);
-                    edit_facilities.setVisibility(View.VISIBLE);
-                    save_cancel_facilities.setVisibility(View.GONE);
-                    edit_extra_section.setVisibility(View.VISIBLE);
-                    visibleContent();
-                }
+            cancel_facilities.setOnClickListener(v -> {
+                fragContainer.setVisibility(View.GONE);
+                edit_facilities.setVisibility(View.VISIBLE);
+                save_cancel_facilities.setVisibility(View.GONE);
+                edit_extra_section.setVisibility(View.VISIBLE);
+                visibleContent();
             });
 
-            save_facilities.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                    alertDialogBuilder.setMessage("Do you want to update facilities ?");
-                    alertDialogBuilder.setPositiveButton("Yes",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface arg0, int arg1) {
-                                    progress.setVisibility(View.VISIBLE);
-                                    HashMap<String, HashMap<String, String>> map = placeFacilitiesFragment.getFragmentState();
-                                    DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
+            save_facilities.setOnClickListener(v -> {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                alertDialogBuilder.setMessage("Do you want to update facilities ?");
+                alertDialogBuilder.setPositiveButton("Yes",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface arg0, int arg1) {
+                                progress.setVisibility(View.VISIBLE);
+                                HashMap<String, HashMap<String, String>> map = placeFacilitiesFragment.getFragmentState();
+                                DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
 
-                                    mDatabaseReference.child(model.getId()).child(School.FACILITIES).setValue(map.get(School.FACILITIES));
-                                    mDatabaseReference.child(model.getId()).child(School.SPECIAL_FACILITIES).setValue(map.get(School.SPECIAL_FACILITIES));
-                                    fragContainer.setVisibility(View.GONE);
-                                    edit_facilities.setVisibility(View.VISIBLE);
-                                    save_cancel_facilities.setVisibility(View.GONE);
-                                    edit_extra_section.setVisibility(View.VISIBLE);
-                                    visibleContent();
-                                    progress.setVisibility(View.GONE);
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(
-                                            getActivity());
-                                    builder.setCancelable(true);
-                                    builder.setMessage("Congrats, facilities updated successfully ! You can write blog and upload photos so that users" +
-                                            " can know about this.");
-                                    builder.setPositiveButton("Ok",
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog,
-                                                                    int which) {
-                                                    dialog.dismiss();
-                                                }
-                                            });
-                                    AlertDialog alert = builder.create();
-                                    alert.show();
-                                }
-                            });
+                                mDatabaseReference.child(model.getId()).child(School.FACILITIES).setValue(map.get(School.FACILITIES));
+                                mDatabaseReference.child(model.getId()).child(School.SPECIAL_FACILITIES).setValue(map.get(School.SPECIAL_FACILITIES));
+                                fragContainer.setVisibility(View.GONE);
+                                edit_facilities.setVisibility(View.VISIBLE);
+                                save_cancel_facilities.setVisibility(View.GONE);
+                                edit_extra_section.setVisibility(View.VISIBLE);
+                                visibleContent();
+                                progress.setVisibility(View.GONE);
+                                AlertDialog.Builder builder = new AlertDialog.Builder(
+                                        getActivity());
+                                builder.setCancelable(true);
+                                builder.setMessage("Congrats, facilities updated successfully ! You can write blog and upload photos so that users" +
+                                        " can know about this.");
+                                builder.setPositiveButton("Ok",
+                                        (dialog, which) -> dialog.dismiss());
+                                AlertDialog alert = builder.create();
+                                alert.show();
+                            }
+                        });
 
-                    alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
+                alertDialogBuilder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
-                    alertDialogBuilder.create();
-                    alertDialogBuilder.show();
+                alertDialogBuilder.create();
+                alertDialogBuilder.show();
 
-                }
             });
 
             final PlaceExtraFragment placeExtraFragment = PlaceExtraFragment.newInstance(PlaceTypes.Action.EDIT.getValue(), model);
-            edit_extra.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    progress.setVisibility(View.VISIBLE);
-                    not_found.setVisibility(View.GONE);
-                    FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-                    transaction.replace(R.id.container, placeExtraFragment);
-                    transaction.addToBackStack(null);
-                    transaction.commit();
-                    hideContent();
-                    fragContainer.setVisibility(View.VISIBLE);
-                    edit_extra.setVisibility(View.GONE);
-                    save_cancel_extra.setVisibility(View.VISIBLE);
-                    edit_facilities_section.setVisibility(View.GONE);
-                    progress.setVisibility(View.GONE);
-                }
+            edit_extra.setOnClickListener(v -> {
+                progress.setVisibility(View.VISIBLE);
+                not_found.setVisibility(View.GONE);
+                FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+                transaction.replace(R.id.container, placeExtraFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                hideContent();
+                fragContainer.setVisibility(View.VISIBLE);
+                edit_extra.setVisibility(View.GONE);
+                save_cancel_extra.setVisibility(View.VISIBLE);
+                edit_facilities_section.setVisibility(View.GONE);
+                progress.setVisibility(View.GONE);
             });
 
-            cancel_extra.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    fragContainer.setVisibility(View.GONE);
-                    edit_extra.setVisibility(View.VISIBLE);
-                    save_cancel_extra.setVisibility(View.GONE);
-                    edit_facilities_section.setVisibility(View.VISIBLE);
-                    visibleContent();
-                }
+            cancel_extra.setOnClickListener(v -> {
+                fragContainer.setVisibility(View.GONE);
+                edit_extra.setVisibility(View.VISIBLE);
+                save_cancel_extra.setVisibility(View.GONE);
+                edit_facilities_section.setVisibility(View.VISIBLE);
+                visibleContent();
             });
 
-            save_extra.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                    alertDialogBuilder.setMessage("Do you want to update facilities ?");
-                    alertDialogBuilder.setPositiveButton("Yes",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface arg0, int arg1) {
-                                    progress.setVisibility(View.VISIBLE);
-                                    HashMap<String, String> map = placeExtraFragment.getFragmentState();
-                                    DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
+            save_extra.setOnClickListener(v -> {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                alertDialogBuilder.setMessage("Do you want to update facilities ?");
+                alertDialogBuilder.setPositiveButton("Yes",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface arg0, int arg1) {
+                                progress.setVisibility(View.VISIBLE);
+                                HashMap<String, String> map = placeExtraFragment.getFragmentState();
+                                DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
 
-                                    mDatabaseReference.child(model.getId()).child(School.EXTRACURRICULAR).setValue(map);
-                                    fragContainer.setVisibility(View.GONE);
-                                    edit_extra.setVisibility(View.VISIBLE);
-                                    save_cancel_extra.setVisibility(View.GONE);
-                                    edit_facilities_section.setVisibility(View.VISIBLE);
-                                    visibleContent();
-                                    progress.setVisibility(View.GONE);
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(
-                                            getActivity());
-                                    builder.setCancelable(true);
-                                    builder.setMessage("Congrats, extracurricular activities updated successfully ! You can write blog and upload photos so that users" +
-                                            " can know about this.");
-                                    builder.setPositiveButton("Ok",
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog,
-                                                                    int which) {
-                                                    dialog.dismiss();
-                                                }
-                                            });
-                                    AlertDialog alert = builder.create();
-                                    alert.show();
-                                }
-                            });
+                                mDatabaseReference.child(model.getId()).child(School.EXTRACURRICULAR).setValue(map);
+                                fragContainer.setVisibility(View.GONE);
+                                edit_extra.setVisibility(View.VISIBLE);
+                                save_cancel_extra.setVisibility(View.GONE);
+                                edit_facilities_section.setVisibility(View.VISIBLE);
+                                visibleContent();
+                                progress.setVisibility(View.GONE);
+                                AlertDialog.Builder builder = new AlertDialog.Builder(
+                                        getActivity());
+                                builder.setCancelable(true);
+                                builder.setMessage("Congrats, extracurricular activities updated successfully ! You can write blog and upload photos so that users" +
+                                        " can know about this.");
+                                builder.setPositiveButton("Ok",
+                                        (dialog, which) -> dialog.dismiss());
+                                AlertDialog alert = builder.create();
+                                alert.show();
+                            }
+                        });
 
-                    alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
+                alertDialogBuilder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
-                    alertDialogBuilder.create();
-                    alertDialogBuilder.show();
+                alertDialogBuilder.create();
+                alertDialogBuilder.show();
 
-                }
             });
         }
 
@@ -341,7 +298,7 @@ public class SchoolFacilitiesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if(getActivity() !=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 
     private void hideContent(){

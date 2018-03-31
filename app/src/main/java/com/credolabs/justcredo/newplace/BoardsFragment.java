@@ -3,6 +3,7 @@ package com.credolabs.justcredo.newplace;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,11 +63,11 @@ public class BoardsFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_boards, container, false);
 
-        boardsGridView = (GridView) view.findViewById(R.id.boards);
+        boardsGridView = view.findViewById(R.id.boards);
         CheckBoxAdapter boardCheckBoxAdapter;
         if (action != null && action.equals(PlaceTypes.Action.EDIT_BACKUP.getValue())){
             boardCheckBoxAdapter = new CheckBoxAdapter(getActivity(), PlaceUtil.getBoardTypeList(),action,model);
@@ -76,7 +77,7 @@ public class BoardsFragment extends Fragment {
         }
         boardsGridView.setAdapter(boardCheckBoxAdapter);
 
-        classesGridView = (GridView) view.findViewById(R.id.classes);
+        classesGridView = view.findViewById(R.id.classes);
         CheckBoxAdapter classesCheckBoxAdapter;
         if (action != null && action.equals(PlaceTypes.Action.EDIT_BACKUP.getValue())){
             classesCheckBoxAdapter = new CheckBoxAdapter(getActivity(), PlaceUtil.getClassesTypeList(),action,model);
@@ -96,14 +97,14 @@ public class BoardsFragment extends Fragment {
         classes.clear();
         for (int i = 0; i < count; i++) {
             LinearLayout itemLayout = (LinearLayout)boardsGridView.getChildAt(i); // Find by under LinearLayout
-            CheckBox checkbox = (CheckBox)itemLayout.findViewById(R.id.grid_item_checkbox);
+            CheckBox checkbox = itemLayout.findViewById(R.id.grid_item_checkbox);
             boardCheckBoxes.add(checkbox);
         }
 
         count = classesGridView.getAdapter().getCount();
         for (int i = 0; i < count; i++) {
             LinearLayout itemLayout = (LinearLayout)classesGridView.getChildAt(i);
-            CheckBox checkbox = (CheckBox)itemLayout.findViewById(R.id.grid_item_checkbox);
+            CheckBox checkbox = itemLayout.findViewById(R.id.grid_item_checkbox);
             classesCheckBoxes.add(checkbox);
         }
 

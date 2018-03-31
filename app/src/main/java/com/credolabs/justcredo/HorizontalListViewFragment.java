@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.adapters.HorizontalViewAdapter;
+import com.credolabs.justcredo.enums.PageTypes;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.newplace.PlaceTypes;
 import com.credolabs.justcredo.search.Filtering;
@@ -104,7 +105,7 @@ public class HorizontalListViewFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
         final RelativeLayout top_section = (RelativeLayout) view.findViewById(R.id.top_section);
         TextView top_results_text = (TextView) view.findViewById(R.id.top_results_text);
-        if (page !=null && page.equals(PlaceTypes.PageTypes.DETAIL_PAGE.getValue())){
+        if (page !=null && page.equals(PageTypes.DETAIL_PAGE.getValue())){
             top_results_text.setText("People who saw this also saw");
         }else if (page !=null ){
             top_results_text.setText(page);

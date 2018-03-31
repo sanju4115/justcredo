@@ -13,7 +13,9 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ServerTimestamp;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +24,7 @@ import java.util.Map;
  * Created by Sanjay kumar on 4/28/2017.
  */
 
-public class User {
+public class User implements Serializable{
     private String email,profilePic,name,coverPic,description,mobile,uid,gender;
     private ArrayList<String> following,follower;
     private ArrayList<Review> post;
@@ -30,6 +32,11 @@ public class User {
     public static final String DB_REF = "users";
 
     public static final String UID = "uid";
+    public static final String OTHER_USER = "other_user";
+    public static final String NAME = "name";
+    public static final String EMAIL = "email";
+    public static final String PROFILE_PIC = "profilePic";
+
 
     public User() {
     }

@@ -76,7 +76,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchViewHolder> {
             @Override
             public void OnItemClick(View view, int position) {
                 Intent intent = new Intent(context,SchoolDetailActivity.class);
-                intent.putExtra("SchoolDetail",modelArrayList.get(position).getId());
+                intent.putExtra(School.ID,modelArrayList.get(position).getId());
                 context.startActivity(intent);
                 //context.overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
             }

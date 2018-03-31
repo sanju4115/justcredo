@@ -16,7 +16,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
             <RelativeLayout
@@ -27,12 +27,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:textColor="@color/colorIcons"
-                    android:text="Review"
+                    android:text="@string/reviews"
                     android:gravity="center"
                     android:id="@+id/name_review"
                     />
-
-
 
             </RelativeLayout>
 

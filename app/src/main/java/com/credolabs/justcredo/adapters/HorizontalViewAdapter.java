@@ -98,7 +98,7 @@ public class HorizontalViewAdapter extends RecyclerView.Adapter<HorizontalViewHo
             @Override
             public void OnItemClick(View view, int position) {
                 Intent intent = new Intent(context,SchoolDetailActivity.class);
-                intent.putExtra("SchoolDetail",list.get(position).getId());
+                intent.putExtra(School.ID,list.get(position).getId());
                 context.startActivity(intent);
                 //context.overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
             }

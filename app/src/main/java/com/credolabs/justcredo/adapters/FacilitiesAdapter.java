@@ -1,6 +1,5 @@
 package com.credolabs.justcredo.adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +8,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.R;
 
 import java.util.ArrayList;

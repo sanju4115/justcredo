@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.credolabs.justcredo.R;
+import com.credolabs.justcredo.enums.PageTypes;
 import com.credolabs.justcredo.model.DbConstants;
 import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.User;
@@ -85,8 +86,7 @@ public class FeedListViewRecyclerAdapter extends RecyclerView.Adapter<FeedViewHo
     public FeedViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
         LayoutInflater mInflater = LayoutInflater.from(viewGroup.getContext());
 
-        ViewGroup mainGroup = (ViewGroup) mInflater.inflate(
-                R.layout.feed_list_entry, viewGroup, false);
+        ViewGroup mainGroup = (ViewGroup) mInflater.inflate(R.layout.feed_list_entry, viewGroup, false);
         return new FeedViewHolder(mainGroup,parent,context);
     }
 
@@ -95,20 +95,24 @@ public class FeedListViewRecyclerAdapter extends RecyclerView.Adapter<FeedViewHo
         final Review model = arrayList.get(position);
         final String reviewKey = model.getId();
 
-        if (parent.trim().equalsIgnoreCase("own_profile") || parent.trim().equalsIgnoreCase("blogs")){
+        if (parent.trim().equalsIgnoreCase(PageTypes.READ_REVIEW_PAGE.getValue())){
+            viewHolder.header.setVisibility(View.GONE);
+        } else if (parent.trim().equalsIgnoreCase(PageTypes.OWN_PROFILE_PAGE.getValue()) || parent.trim().equalsIgnoreCase(Review.DB_BLOG_REF)){
             viewHolder.complete_profile_layout.setVisibility(View.GONE);
         }else if (!uid.equals(model.getUserID())){
             viewHolder.complete_profile_layout.setOnClickListener(v -> {
                 Intent intent = new Intent(context,UserActivity.class);
-                intent.putExtra("uid",model.getUserID());
+                intent.putExtra(User.UID,model.getUserID());
                 context.startActivity(intent);
             });
+        }else if (uid.equals(model.getUserID())){
+            viewHolder.complete_profile_layout.setClickable(false);
         }
 
 
         viewHolder.setHeader(reviewKey, context, model);
 
-        if (parent.equals("blogs")){
+        if (parent.equals(Review.DB_BLOG_REF)){
             viewHolder.setHeadingBlog(model.getHeading());
         }else {
             viewHolder.setRatingLayout(model.getRating());

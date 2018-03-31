@@ -109,7 +109,7 @@ public class FilterFragment extends Fragment {
             }else if (category !=null && ( category.equals(School.SPORTS_SCHOOL)||
                     category.equals(School.COACHING_CLASS_SCHOOL)||
                     category.equals(School.ART_SCHOOL)||
-                    category.equals(School.PRIVATE_TUTOR_SCHOOL))) {
+                    category.equals(School.PRIVATE_TUTOR_SCHOOL) || category.equals(School.MUSIC_SCHOOL))) {
                 String dbRef = "";
                 switch (category) {
                     case School.SPORTS_SCHOOL:
@@ -173,11 +173,6 @@ public class FilterFragment extends Fragment {
             buildSection(view);
         }
 
-        Button apply = view.findViewById(R.id.filter_apply);
-        Button clear = view.findViewById(R.id.filter_clear);
-        apply.setOnClickListener(v -> applyFilter());
-        clear.setOnClickListener(v -> clearFilter());
-
         return view;
     }
 
@@ -202,9 +197,13 @@ public class FilterFragment extends Fragment {
 
 
     private void buildSection(View view){
-        filterListView = (ListView) view.findViewById(R.id.filter_list);
+        Button apply = view.findViewById(R.id.filter_apply);
+        Button clear = view.findViewById(R.id.filter_clear);
+        apply.setOnClickListener(v -> applyFilter());
+        clear.setOnClickListener(v -> clearFilter());
+        filterListView = view.findViewById(R.id.filter_list);
         filterListView.setAdapter(new ArrayAdapter<>(getActivity(),R.layout.filter_item,filtersList));
-        checkboxListView = (ListView) view.findViewById(R.id.checkbox_list_view);
+        checkboxListView = view.findViewById(R.id.checkbox_list_view);
         displayListView(filterMap.get(filtersList.get(0)),getActivity());// setting default checkbox list
         filterListView.setSelection(0); // setting default selected filter
         int defaultPositon = 0;
@@ -217,13 +216,10 @@ public class FilterFragment extends Fragment {
         progress.setVisibility(View.GONE);
         filterListView.setVisibility(View.VISIBLE);
         checkboxListView.setVisibility(View.VISIBLE);
-        filterListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                view.setSelected(true);
-                displayListView(filterMap.get(filtersList.get(position)),getActivity());
+        filterListView.setOnItemClickListener((parent, view1, position, id) -> {
+            view1.setSelected(true);
+            displayListView(filterMap.get(filtersList.get(position)),getActivity());
 
-            }
         });
     }
 

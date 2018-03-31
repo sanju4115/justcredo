@@ -39,4 +39,6 @@ public final class Constants {
     //types of reviews
     public static final String BLOG_TYPE = "blogs";
     public static final String REVIEW_TYPE = "review_type";
+
+    public static final String COUNTRY_INDIA = "IN";
 }

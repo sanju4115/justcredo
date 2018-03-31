@@ -3,21 +3,19 @@ package com.credolabs.justcredo.school;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.widget.NestedScrollView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.utility.Util;
-import com.credolabs.justcredo.utility.WorkaroundMapFragment;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -69,16 +67,16 @@ public class SchoolAddressFragment extends Fragment implements OnMapReadyCallbac
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_school_address, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if(getActivity() !=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
         //Address section
-        TextView schoolAddressSecton = (TextView) view.findViewById(R.id.school_address_locality);
+        TextView schoolAddressSecton = view.findViewById(R.id.school_address_locality);
         schoolAddressSecton.setText(Util.getAddress(model.getAddress()));
 
         MapsInitializer.initialize(this.getActivity());
-        mMapView = (MapView) view.findViewById(R.id.map);
+        mMapView = view.findViewById(R.id.map);
         mMapView.onCreate(savedInstanceState);
         mMapView.getMapAsync(this);
         return view;
@@ -161,7 +159,7 @@ public class SchoolAddressFragment extends Fragment implements OnMapReadyCallbac
     public void onResume() {
         super.onResume();
         mMapView.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if(getActivity() !=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
     }
     @Override

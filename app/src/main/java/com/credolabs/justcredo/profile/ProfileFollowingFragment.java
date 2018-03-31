@@ -3,6 +3,7 @@ package com.credolabs.justcredo.profile;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,9 +18,11 @@ import android.widget.TextView;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.DbConstants;
+import com.credolabs.justcredo.model.User;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class ProfileFollowingFragment extends Fragment {
@@ -56,10 +59,10 @@ public class ProfileFollowingFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_profile_following, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
         final ProgressBar progressBar = view.findViewById(R.id.progress);
         final LinearLayout not_found =  view.findViewById(R.id.not_found);
         TextView not_found_text1 =  view.findViewById(R.id.not_found_text1);
@@ -67,12 +70,12 @@ public class ProfileFollowingFragment extends Fragment {
 
 
 
-        if (parent.equals("other_user")){
-            not_found_text1.setText(userName + " is not following anyone.");
+        if (parent.equals(User.OTHER_USER)){
+            not_found_text1.setText(String.format(getString(R.string.not_following_msg_other_user), userName));
             not_found_text2.setVisibility(View.GONE);
         }else {
-            not_found_text1.setText("It seems you are following no one.");
-            not_found_text2.setText("Explore places and share your experience so that people can know you.");
+            not_found_text1.setText(R.string.not_following_msg);
+            not_found_text2.setText(R.string.explore_msg_following);
         }
 
         final RecyclerView searched_items = view.findViewById(R.id.follower_items);
@@ -93,7 +96,7 @@ public class ProfileFollowingFragment extends Fragment {
         FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_FOLLOWING).document(uid).addSnapshotListener((documentSnapshot, e) -> {
             progressBar.setVisibility(View.GONE);
             usersList.clear();
-            usersList.addAll(new ArrayList<>(documentSnapshot.getData().keySet()));
+            usersList.addAll(documentSnapshot.getData()!=null ? new ArrayList<>(documentSnapshot.getData().keySet()): Collections.emptyList());
             if (usersList.size() > 0 ) {
                 searched_items.setVisibility(View.VISIBLE);
                 not_found.setVisibility(View.GONE);
@@ -113,6 +116,6 @@ public class ProfileFollowingFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 }

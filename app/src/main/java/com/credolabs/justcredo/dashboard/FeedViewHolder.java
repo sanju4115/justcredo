@@ -50,6 +50,7 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
     RelativeLayout complete_profile_layout;
     TextView like;
     AppCompatImageView follow;
+    CardView header;
 
 
     private CollectionReference likeCollectionRefernce;
@@ -67,6 +68,7 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
         like_count = mView.findViewById(R.id.like_count);
         comment_count = mView.findViewById(R.id.comment_count);
         bookmark = mView.findViewById(R.id.bookmark);
+        header = mView.findViewById(R.id.header);
         if (parent.equals(Review.DB_BLOG_REF)){
             likeCollectionRefernce = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_BLOG_LIKE);
             commentCollectionReference = FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_BLOG_Comment);
@@ -250,7 +252,7 @@ public class FeedViewHolder extends RecyclerView.ViewHolder{
                setBookmark(model.getId());
                header.setOnClickListener(v -> {
                    Intent intent = new Intent(activity,SchoolDetailActivity.class);
-                   intent.putExtra("SchoolDetail",model.getId());
+                   intent.putExtra(School.ID,model.getId());
                    activity.startActivity(intent);
                });
 

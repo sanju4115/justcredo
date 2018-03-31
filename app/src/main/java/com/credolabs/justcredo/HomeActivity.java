@@ -103,10 +103,8 @@ import java.util.concurrent.atomic.DoubleAdder;
 
 import static android.content.ContentValues.TAG;
 
-public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFragmentInteractionListener,CategoryFragment.OnFragmentInteractionListener,
-        ProfileFragment.OnFragmentInteractionListener, CategoryGridFragment.OnFragmentInteractionListener,
-        DashboardFragment.OnFragmentInteractionListener,BlogFragment.OnFragmentInteractionListener, NotificationsFragment.OnFragmentInteractionListener,
-        GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class HomeActivity extends AppCompatActivity implements CategoryFragment.OnFragmentInteractionListener, CategoryGridFragment.OnFragmentInteractionListener,
+        NotificationsFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private FragmentManager fragmentManager;
     private TextView locationOutput;
@@ -125,7 +123,7 @@ public class HomeActivity extends AppCompatActivity implements FeedFragment.OnFr
     private final CategoryFragment categoryFragment = new CategoryFragment();
     private final DashboardFragment dashboardFragment = new DashboardFragment();
     private final NotificationsFragment notificationsFragment = new NotificationsFragment();
-    private final ProfileFragment profileFragment = ProfileFragment.newInstance("","");
+    private final ProfileFragment profileFragment = ProfileFragment.newInstance("",null);
     private Fragment active = categoryFragment;
 
     @Override

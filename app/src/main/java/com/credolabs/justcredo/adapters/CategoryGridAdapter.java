@@ -72,7 +72,7 @@ public class CategoryGridAdapter extends RecyclerView.Adapter<CategoryGridAdapte
                     switch (view.getId()) {
                         case R.id.listLayout:
                             Intent intent = new Intent(mContext,SchoolDetailActivity.class);
-                            intent.putExtra("SchoolDetail",model.getId());
+                            intent.putExtra(School.ID,model.getId());
                             mContext.startActivity(intent);
                             break;
 

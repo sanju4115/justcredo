@@ -46,17 +46,18 @@ public class ProfileFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private String parent;
+    private User user;
     private String uid;
     private String userName;
 
 
     public ProfileFragment() {
     }
-    public static ProfileFragment newInstance(String parent, String uid) {
+    public static ProfileFragment newInstance(String parent, User uid) {
         ProfileFragment fragment = new ProfileFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, parent);
-        args.putString(ARG_PARAM2, uid);
+        args.putSerializable(ARG_PARAM2, uid);
         fragment.setArguments(args);
         return fragment;
     }
@@ -66,53 +67,50 @@ public class ProfileFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             parent = getArguments().getString(ARG_PARAM1);
-            uid = getArguments().getString(ARG_PARAM2);
+            user = (User) getArguments().getSerializable(ARG_PARAM2);
         }
     }
 
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, final ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_profile, container, false);
-        if (getActivity()!=null)
-            ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         final FirebaseUser currentUserUser = auth.getCurrentUser();
-        if (!parent.equals("other_user") && currentUserUser !=null){
+        if (!parent.equals(User.OTHER_USER) && currentUserUser !=null){
             uid = currentUserUser.getUid();
+        }else if (user!=null){
+            uid = user.getUid();
+            userName = user.getName();
         }
 
         TabLayout tabLayout = view.findViewById(R.id.profile_tablayout);
 
         ViewPager viewPager = view.findViewById(R.id.profile_viewPager);
         ViewPagerAdapter adapter = new ViewPagerAdapter(getChildFragmentManager());
-        if (!parent.equals("other_user")){ //for other user profile
-            adapter.addFragment(ProfileHomeFragment.newInstance("",""), "Menu"); //Menu
-            adapter.addFragment(ProfileReviewFragment.newInstance(uid,"",userName), "Post"); //Post
-            adapter.addFragment(ProfileBookmarksFragment.newInstance(uid,"",userName), "Bookmarks");//ProfileBookmarksFragment
-            adapter.addFragment(ProfileFollowerFragment.newInstance(uid,"",userName), "Followers");//Followers
-            adapter.addFragment(ProfileFollowingFragment.newInstance(uid,"",userName), "Following");//Following
-            adapter.addFragment(ProfilePlaceFragment.newInstance(uid,"",userName), "Places");//My Place
+        if (!parent.equals(User.OTHER_USER)){ //for other user profile
+            adapter.addFragment(ProfileHomeFragment.newInstance("",""), getString(R.string.menu));                 //Menu
+            adapter.addFragment(ProfileReviewFragment.newInstance(uid,"",userName), getString(R.string.post));          //Post
+            adapter.addFragment(ProfileBookmarksFragment.newInstance(uid,"",userName), getString(R.string.bookmarks));  //ProfileBookmarksFragment
+            adapter.addFragment(ProfileFollowerFragment.newInstance(uid,"",userName), getString(R.string.followers));   //Followers
+            adapter.addFragment(ProfileFollowingFragment.newInstance(uid,"",userName), getString(R.string.following));  //Following
+            adapter.addFragment(ProfilePlaceFragment.newInstance(uid,"",userName), getString(R.string.places));         //My Place
             viewPager.setAdapter(adapter);
             tabLayout.setupWithViewPager(viewPager);
 
         }else {//for my profile
-            adapter.addFragment(ProfileHomeFragment.newInstance(parent,uid), "Menu"); //Menu
-            adapter.addFragment(ProfileReviewFragment.newInstance(uid, parent, userName), "Post"); //Post
-            adapter.addFragment(ProfileBookmarksFragment.newInstance(uid, parent, userName), "Bookmarks");//ProfileBookmarksFragment
-            adapter.addFragment(ProfileFollowerFragment.newInstance(uid, parent, userName), "Followers");//Followers
-            adapter.addFragment(ProfileFollowingFragment.newInstance(uid, parent, userName), "Following");//Following
-            adapter.addFragment(ProfilePlaceFragment.newInstance(uid, parent, userName), "Places");//My Place
+            adapter.addFragment(ProfileHomeFragment.newInstance(parent,uid), getString(R.string.menu));                        //Menu
+            adapter.addFragment(ProfileReviewFragment.newInstance(uid, parent, userName), getString(R.string.post));           //Post
+            adapter.addFragment(ProfileBookmarksFragment.newInstance(uid, parent, userName), getString(R.string.bookmarks));   //ProfileBookmarksFragment
+            adapter.addFragment(ProfileFollowerFragment.newInstance(uid, parent, userName), getString(R.string.followers));    //Followers
+            adapter.addFragment(ProfileFollowingFragment.newInstance(uid, parent, userName), getString(R.string.following));   //Following
+            adapter.addFragment(ProfilePlaceFragment.newInstance(uid, parent, userName), getString(R.string.places));          //My Place
             viewPager.setAdapter(adapter);
             tabLayout.setupWithViewPager(viewPager);
         }
         return view;
-    }
-
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
     }
 
     @Override
@@ -123,14 +121,33 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

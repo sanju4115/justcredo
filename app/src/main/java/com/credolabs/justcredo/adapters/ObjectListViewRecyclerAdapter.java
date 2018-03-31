@@ -101,7 +101,7 @@ public class ObjectListViewRecyclerAdapter extends RecyclerView.Adapter<ObjectLi
                 switch (view.getId()) {
                     case R.id.list_layout:
                         Intent intent = new Intent(context,SchoolDetailActivity.class);
-                        intent.putExtra("SchoolDetail",arrayList.get(position).getId());
+                        intent.putExtra(School.ID,arrayList.get(position).getId());
                         context.startActivity(intent);
                         //overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
                         //finish();

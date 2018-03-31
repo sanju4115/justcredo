@@ -78,8 +78,8 @@ public class ProfileHomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_profile_home, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-        if (parent.equals("other_user")) {
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (parent.equals(User.OTHER_USER)) {
             LinearLayout information_container = view.findViewById(R.id.information_container);
             information_container.setVisibility(View.GONE);
         }
@@ -94,7 +94,7 @@ public class ProfileHomeFragment extends Fragment {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         final FirebaseUser currentUserUser = auth.getCurrentUser();
-        if (parent.equals("other_user")){
+        if (parent.equals(User.OTHER_USER)){
             userId = uid;
         }else {
             if (currentUserUser != null) {
@@ -106,92 +106,93 @@ public class ProfileHomeFragment extends Fragment {
         db.collection(User.DB_REF).document(userId).addSnapshotListener((documentSnapshot, e) -> {
             final User user = documentSnapshot.toObject(User.class);
             if (user != null) {
-                user.buildUser(no_follower,no_following,no_post);
-                if (user.getName()!=null) name.setText(user.getName());
-                if (user.getDescription()!=null){
+                user.buildUser(no_follower, no_following, no_post);
+                if (user.getName() != null) name.setText(user.getName());
+                if (user.getDescription() != null) {
                     profile_description.setText(user.getDescription());
                 }
-                if (user.getProfilePic()!=null && getActivity()!=null){
-                    Util.loadCircularImageWithGlide(getActivity(),user.getProfilePic(),profilePic);
-                }else{
-                    Util.loadCircularImageWithGlide(getActivity(), Constants.NO_COVER_PIC_URL,profilePic);
+                if (user.getProfilePic() != null && getActivity() != null) {
+                    Util.loadCircularImageWithGlide(getActivity(), user.getProfilePic(), profilePic);
+                } else {
+                    Util.loadCircularImageWithGlide(getActivity(), Constants.NO_COVER_PIC_URL, profilePic);
                 }
-            }
-            TextView editProfile = view.findViewById(R.id.edit_profile);
-            final Button profile_follow =view.findViewById(R.id.profile_follow);
-            CollectionReference followingcollectionReference = db.collection(DbConstants.DB_REF_FOLLOWING);
-            CollectionReference followercollectionReference = db.collection(DbConstants.DB_REF_FOLLOWER);
-            if (parent.equals("other_user")){
-                editProfile.setVisibility(View.GONE);
-                profile_follow.setVisibility(View.VISIBLE);
-                if (currentUserUser!=null) {
-                    followingcollectionReference.document(currentUserUser.getUid()).addSnapshotListener((documentSnapshot1, e1) -> {
-                        if (documentSnapshot.contains(uid)){
-                            profile_follow.setText("Following");
-                        }else {
-                            profile_follow.setText("Follow");
-                        }
-                    });
-                }
-                profile_follow.setOnClickListener(v -> {
-                    if (currentUserUser!=null) {
-                        followingcollectionReference.document(currentUserUser.getUid()).get().addOnCompleteListener(task -> {
-                            if (task.isSuccessful() && task.getResult()!=null){
-                                if (task.getResult().contains(uid)){
-                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                                    alertDialogBuilder.setMessage("Do you want to unfollow ?");
-                                    alertDialogBuilder.setPositiveButton("Yes",
-                                            (arg0, arg1) -> {
-                                                ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(getActivity());
-                                                WriteBatch batch = db.batch();
-                                                DocumentReference followingRef = followingcollectionReference.document(currentUserUser.getUid());
-                                                batch.update(followingRef,uid, FieldValue.delete());
 
-                                                DocumentReference followerRef = followercollectionReference.document(uid);
-                                                batch.update(followerRef, currentUserUser.getUid(), FieldValue.delete());
-
-                                                batch.commit().addOnCompleteListener(batchTask -> {
-                                                    profile_follow.setText("Follow");
-                                                    FirebaseMessaging.getInstance().unsubscribeFromTopic(uid);
-                                                    Util.removeProcessDialogue(mProgredialogue);
-                                                });
-                                            });
-
-                                    alertDialogBuilder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
-
-                                    AlertDialog alertDialog = alertDialogBuilder.create();
-                                    alertDialogBuilder.show();
-                                }else {
-                                    ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(getActivity());
-                                    WriteBatch batch = db.batch();
-                                    DocumentReference followingRef = followingcollectionReference.document(currentUserUser.getUid());
-                                    batch.update(followingRef,uid,true);
-
-                                    DocumentReference followerRef = followercollectionReference.document(uid);
-                                    batch.update(followerRef, currentUserUser.getUid(), true);
-
-                                    db.collection(User.DB_REF).document(uid).get().addOnCompleteListener(userTask -> {
-                                        if (userTask.isSuccessful()){
-                                            final User reviewUser = userTask.getResult().toObject(User.class);
-                                            batch.commit().addOnCompleteListener(batchTask -> {
-                                                profile_follow.setText("Following");
-                                                FirebaseMessaging.getInstance().subscribeToTopic(reviewUser.getUid());
-                                                User.prepareNotificationFollow(reviewUser,user);
-                                                Util.removeProcessDialogue(mProgredialogue);
-                                            });
-                                        }
-                                    });
-
-                                }
+                TextView editProfile = view.findViewById(R.id.edit_profile);
+                final Button profile_follow = view.findViewById(R.id.profile_follow);
+                CollectionReference followingcollectionReference = db.collection(DbConstants.DB_REF_FOLLOWING);
+                CollectionReference followercollectionReference = db.collection(DbConstants.DB_REF_FOLLOWER);
+                if (parent.equals(User.OTHER_USER)) {
+                    editProfile.setVisibility(View.GONE);
+                    profile_follow.setVisibility(View.VISIBLE);
+                    if (currentUserUser != null) {
+                        followingcollectionReference.document(currentUserUser.getUid()).addSnapshotListener((documentSnapshot1, e1) -> {
+                            if (documentSnapshot.contains(uid)) {
+                                profile_follow.setText(getString(R.string.following));
+                            } else {
+                                profile_follow.setText(getString(R.string.follow));
                             }
                         });
                     }
-                });
-            }else {
-                editProfile.setOnClickListener(v -> {
-                    Intent intent = new Intent(getActivity(),EditProfileActivity.class);
-                    startActivity(intent);
-                });
+                    profile_follow.setOnClickListener(v -> {
+                        if (currentUserUser != null) {
+                            followingcollectionReference.document(currentUserUser.getUid()).get().addOnCompleteListener(task -> {
+                                if (task.isSuccessful() && task.getResult() != null) {
+                                    if (task.getResult().contains(uid)) {
+                                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                                        alertDialogBuilder.setMessage(R.string.unfollow_confirmation_msg);
+                                        alertDialogBuilder.setPositiveButton(R.string.yes,
+                                                (arg0, arg1) -> {
+                                                    ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(getActivity());
+                                                    WriteBatch batch = db.batch();
+                                                    DocumentReference followingRef = followingcollectionReference.document(currentUserUser.getUid());
+                                                    batch.update(followingRef, uid, FieldValue.delete());
+
+                                                    DocumentReference followerRef = followercollectionReference.document(uid);
+                                                    batch.update(followerRef, currentUserUser.getUid(), FieldValue.delete());
+
+                                                    batch.commit().addOnCompleteListener(batchTask -> {
+                                                        profile_follow.setText(getString(R.string.following));
+                                                        FirebaseMessaging.getInstance().unsubscribeFromTopic(uid);
+                                                        Util.removeProcessDialogue(mProgredialogue);
+                                                    });
+                                                });
+
+                                        alertDialogBuilder.setNegativeButton(R.string.no, (dialog, which) -> dialog.dismiss());
+
+                                        AlertDialog alertDialog = alertDialogBuilder.create();
+                                        alertDialogBuilder.show();
+                                    } else {
+                                        ProgressDialog mProgredialogue = Util.prepareProcessingDialogue(getActivity());
+                                        WriteBatch batch = db.batch();
+                                        DocumentReference followingRef = followingcollectionReference.document(currentUserUser.getUid());
+                                        batch.update(followingRef, uid, true);
+
+                                        DocumentReference followerRef = followercollectionReference.document(uid);
+                                        batch.update(followerRef, currentUserUser.getUid(), true);
+
+                                        db.collection(User.DB_REF).document(uid).get().addOnCompleteListener(userTask -> {
+                                            if (userTask.isSuccessful()) {
+                                                final User reviewUser = userTask.getResult().toObject(User.class);
+                                                batch.commit().addOnCompleteListener(batchTask -> {
+                                                    profile_follow.setText(R.string.following);
+                                                    FirebaseMessaging.getInstance().subscribeToTopic(reviewUser.getUid());
+                                                    User.prepareNotificationFollow(reviewUser, user);
+                                                    Util.removeProcessDialogue(mProgredialogue);
+                                                });
+                                            }
+                                        });
+
+                                    }
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    editProfile.setOnClickListener(v -> {
+                        Intent intent = new Intent(getActivity(), EditProfileActivity.class);
+                        startActivity(intent);
+                    });
+                }
             }
         });
 
@@ -221,8 +222,10 @@ public class ProfileHomeFragment extends Fragment {
     public void onCreateContextMenu(ContextMenu menu, View v,
                                     ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.type_of_place, menu);
+        if (getActivity()!=null) {
+            MenuInflater inflater = getActivity().getMenuInflater();
+            inflater.inflate(R.menu.type_of_place, menu);
+        }
     }
 
     @Override
@@ -233,32 +236,32 @@ public class ProfileHomeFragment extends Fragment {
             case R.id.school:
                 intent.putExtra(School.CATEGORIES,PlaceTypes.SCHOOLS.getValue());
                 startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
+                if (getActivity()!=null) getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
                 return true;
             case R.id.music:
                 intent.putExtra(School.CATEGORIES,PlaceTypes.MUSIC.getValue());
                 startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
+                if (getActivity()!=null) getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
                 return true;
             case R.id.coaching:
                 intent.putExtra(School.CATEGORIES,PlaceTypes.COACHING.getValue());
                 startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
+                if (getActivity()!=null) getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
                 return true;
             case R.id.sports:
                 intent.putExtra(School.CATEGORIES,PlaceTypes.SPORTS.getValue());
                 startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
+                if (getActivity()!=null) getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
                 return true;
             case R.id.arts:
                 intent.putExtra(School.CATEGORIES,PlaceTypes.ART.getValue());
                 startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
+                if (getActivity()!=null) getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
                 return true;
             case R.id.tutors:
                 intent.putExtra(School.CATEGORIES,PlaceTypes.PrivateTutors.getValue());
                 startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
+                if (getActivity()!=null) getActivity().overridePendingTransition(R.anim.enter_from_right,R.anim.exit_on_left);
                 return true;
             default:
                 return super.onContextItemSelected(item);
@@ -274,6 +277,6 @@ public class ProfileHomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 }

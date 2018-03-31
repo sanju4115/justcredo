@@ -140,20 +140,6 @@ public enum PlaceTypes {
         }
     }
 
-    public enum PageTypes {
-        DETAIL_PAGE("detail_page");
-
-        private final String type;
-
-        PageTypes(String type) {
-            this.type = type;
-        }
-
-        public String getValue() {
-            return this.type;
-        }
-    }
-
     public enum Action {
         BUILD("build"),
         EDIT("edit"),

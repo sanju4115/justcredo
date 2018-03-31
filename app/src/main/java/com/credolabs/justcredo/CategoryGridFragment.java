@@ -119,7 +119,7 @@ public class CategoryGridFragment extends Fragment {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                             Intent intent = new Intent(getActivity(),SchoolDetailActivity.class);
-                            intent.putExtra("SchoolDetail",schoolArrayList.get(position).getId());
+                            intent.putExtra(School.ID,schoolArrayList.get(position).getId());
                             startActivity(intent);
                             getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
 

@@ -18,6 +18,7 @@ import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.adapters.SearchAdapter;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.School;
+import com.credolabs.justcredo.model.User;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -60,18 +61,18 @@ public class ProfilePlaceFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_profile_place, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
         final ProgressBar progressBar = view.findViewById(R.id.progress);
         final LinearLayout not_found =  view.findViewById(R.id.not_found);
         TextView not_found_text1 = view.findViewById(R.id.not_found_text1);
         TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
 
-        if (parent.equals("other_user")){
-            not_found_text1.setText(userName + " is not managing any place.");
+        if (parent.equals(User.OTHER_USER)){
+            not_found_text1.setText(String.format(getString(R.string.no_place_msg_other_user), userName));
             not_found_text2.setVisibility(View.GONE);
         }else {
-            not_found_text1.setText("No place managed by you.");
-            not_found_text2.setText("If you run any educational institute, you can add here.");
+            not_found_text1.setText(R.string.no_place_msg);
+            not_found_text2.setText(R.string.add_places_here);
         }
 
         final RecyclerView searched_items = view.findViewById(R.id.follower_items);
@@ -109,7 +110,7 @@ public class ProfilePlaceFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
     }
 }

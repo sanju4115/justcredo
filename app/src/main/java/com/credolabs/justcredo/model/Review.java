@@ -38,6 +38,7 @@ public class Review implements Serializable{
     public static final String TIMESTAMP = "timestamp";
 
     public static final String USER_ID = "userID";
+    public static final String SCHOOL_ID = "schoolID";
 
 
 

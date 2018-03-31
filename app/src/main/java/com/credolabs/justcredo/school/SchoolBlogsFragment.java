@@ -111,10 +111,10 @@ public class SchoolBlogsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_school_blogs, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-        write_blog_btn = (Button) view.findViewById(R.id.write_blog_btn);
-        cancel_blog_btn = (Button) view.findViewById(R.id.cancel_blog_btn);
-        blog_list = (RecyclerView) view.findViewById(R.id.blog_list);
+        if(getActivity() !=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        write_blog_btn = view.findViewById(R.id.write_blog_btn);
+        cancel_blog_btn = view.findViewById(R.id.cancel_blog_btn);
+        blog_list = view.findViewById(R.id.blog_list);
         blog_layout = (LinearLayout) view.findViewById(R.id.blog_layout);
         images = new ArrayList<>();
         mAdapter = new GalleryAdapter(getActivity(), images);
@@ -421,6 +421,6 @@ public class SchoolBlogsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if(getActivity() !=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 }

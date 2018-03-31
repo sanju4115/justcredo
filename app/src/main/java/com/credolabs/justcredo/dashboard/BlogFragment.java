@@ -3,6 +3,7 @@ package com.credolabs.justcredo.dashboard;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.internet.ConnectionUtil;
+import com.credolabs.justcredo.model.DbConstants;
 import com.credolabs.justcredo.model.Review;
 import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.utility.CustomToast;
@@ -39,17 +41,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class BlogFragment extends Fragment {
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    private String mParam1;
-    private String mParam2;
-
-    private OnFragmentInteractionListener mListener;
-
-    private FirebaseAuth mAuth;
-    private String uid;
-    private User user;
     private RecyclerView reviewRecyclerView;
     private FeedListViewRecyclerAdapter adapter;
     private ArrayList<Review> reviewArrayList;
@@ -69,8 +60,6 @@ public class BlogFragment extends Fragment {
     public static BlogFragment newInstance(String param1, String param2) {
         BlogFragment fragment = new BlogFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -78,46 +67,32 @@ public class BlogFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_blog, container, false);
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
-        progress = (ProgressBar) view.findViewById(R.id.progress);
-        not_found = (LinearLayout) view.findViewById(R.id.not_found);
-        final TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
-        not_found_text1.setText("No Blog In Your Area !");
-        final TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
-        not_found_text2.setText("May be try to change the location.");
+        progress = view.findViewById(R.id.progress);
+        not_found = view.findViewById(R.id.not_found);
+        final TextView not_found_text1 = view.findViewById(R.id.not_found_text1);
+        not_found_text1.setText(R.string.no_blog_msg);
+        final TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
+        not_found_text2.setText(R.string.try_other_location_msg);
         not_found.setVisibility(View.GONE);
-
         loading_more = view.findViewById(R.id.loading_more);
-
         load_more = view.findViewById(R.id.load_more);
         TextView more_text = view.findViewById(R.id.more_text);
-        more_text.setText("Load latest posts...");
-
+        more_text.setText(R.string.load_latest_post);
         progress_more = view.findViewById(R.id.progress_more);
-
-
-        reviewRecyclerView = (RecyclerView) view.findViewById(R.id.review_list);
+        reviewRecyclerView = view.findViewById(R.id.review_list);
         reviewRecyclerView.setHasFixedSize(true);
-
         mLayoutManager = new LinearLayoutManager(getActivity());
-
         reviewRecyclerView.setLayoutManager(mLayoutManager);
-
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-
         reviewArrayList = new ArrayList<>();
-
-        adapter = new FeedListViewRecyclerAdapter(getActivity(), reviewArrayList, "blogs");
+        adapter = new FeedListViewRecyclerAdapter(getActivity(), reviewArrayList, Review.DB_BLOG_REF);
         reviewRecyclerView.setAdapter(adapter);
 
         buildContent();
@@ -126,38 +101,10 @@ public class BlogFragment extends Fragment {
 
     }
 
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
-    }
-
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 
     private void buildEventListener(Query first){
@@ -186,14 +133,7 @@ public class BlogFragment extends Fragment {
     private void buildContent(){
         progress.setVisibility(View.VISIBLE);
         final HashMap<String,String> addressHashMap = Util.getCurrentUSerAddress(getActivity());
-        if (addressHashMap.get("addressCity")!=null){
-            if (addressHashMap.get("addressCity").trim().equalsIgnoreCase("Gurgaon")){
-                addressCity = "Gurugram";
-            }else{
-                addressCity = addressHashMap.get("addressCity").trim();
-            }
-        }
-
+        addressCity = Util.getAddressCity(addressHashMap);
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         Query first = db.collection(Review.DB_BLOG_REF)

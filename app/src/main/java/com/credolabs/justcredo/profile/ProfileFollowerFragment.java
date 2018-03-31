@@ -18,9 +18,11 @@ import android.widget.TextView;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.DbConstants;
+import com.credolabs.justcredo.model.User;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class ProfileFollowerFragment extends Fragment {
@@ -60,7 +62,7 @@ public class ProfileFollowerFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_profile_follower, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
 
         final ProgressBar progressBar =view.findViewById(R.id.progress);
 
@@ -68,12 +70,12 @@ public class ProfileFollowerFragment extends Fragment {
         TextView not_found_text1 = view.findViewById(R.id.not_found_text1);
         TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
 
-        if (parent.equals("other_user")){
-            not_found_text1.setText(userName + " has no follower.");
+        if (parent.equals(User.OTHER_USER)){
+            not_found_text1.setText(String.format(getString(R.string.no_follower_msg_other_user), userName));
             not_found_text2.setVisibility(View.GONE);
         }else {
-            not_found_text1.setText("No One Follows You Yet.");
-            not_found_text2.setText("Explore places and share your experience so that people can know you.");
+            not_found_text1.setText(R.string.no_follower_msg);
+            not_found_text2.setText(R.string.explore_msg_following);
 
         }
 
@@ -93,7 +95,7 @@ public class ProfileFollowerFragment extends Fragment {
         FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_FOLLOWER).document(uid).addSnapshotListener((documentSnapshot, e) -> {
             progressBar.setVisibility(View.GONE);
             usersList.clear();
-            usersList.addAll(new ArrayList<>(documentSnapshot.getData().keySet()));
+            usersList.addAll(documentSnapshot.getData()!=null ? new ArrayList<>(documentSnapshot.getData().keySet()): Collections.emptyList());
             if (usersList.size() > 0 ) {
                 searched_items.setVisibility(View.VISIBLE);
                 not_found.setVisibility(View.GONE);
@@ -114,6 +116,6 @@ public class ProfileFollowerFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 }

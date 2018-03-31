@@ -1,5 +1,6 @@
 package com.credolabs.justcredo.utility;
 
+import android.app.Application;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -26,7 +27,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
 
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -68,13 +68,6 @@ public class Util {
         return month;
     }
 
-    public static void loadImage(Context context, String url, ImageView imageView) {
-        Picasso.with(context)
-                .load(url)
-                .placeholder((R.drawable.image_downloading))
-                .error(R.drawable.image_not_available)
-                .into(imageView);
-    }
 
 
     public static void loadImageVolley(String URL, NetworkImageView img) {
@@ -86,7 +79,8 @@ public class Util {
     }
 
     public static void loadImageWithGlideProgress(RequestManager glide, String internetUrl, ImageView targetImageView, final ProgressBar progressBar) {
-        glide.load(internetUrl)
+        Glide.with(MyApplication.getAppContext())
+                .load(internetUrl)
                 .listener(new RequestListener<String, GlideDrawable>() {
                     @Override
                     public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
@@ -105,7 +99,8 @@ public class Util {
     }
 
     public static void loadImageWithGlide(RequestManager glide, String internetUrl, ImageView targetImageView) {
-        glide.load(internetUrl)
+        Glide.with(MyApplication.getAppContext())
+                .load(internetUrl)
                 .listener(new RequestListener<String, GlideDrawable>() {
                     @Override
                     public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
@@ -123,7 +118,7 @@ public class Util {
     }
 
     public static void loadCircularImageWithGlide(Context context, String internetUrl, final ImageView targetImageView) {
-        Glide.with(context)
+        Glide.with(MyApplication.getAppContext())
                 .load(internetUrl) // add your image url
                 .transform(new CircleTransform(context)) // applying the image transformer
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -296,11 +291,8 @@ public class Util {
 
     public static boolean checkSchoolAdmin(School school) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (school.getUserID().equals(user.getUid())) {
-            return true;
-        }
+        return school.getUserID().equals(user.getUid());
 
-        return false;
     }
 
     public static void showErrorMessage(Context context, String msg) {
@@ -323,6 +315,10 @@ public class Util {
 
     public static void removeProcessDialogue(ProgressDialog mProgressDialog) {
         mProgressDialog.dismiss();
+    }
+
+    public static String getAddressCity(HashMap<String,String> addressHashMap){
+        return (addressHashMap.get(School.ADDRESS_CITY) !=null ? (addressHashMap.get(School.ADDRESS_CITY).trim().equals("Gurgaon") ? "Gurugram" : addressHashMap.get("addressCity").trim()) : "");
     }
 
 }

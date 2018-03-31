@@ -6,17 +6,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
-import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.MyApplication;
 import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.utility.CircularNetworkImageView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /**
@@ -28,7 +25,7 @@ public class FacultiesAdapter extends ArrayAdapter<String> {
     private Context context;
     private Activity mActivity;
 
-    public FacultiesAdapter(Context context, ArrayList<LinkedHashMap<String, Object>> list, DetailedObjectActivity activity) {
+    public FacultiesAdapter(Context context, ArrayList<LinkedHashMap<String, Object>> list, Activity activity) {
         super(context, R.layout.school_faculties_item);
         // TODO Auto-generated constructor stub
         this.list=list;

@@ -9,7 +9,6 @@ import android.support.v4.app.FragmentManager;
 import android.text.InputType;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,66 +16,35 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.internet.ConnectivityReceiver;
-import com.credolabs.justcredo.model.CategoryModel;
-import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
-import com.credolabs.justcredo.search.Filtering;
 import com.credolabs.justcredo.utility.CustomToast;
 import com.credolabs.justcredo.utility.CustomeToastFragment;
 import com.credolabs.justcredo.utility.Util;
-import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static android.content.ContentValues.TAG;
 
 
 public class LoginFragment extends Fragment implements View.OnClickListener{
@@ -91,55 +59,38 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     private static FragmentManager fragmentManager;
     private FirebaseAuth mAuth;
     private ProgressDialog mDialog;
-    private SignInButton signInButtonGoogle;
     private static final int RC_SIGN_IN = 1;
     private GoogleApiClient mGoogleApiClient;
     private CollectionReference mUsersReference;
     private GoogleSignInAccount account;
-    //private  CallbackManager mCallbackManager;
-
     public LoginFragment() {
     }
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_login, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
         mAuth = FirebaseAuth.getInstance();
         mDialog = new ProgressDialog(getActivity());
-        signInButtonGoogle = (SignInButton) view.findViewById(R.id.google_signin_button);
-        // Configure Google Sign In
+        SignInButton signInButtonGoogle = (SignInButton) view.findViewById(R.id.google_signin_button);
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
-                .enableAutoManage(getActivity(), new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                        new CustomeToastFragment().Show_Toast(getActivity(), view,
-                                "Not able to connect!");
-                    }
-                }).addApi(Auth.GOOGLE_SIGN_IN_API, gso).build();
-
-
-            signInButtonGoogle.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (ConnectivityReceiver.isConnected()){
-                    signIn();
-                    }else {
-                        new CustomToast().Show_Toast(getActivity(),
-                                "Please check your network connection!");
-                    }
+                .enableAutoManage(getActivity(), connectionResult -> new CustomeToastFragment().Show_Toast(getActivity(), view,
+                        getString(R.string.connection_err_msg))).addApi(Auth.GOOGLE_SIGN_IN_API, gso).build();
+            signInButtonGoogle.setOnClickListener(v -> {
+                if (ConnectivityReceiver.isConnected()){
+                signIn();
+                }else {
+                    new CustomToast().Show_Toast(getActivity(),
+                            getString(R.string.check_network_msg));
                 }
             });
-
-        mUsersReference = FirebaseFirestore.getInstance().collection("users");
-
-
+        mUsersReference = FirebaseFirestore.getInstance().collection(User.DB_REF);
         initViews();
         setListeners();
         return view;
@@ -153,123 +104,96 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            mDialog.setMessage("Signing In");
+            mDialog.setMessage(getString(R.string.singing_in));
             mDialog.setCancelable(false);
             mDialog.show();
             if (result.isSuccess()) {
                 account = result.getSignInAccount();
-
-                firebaseAuthWithGoogle(account);
+                if (account != null) {
+                    firebaseAuthWithGoogle(account);
+                }
             } else {
                 mDialog.dismiss();
             }
         }
-
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            checkUserExist();
-                            mDialog.dismiss();
-                        } else {
-                            new CustomeToastFragment().Show_Toast(getActivity(), view,
-                                    "Authentication failed. Check your network connection.");
-                            mDialog.dismiss();
-                        }
-                    }
-                });
+        if (getActivity()!=null) {
+            mAuth.signInWithCredential(credential).addOnCompleteListener(getActivity(), task -> {
+                if (task.isSuccessful()) {
+                    checkUserExist();
+                    mDialog.dismiss();
+                } else {
+                    new CustomeToastFragment().Show_Toast(getActivity(), view, getString(R.string.auth_fail_msg));
+                    mDialog.dismiss();
+                }
+            });
+        }
     }
 
     private void checkUserExist() {
-        final String userID = mAuth.getCurrentUser().getUid();
-        Task<DocumentSnapshot> task = mUsersReference.document(userID).get();
-        if (!task.isSuccessful()){
+        if (mAuth.getCurrentUser()!=null) {
+            final String userID = mAuth.getCurrentUser().getUid();
+            mUsersReference.document(userID).get().addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    FirebaseMessaging.getInstance().subscribeToTopic(userID);
+                    DocumentReference newUserRef = mUsersReference.document(userID);
+                    Map<String, Object> docData = new HashMap<>();
+                    docData.put(User.UID, userID);
+                    docData.put(User.NAME, account.getDisplayName());
+                    docData.put(User.EMAIL, account.getEmail());
+                    if (account.getPhotoUrl() != null) {
+                        docData.put(User.PROFILE_PIC, account.getPhotoUrl().toString());
+                    }
+                    newUserRef.set(docData);
+                }
 
-            FirebaseMessaging.getInstance().subscribeToTopic(userID);
-
-            DocumentReference newUserRef = mUsersReference.document(userID);
-            Map<String, Object> docData = new HashMap<>();
-            docData.put("uid",userID);
-            docData.put("name",account.getDisplayName());
-            docData.put("email",account.getEmail());
-            if (account.getPhotoUrl()!=null) {
-                docData.put("profilePic", account.getPhotoUrl().toString());
-            }
-            newUserRef.set(docData);
+                final Intent intent = new Intent(getActivity(), HomeActivity.class);
+                startActivity(intent);
+                if (getActivity() != null) getActivity().finish();
+            });
         }
-
-        final Intent intent = new Intent(getActivity(),HomeActivity.class);
-        startActivity(intent);
-        getActivity().finish();
-
     }
 
+    private void initViews() { // Initiate Views
+        if (getActivity()!=null) fragmentManager = getActivity().getSupportFragmentManager();
 
-    // Initiate Views
-    private void initViews() {
-        fragmentManager = getActivity().getSupportFragmentManager();
-
-        emailid = (EditText) view.findViewById(R.id.login_emailid);
-        password = (EditText) view.findViewById(R.id.login_password);
-        loginButton = (Button) view.findViewById(R.id.loginBtn);
-        forgotPassword = (TextView) view.findViewById(R.id.forgot_password);
-        signUp = (TextView) view.findViewById(R.id.createAccount);
-        show_hide_password = (CheckBox) view
-                .findViewById(R.id.show_hide_password);
-        loginLayout = (LinearLayout) view.findViewById(R.id.login_layout);
-
-        // Load ShakeAnimation
-        shakeAnimation = AnimationUtils.loadAnimation(getActivity(),
-                R.anim.shake);
+        emailid = view.findViewById(R.id.login_emailid);
+        password = view.findViewById(R.id.login_password);
+        loginButton = view.findViewById(R.id.loginBtn);
+        forgotPassword = view.findViewById(R.id.forgot_password);
+        signUp = view.findViewById(R.id.createAccount);
+        show_hide_password = view.findViewById(R.id.show_hide_password);
+        loginLayout = view.findViewById(R.id.login_layout);
+        shakeAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.shake); // Load ShakeAnimation
     }
 
-    // Set Listeners
-    private void setListeners() {
+    private void setListeners() { // Set Listeners
         loginButton.setOnClickListener(this);
         forgotPassword.setOnClickListener(this);
         signUp.setOnClickListener(this);
 
-        // Set check listener over checkbox for showing and hiding password
-        show_hide_password
-                .setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
-                    @Override
-                    public void onCheckedChanged(CompoundButton button,
-                                                 boolean isChecked) {
+        show_hide_password.setOnCheckedChangeListener((button, isChecked) -> { // Set check listener over checkbox for showing and hiding password
+            if (isChecked) {  // If it is checkec then show password else hide password
+                show_hide_password.setText(R.string.hide_pwd);// change
+                password.setInputType(InputType.TYPE_CLASS_TEXT);
+                password.setTransformationMethod(HideReturnsTransformationMethod
+                        .getInstance());// show password
+            } else {
+                show_hide_password.setText(R.string.show_pwd);// change
+                password.setInputType(InputType.TYPE_CLASS_TEXT
+                        | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                password.setTransformationMethod(PasswordTransformationMethod
+                        .getInstance());// hide password
 
-                        // If it is checkec then show password else hide
-                        // password
-                        if (isChecked) {
+            }
 
-                            show_hide_password.setText(R.string.hide_pwd);// change
-                            // checkbox
-                            // text
-
-                            password.setInputType(InputType.TYPE_CLASS_TEXT);
-                            password.setTransformationMethod(HideReturnsTransformationMethod
-                                    .getInstance());// show password
-                        } else {
-                            show_hide_password.setText(R.string.show_pwd);// change
-                            // checkbox
-                            // text
-
-                            password.setInputType(InputType.TYPE_CLASS_TEXT
-                                    | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                            password.setTransformationMethod(PasswordTransformationMethod
-                                    .getInstance());// hide password
-
-                        }
-
-                    }
-                });
+        });
     }
 
     @Override
@@ -279,10 +203,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                 case R.id.loginBtn:
                     checkValidation();
                     break;
-
-                case R.id.forgot_password:
-
-                    // Replace forgot password fragment with animation
+                case R.id.forgot_password: // Replace forgot password fragment with animation
                     fragmentManager
                             .beginTransaction()
                             .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_on_left)
@@ -290,9 +211,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                                     new ForgotPasswordFragment(),
                                     Util.ForgotPassword_Fragment).commit();
                     break;
-                case R.id.createAccount:
-
-                    // Replace signup frgament with animation
+                case R.id.createAccount: // Replace signup frgament with animation
                     fragmentManager
                             .beginTransaction()
                             .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_on_left)
@@ -301,61 +220,45 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                     break;
             }
         }else{
-            new CustomToast().Show_Toast(getActivity(),
-                    "Please check your network connection!");
+            new CustomToast().Show_Toast(getActivity(), getString(R.string.check_network_msg));
         }
 
     }
 
-    // Check Validation before login
-    private void checkValidation() {
-        // Get email id and password
-        String getEmailId = emailid.getText().toString().trim();
+    private void checkValidation() {                             // Check Validation before login
+        String getEmailId = emailid.getText().toString().trim(); // Get email id and password
         String getPassword = password.getText().toString();
-
-        // Check patter for email id
-        Pattern p = Pattern.compile(Util.regEx);
-
+        Pattern p = Pattern.compile(Util.regEx);                // Check patter for email id
         Matcher m = p.matcher(getEmailId);
-
-        // Check for both field is empty or not
-        if (getEmailId.equals("") || getEmailId.length() == 0
-                || getPassword.equals("") || getPassword.length() == 0) {
+        if (getEmailId.equals("") || getEmailId.length() == 0 || getPassword.equals("") || getPassword.length() == 0) { // Check for both field is empty or not
             loginLayout.startAnimation(shakeAnimation);
-            new CustomeToastFragment().Show_Toast(getActivity(), view,
-                    "Enter both credentials.");
+            new CustomeToastFragment().Show_Toast(getActivity(), view, getString(R.string.enter_both_cred));
 
         }
-        // Check if email id is valid or not
-        else if (!m.find())
-            new CustomeToastFragment().Show_Toast(getActivity(), view,
-                    "Your Email Id is Invalid.");
-            // Else do login and do your stuff
-        else {
-            mDialog.setMessage("Signing In");
-            mDialog.setCancelable(false);
-            mDialog.show();
-            mAuth.signInWithEmailAndPassword(getEmailId,getPassword).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()){
+        else if (!m.find())  // Check if email id is valid or not
+            new CustomeToastFragment().Show_Toast(getActivity(), view, getString(R.string.invalid_email));
+        else { // Else do login and do your stuff
+            if (getActivity()!=null) {
+                mDialog.setMessage(getString(R.string.sign_in_msg));
+                mDialog.setCancelable(false);
+                mDialog.show();
+                mAuth.signInWithEmailAndPassword(getEmailId, getPassword).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
                         mDialog.dismiss();
                         Intent intent = new Intent(getActivity(), HomeActivity.class);
                         startActivity(intent);
+
                         getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_on_left);
                         getActivity().finish();
                     }
-                }
-            }).addOnFailureListener(getActivity(), new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
+                }).addOnFailureListener(getActivity(), e -> {
                     mDialog.dismiss();
                     if (e instanceof FirebaseAuthInvalidCredentialsException) {
                         new CustomeToastFragment().Show_Toast(getActivity(), view,
-                                "Invalid Credentials");
+                                getString(R.string.invalid_cred));
                     }
-                }
-            });
+                });
+            }
         }
 
     }
@@ -363,13 +266,15 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mGoogleApiClient.stopAutoManage(getActivity());
-        mGoogleApiClient.disconnect();
+        if (getActivity()!=null) {
+            mGoogleApiClient.stopAutoManage(getActivity());
+            mGoogleApiClient.disconnect();
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
     }
 }

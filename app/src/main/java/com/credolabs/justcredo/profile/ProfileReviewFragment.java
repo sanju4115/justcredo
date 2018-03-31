@@ -19,6 +19,7 @@ import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.dashboard.FeedListViewRecyclerAdapter;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.Review;
+import com.credolabs.justcredo.model.User;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -29,7 +30,7 @@ public class ProfileReviewFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String ARG_PARAM3 = "param3";
-    private static final int LIMIT = 3;
+    private static final int LIMIT = 10;
     private String parent;
     private String userName;
     private RecyclerView reviewRecyclerView;
@@ -73,18 +74,19 @@ public class ProfileReviewFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View view =  inflater.inflate(R.layout.fragment_profile_review, container, false);
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
-
+        if (getActivity()!=null){
+            ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        }
         progress = view.findViewById(R.id.progress);
         not_found = view.findViewById(R.id.not_found);
         final TextView not_found_text1 = view.findViewById(R.id.not_found_text1);
         final TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
-        if (parent.equals("other_user")){
-            not_found_text1.setText(userName + " has not written any rating/review yet!");
+        if (parent.equals(User.OTHER_USER)){
+            not_found_text1.setText(String.format(getString(R.string.review_no_msg), userName));
             not_found_text2.setVisibility(View.GONE);
         }else {
-            not_found_text1.setText("No Rating/Review By You !");
-            not_found_text2.setText("Please explore places and share your experieces with them.");
+            not_found_text1.setText(R.string.no_review_msg_login_user);
+            not_found_text2.setText(R.string.explore_place_msg);
         }
 
         loading_more = view.findViewById(R.id.loading_more);
@@ -204,6 +206,8 @@ public class ProfileReviewFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null){
+            ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        }
     }
 }

@@ -22,16 +22,13 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.credolabs.justcredo.R;
-import com.credolabs.justcredo.ReadReviewActivity;
 import com.credolabs.justcredo.ReviewDetailsActivity;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.Review;
-import com.credolabs.justcredo.model.School;
 import com.credolabs.justcredo.model.User;
 import com.credolabs.justcredo.profile.UserActivity;
 import com.credolabs.justcredo.utility.CustomRatingBar;
 import com.credolabs.justcredo.utility.Util;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

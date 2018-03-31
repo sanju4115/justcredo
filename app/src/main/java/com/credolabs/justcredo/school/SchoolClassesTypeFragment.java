@@ -3,6 +3,7 @@ package com.credolabs.justcredo.school;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
@@ -67,18 +68,18 @@ public class SchoolClassesTypeFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_school_classes_type, container, false);
-        progress = (ProgressBar) view.findViewById(R.id.progress);
-        final LinearLayout not_found = (LinearLayout) view.findViewById(R.id.not_found);
-        final TextView not_found_text1 = (TextView) view.findViewById(R.id.not_found_text1);
-        final TextView not_found_text2 = (TextView) view.findViewById(R.id.not_found_text2);
+        progress = view.findViewById(R.id.progress);
+        final LinearLayout not_found = view.findViewById(R.id.not_found);
+        final TextView not_found_text1 = view.findViewById(R.id.not_found_text1);
+        final TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
 
         not_found_text1.setText("No classes added yet !");
         not_found_text2.setVisibility(View.GONE);
-        type_classes_section = (LinearLayout) view.findViewById(R.id.type_classes_section);
-        ExpandableHeightGridView classes_type_gridview = (ExpandableHeightGridView) view.findViewById(R.id.classes_type_gridview);
+        type_classes_section = view.findViewById(R.id.type_classes_section);
+        ExpandableHeightGridView classes_type_gridview = view.findViewById(R.id.classes_type_gridview);
         if (model.getClassesType() != null) {
             not_found.setVisibility(View.GONE);
             ArrayList<String> list = new ArrayList<>(model.getClassesType().values());
@@ -88,93 +89,70 @@ public class SchoolClassesTypeFragment extends Fragment {
             type_classes_section.setVisibility(View.GONE);
         }
         if (Util.checkSchoolAdmin(model)) { // edit section only for admin
-            fragContainer = (LinearLayout) view.findViewById(R.id.container);
+            fragContainer = view.findViewById(R.id.container);
 
-            save_cancel = (LinearLayout) view.findViewById(R.id.save_cancel);
-            LinearLayout edit_classes_type_section = (LinearLayout) view.findViewById(R.id.edit_classes_type_section);
-            Button cancel_classes_type = (Button) view.findViewById(R.id.cancel_classes_type);
-            edit_classes_type = (Button) view.findViewById(R.id.edit_classes_type);
-            Button save_classes_type = (Button) view.findViewById(R.id.save_classes_type);
+            save_cancel = view.findViewById(R.id.save_cancel);
+            LinearLayout edit_classes_type_section = view.findViewById(R.id.edit_classes_type_section);
+            Button cancel_classes_type = view.findViewById(R.id.cancel_classes_type);
+            edit_classes_type = view.findViewById(R.id.edit_classes_type);
+            Button save_classes_type = view.findViewById(R.id.save_classes_type);
 
             edit_classes_type_section.setVisibility(View.VISIBLE);
             final ClassesTypeFragment classesTypeFragment = ClassesTypeFragment.newInstance(
                     PlaceTypes.Action.EDIT_BACKUP.getValue(), model);
-            edit_classes_type.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    progress.setVisibility(View.VISIBLE);
-                    not_found.setVisibility(View.GONE);
-                    FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-                    transaction.replace(R.id.container, classesTypeFragment);
-                    transaction.addToBackStack(null);
-                    transaction.commit();
-                    hideContent();
-                    fragContainer.setVisibility(View.VISIBLE);
-                    edit_classes_type.setVisibility(View.GONE);
-                    save_cancel.setVisibility(View.VISIBLE);
-                    progress.setVisibility(View.GONE);
-                }
+            edit_classes_type.setOnClickListener(v -> {
+                progress.setVisibility(View.VISIBLE);
+                not_found.setVisibility(View.GONE);
+                FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+                transaction.replace(R.id.container, classesTypeFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                hideContent();
+                fragContainer.setVisibility(View.VISIBLE);
+                edit_classes_type.setVisibility(View.GONE);
+                save_cancel.setVisibility(View.VISIBLE);
+                progress.setVisibility(View.GONE);
             });
 
-            cancel_classes_type.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    fragContainer.setVisibility(View.GONE);
-                    edit_classes_type.setVisibility(View.VISIBLE);
-                    save_cancel.setVisibility(View.GONE);
-                    visibleContent();
-                }
+            cancel_classes_type.setOnClickListener(v -> {
+                fragContainer.setVisibility(View.GONE);
+                edit_classes_type.setVisibility(View.VISIBLE);
+                save_cancel.setVisibility(View.GONE);
+                visibleContent();
             });
 
-            save_classes_type.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                    alertDialogBuilder.setMessage("Do you want to update classes types ?");
-                    alertDialogBuilder.setPositiveButton("Yes",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface arg0, int arg1) {
-                                    progress.setVisibility(View.VISIBLE);
-                                    HashMap<String, HashMap<String, String>> map = classesTypeFragment.getFragmentState();
-                                    DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
+            save_classes_type.setOnClickListener(v -> {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                alertDialogBuilder.setMessage("Do you want to update classes types ?");
+                alertDialogBuilder.setPositiveButton("Yes",
+                        (arg0, arg1) -> {
+                            progress.setVisibility(View.VISIBLE);
+                            HashMap<String, HashMap<String, String>> map = classesTypeFragment.getFragmentState();
+                            DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(School.SCHOOL_DATABASE);
 
-                                    mDatabaseReference.child(model.getId()).child(School.CLASSES_TYPE).setValue(map.get(School.CLASSES_TYPE));
+                            mDatabaseReference.child(model.getId()).child(School.CLASSES_TYPE).setValue(map.get(School.CLASSES_TYPE));
 
-                                    fragContainer.setVisibility(View.GONE);
-                                    edit_classes_type.setVisibility(View.VISIBLE);
-                                    save_cancel.setVisibility(View.GONE);
-                                    visibleContent();
-                                    progress.setVisibility(View.GONE);
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(
-                                            getActivity());
-                                    builder.setCancelable(true);
-                                    builder.setMessage("Congrats, classes type updated successfully ! You can write blog and upload photos so that users" +
-                                            " can know about this.");
-                                    builder.setPositiveButton("Ok",
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog,
-                                                                    int which) {
-                                                    dialog.dismiss();
-                                                }
-                                            });
-                                    AlertDialog alert = builder.create();
-                                    alert.show();
-                                }
-                            });
+                            fragContainer.setVisibility(View.GONE);
+                            edit_classes_type.setVisibility(View.VISIBLE);
+                            save_cancel.setVisibility(View.GONE);
+                            visibleContent();
+                            progress.setVisibility(View.GONE);
+                            AlertDialog.Builder builder = new AlertDialog.Builder(
+                                    getActivity());
+                            builder.setCancelable(true);
+                            builder.setMessage("Congrats, classes type updated successfully ! You can write blog and upload photos so that users" +
+                                    " can know about this.");
+                            builder.setPositiveButton("Ok",
+                                    (dialog, which) -> dialog.dismiss());
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        });
 
-                    alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
+                alertDialogBuilder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
-                    alertDialogBuilder.create();
-                    alertDialogBuilder.show();
+                alertDialogBuilder.create();
+                alertDialogBuilder.show();
 
-                }
             });
         }
         return view;

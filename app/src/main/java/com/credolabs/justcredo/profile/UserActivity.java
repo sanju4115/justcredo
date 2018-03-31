@@ -20,7 +20,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-public class UserActivity extends AppCompatActivity implements ProfileFragment.OnFragmentInteractionListener{
+public class UserActivity extends AppCompatActivity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,18 +41,12 @@ public class UserActivity extends AppCompatActivity implements ProfileFragment.O
                 User user = task.getResult().toObject(User.class);
                 if (user != null) {
                     getSupportActionBar().setTitle(user.getName());
+                    Fragment fragment = ProfileFragment.newInstance(User.OTHER_USER, user);
+                    FragmentTransaction transaction = fragmentManager.beginTransaction();
+                    transaction.replace(R.id.content, fragment).commit();
                 }
             }
         });
-
-        Fragment fragment = ProfileFragment.newInstance("other_user", uid);
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.content, fragment).commit();
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
     }
 
     @Override

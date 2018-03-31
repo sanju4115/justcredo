@@ -16,6 +16,7 @@ import com.credolabs.justcredo.R;
 import com.credolabs.justcredo.adapters.CategoryGridAdapter;
 import com.credolabs.justcredo.internet.ConnectionUtil;
 import com.credolabs.justcredo.model.DbConstants;
+import com.credolabs.justcredo.model.User;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -67,12 +68,12 @@ public class ProfileBookmarksFragment extends Fragment {
         TextView not_found_text2 = view.findViewById(R.id.not_found_text2);
         final LinearLayout not_found = view.findViewById(R.id.not_found);
         not_found.setVisibility(View.GONE);
-        if (parent.equals("other_user")){
-            not_found_text1.setText(userName + " has not bookmarked any place yet.");
+        if (parent.equals(User.OTHER_USER)){
+            not_found_text1.setText(String.format(getString(R.string.no_bookmark_msg), userName));
             not_found_text2.setVisibility(View.GONE);
         }else {
-            not_found_text1.setText("You have not bookmarked any place yet.");
-            not_found_text2.setText("Explore places to bookmark places..");
+            not_found_text1.setText(R.string.no_bookmark_msg_other);
+            not_found_text2.setText(R.string.explore_place_bookmark_msg);
         }
         progressBar = view.findViewById(R.id.progress);
         progressBar.setVisibility(View.VISIBLE);
@@ -86,8 +87,8 @@ public class ProfileBookmarksFragment extends Fragment {
 
         FirebaseFirestore.getInstance().collection(DbConstants.DB_REF_BOOKMARK).document(uid).get().addOnCompleteListener(task -> {
             progressBar.setVisibility(View.GONE);
-            if (task.isSuccessful() && task.getResult()!=null){
-                schoolsList.addAll(new ArrayList<>(task.getResult().getData().keySet()));
+            if (task.isSuccessful() && task.getResult()!=null && task.getResult().getData()!=null){
+                schoolsList.addAll( new ArrayList<>(task.getResult().getData().keySet()));
                 if (schoolsList.size() > 0 & grid != null) {
                     not_found.setVisibility(View.GONE);
                     grid.setVisibility(View.VISIBLE);
@@ -105,6 +106,8 @@ public class ProfileBookmarksFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        if (getActivity()!=null) {
+            ConnectionUtil.checkConnection(getActivity().findViewById(R.id.placeSnackBar));
+        }
     }
 }

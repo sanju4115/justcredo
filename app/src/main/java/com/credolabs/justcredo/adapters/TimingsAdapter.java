@@ -8,15 +8,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.credolabs.justcredo.DetailedObjectActivity;
 import com.credolabs.justcredo.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by Sanjay kumar on 4/9/2017.
@@ -29,7 +26,7 @@ public class TimingsAdapter extends ArrayAdapter<String> {
     ArrayList<String> days;
 
 
-    public TimingsAdapter(Context context, HashMap<String, HashMap<String, String>> list, DetailedObjectActivity activity) {
+    public TimingsAdapter(Context context, HashMap<String, HashMap<String, String>> list, Activity activity) {
         super(context,R.layout.school_hours_item);
         // TODO Auto-generated constructor stub
         this.list=list;

@@ -3,10 +3,7 @@ package com.credolabs.justcredo.utility;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.util.Log;
-
-import com.facebook.login.LoginManager;
 
 /**
  * Created by Sanjay kumar on 4/15/2017.
@@ -40,7 +37,7 @@ public class PrefUtil {
         SharedPreferences.Editor editor = sharedPreference.edit();
         editor.clear();
         editor.apply(); // This line is IMPORTANT !!!
-        LoginManager.getInstance().logOut();
+        //LoginManager.getInstance().logOut();
     }
 
     public void saveFacebookUserInfo(String first_name,String last_name, String email, String gender, String profilePicURL, String coverPhotoURL){

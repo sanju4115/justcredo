@@ -126,7 +126,7 @@ public class SponsoredAdapter extends PagerAdapter {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context,SchoolDetailActivity.class);
-                intent.putExtra("SchoolDetail",list.get(position).getId());
+                intent.putExtra(School.ID,list.get(position).getId());
                 context.startActivity(intent);
             }
         });
